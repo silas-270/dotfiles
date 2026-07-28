@@ -1,0 +1,82 @@
+{
+  "$schema": "/etc/xdg/swaync/configSchema.json",
+  "positionX": "right",
+  "positionY": "top",
+  "layer": "overlay",
+  "control-center-layer": "top",
+  "layer-shell": true,
+  "cssPriority": "application",
+
+  "control-center-margin-top": 60,
+  "control-center-margin-right": 12,
+  "control-center-margin-bottom": 12,
+  "control-center-margin-left": 12,
+
+  "notification-2way-tz": "local",
+  "notification-icon-size": 64,
+
+  "timeout": 10,
+  "timeout-low": 5,
+  "timeout-critical": 0,
+
+  "fit-to-screen": false,
+  "transition-length": 0,
+  "control-center-width": 380,
+  "control-center-height": 450,
+
+  "widgets": [
+    "buttons-grid",
+    "volume",
+    "buttons-grid#volume-icon",
+    "backlight",
+    "buttons-grid#backlight-icon",
+    "mpris"
+  ],
+  "widget-config": {
+    "buttons-grid": {
+      "actions": [
+        {
+          "label": "󰤨 WLAN",
+          "command": "rofi -show wifi -theme ~/.config/rofi/wifi.rasi"
+        },
+        {
+          "label": "󰂯 Bluetooth",
+          "command": "rofi-bluetooth -theme ~/.config/rofi/bluetooth.rasi"
+        }
+      ]
+    },
+    "buttons-grid#volume-icon": {
+      "buttons-per-row": 1,
+      "actions": [
+        {
+          "label": "󰕾",
+          "type": "toggle",
+          "command": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0",
+          "update-command": "if wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q 'MUTED'; then echo true; elif [ \"$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -o '[0-9.]\\+' | tail -n 1 | awk '{print ($1 == 0)}')\" = '1' ]; then echo true; else echo false; fi"
+        }
+      ]
+    },
+    "buttons-grid#backlight-icon": {
+      "buttons-per-row": 1,
+      "actions": [
+        {
+          "label": "󰃟",
+          "type": "toggle",
+          "command": "/home/silas270/.config/hypr/scripts/toggle-blue-light.sh",
+          "update-command": "if [ \"$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')\" = '[[EMPTY]]' ] || [ -z \"$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')\" ]; then echo false; else echo true; fi"
+        }
+      ]
+    },
+    "volume": {
+      "label": " "
+    },
+    "backlight": {
+      "label": " ",
+      "device": "amdgpu_bl1"
+    },
+    "mpris": {
+      "image-size": 96,
+      "image-radius": 16
+    }
+  }
+}

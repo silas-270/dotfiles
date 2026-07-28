@@ -1,0 +1,105 @@
+/* Rofi Wifi Menu Theme - Latte Style */
+
+configuration {
+    click-to-exit: true;
+}
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+    
+    /* Theme Colors - Solid "Ton/Afrika" Look */
+    bg-base:     #F5E8CC; 
+    bg-input:    #EBDCBB; 
+    
+    /* Foreground / Text */
+    fg-primary:  #3A2408;
+    fg-muted:    #7A5020;
+    
+    /* Accents */
+    accent:      #C47A10;
+    accent-hover:#B85510;
+    accent-bg:   #E4C99E; 
+    
+    /* Remove Borders */
+    border-ui:   transparent;
+    border-win:  transparent;
+    
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+window {
+    background-color: @bg-base;
+    border:           0px;
+    border-radius:    12px;
+    width:            380px;
+    padding:          12px;
+}
+
+mainbox {
+    spacing:          10px;
+    children:         [ inputbar, listview ];
+}
+
+inputbar {
+    spacing:          8px;
+    padding:          8px;
+    background-color: @bg-input;
+    border:           0px;
+    border-radius:    10px;
+    children:         [ prompt, entry ];
+}
+
+prompt {
+    background-color: transparent;
+    text-color:       @accent;
+    font:             "JetBrainsMono Nerd Font Bold 12";
+    padding:          4px 10px;
+    vertical-align:   0.5;
+}
+
+entry {
+    placeholder:      "Suchen...";
+    placeholder-color:@fg-muted;
+    vertical-align:   0.5;
+    text-color:       @fg-primary;
+    background-color: transparent;
+}
+
+listview {
+    fixed-height:     false;
+    spacing:          4px;
+    scrollbar:        false;
+    lines:            15;
+}
+
+element {
+    padding:          6px 10px;
+    border-radius:    10px;
+    spacing:          8px;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+element selected.normal {
+    background-color: @accent-bg;
+    text-color:       @accent-hover;
+}
+
+element-text {
+    text-color:       inherit;
+    vertical-align:   0.5;
+}
+
+element-icon {
+    size:             1.2em;
+    vertical-align:   0.5;
+}

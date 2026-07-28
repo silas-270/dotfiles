@@ -1,0 +1,155 @@
+configuration {
+    modi:               "drun,run,window";
+    show-icons:         true;
+    icon-theme:         "Papirus";
+    terminal:           "kitty";
+    drun-display-format: "{name}";
+    disable-history:    false;
+    hide-scrollbar:     true;
+    display-drun:       "  Apps";
+    display-run:        "  Run";
+    display-window:     "󱂬  Window";
+    sidebar-mode:       true;
+    
+    /* Navigation bindings */
+    kb-mode-next:       "Control+Tab,Shift+Right";
+    kb-mode-previous:   "Control+Shift+Tab,Shift+Left";
+    
+    /* Close on click outside */
+    click-to-exit:      true;
+    
+    /* Mouse support */
+    hover-select:       true;
+    me-select-entry:    "";
+    me-accept-entry:    "MousePrimary";
+}
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+    
+    /* Theme Colors - Solid "Ton/Afrika" Look */
+    bg-base:     #F5E8CC; /* Solider Sand/Ton, exakt wie Waybar */
+    bg-input:    #EBDCBB; /* Ein Hauch dunkler für Suchfeld und Buttons */
+    
+    /* Foreground / Text */
+    fg-primary:  #3A2408; /* Tiefbraun */
+    fg-muted:    #7A5020; /* Gedämpftes Braun */
+    
+    /* Accents */
+    accent:      #C47A10; /* Terracotta / sattes Orange */
+    accent-hover:#B85510;
+    accent-bg:   #E4C99E; /* Solides, sattes Sand/Orange für Hervorhebungen */
+    
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+window {
+    background-color: @bg-base;
+    border:           0px; /* Keine Rahmen! */
+    border-radius:    16px;
+    width:            750px;
+    padding:          20px;
+}
+
+mainbox {
+    spacing:          18px;
+    children:         [ inputbar, message, listview, mode-switcher ];
+}
+
+inputbar {
+    spacing:          12px;
+    padding:          14px 18px;
+    background-color: @bg-input;
+    border:           0px;
+    border-radius:    12px;
+    children:         [ prompt, entry ];
+}
+
+prompt {
+    background-color: transparent;
+    text-color:       @accent;
+    font:             "JetBrainsMono Nerd Font Bold 14";
+    vertical-align:   0.5;
+}
+
+entry {
+    placeholder:      "Suche...";
+    placeholder-color:@fg-muted;
+    vertical-align:   0.5;
+    text-color:       @fg-primary;
+    background-color: transparent;
+    font:             "JetBrainsMono Nerd Font 14";
+    cursor:           text;
+}
+
+listview {
+    fixed-height:     true;
+    columns:          2;
+    lines:            7; 
+    spacing:          10px;
+    scrollbar:        false;
+    padding:          4px 0px 0px 0px;
+}
+
+element {
+    padding:          10px 14px;
+    border-radius:    12px;
+    spacing:          14px;
+    background-color: transparent;
+    cursor:           pointer;
+    border:           0px;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+element alternate.normal {
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+element selected.normal {
+    background-color: @accent-bg;
+    text-color:       @accent-hover;
+    border:           0px; /* Kein Rahmen beim Auswählen */
+}
+
+element-text {
+    text-color:       inherit;
+    vertical-align:   0.5;
+    highlight:        bold #C47A10; 
+    cursor:           inherit;
+}
+
+element-icon {
+    size:             2.2em;
+    vertical-align:   0.5;
+    cursor:           inherit;
+}
+
+mode-switcher {
+    spacing:          15px;
+    padding:          12px 0px 0px 0px;
+    border:           0px;
+}
+
+button {
+    padding:          10px 16px;
+    background-color: @bg-input;
+    text-color:       @fg-muted;
+    border-radius:    10px;
+    vertical-align:   0.5;
+    horizontal-align: 0.5;
+    cursor:           pointer;
+    border:           0px;
+}
+
+button selected {
+    background-color: @accent-bg;
+    text-color:       @accent-hover;
+    border:           0px;
+    font:             "JetBrainsMono Nerd Font Bold 12";
+}

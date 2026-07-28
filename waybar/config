@@ -1,0 +1,92 @@
+{
+  "layer": "top",
+  "position": "top",
+  "margin-top": 10,
+  "margin-left": 10,
+  "margin-right": 10,
+
+  "modules-left": [
+  "custom/logo",
+  "hyprland/workspaces"
+],
+  "modules-center": [
+    "cpu",
+    "custom/memory",
+    "custom/network"
+  ],
+  "modules-right": [
+    "custom/keyd",
+    "pulseaudio",
+    "battery",
+    "clock",
+    "custom/controlcenter"
+  ],
+
+  "custom/logo": {
+    "format": "HYPR",
+    "tooltip": false
+  },
+
+  "hyprland/workspaces": {
+  "format": "{id}",
+  "on-click": "activate",
+  "sort-by-number": true,
+  "active-only": false,
+  "tooltip": false
+},
+
+  "cpu": {
+  "format": "CPU {usage}%",
+  "interval": 2,
+    "tooltip": false
+  },
+
+  "custom/memory": {
+    "exec": "~/.config/hypr/scripts/waybar-ram.sh",
+    "interval": 2,
+    "tooltip": false
+  },
+
+  "custom/network": {
+    "exec": "~/.config/hypr/scripts/waybar-network.sh",
+    "return-type": "json",
+    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh"
+  },
+
+  "custom/keyd": {
+    "exec": "~/.config/hypr/scripts/waybar-keyd.sh",
+    "return-type": "json",
+    "signal": 8,
+    "tooltip": false
+  },
+
+  "pulseaudio": {
+    "format": "󰕾 {volume}%",
+    "format-muted": "󰝟 muted",
+    "on-click": "pavucontrol",
+    "tooltip": false
+  },
+
+  "battery": {
+    "format": "󰁹 {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-full": "󰁹 full",
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "tooltip": false
+  },
+
+  "clock": {
+    "format": "{:%H:%M}",
+    "format-alt": "{:%a %d.%m.%Y}",
+    "tooltip-format": "<tt>{calendar}</tt>"
+  },
+
+  "custom/controlcenter": {
+    "format": "",
+    "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
+    "tooltip": false
+  }
+}

@@ -1,0 +1,142 @@
+* {
+font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+border: none;
+}
+
+window#waybar {
+    background: #F5E8CC;
+    border-bottom: 1px solid rgba(180, 110, 30, 0.25);
+    color: #3A2408;
+    font-size: 12px;
+    border-radius: 16px;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    margin: 4px 4px;
+}
+
+/* ── Logo (Links, im Kasten) ── */
+#custom-logo {
+background: rgba(196, 122, 16, 0.13);
+color: #C47A10;
+padding: 4px 14px 2px 14px;
+border-radius: 12px;
+font-weight: 700;
+letter-spacing: 0.06em;
+}
+
+/* ── Workspaces ── */
+#workspaces {
+margin-left: 6px;
+}
+#workspaces button {
+background: transparent;
+color: #7A5020;
+padding: 4px 7px 2px 7px;
+border-radius: 12px;
+min-width: 26px;
+font-family: "JetBrains Mono", monospace;
+font-size: 12px;
+transition: all 0.15s ease;
+}
+#workspaces button.active {
+background: rgba(196, 122, 16, 0.18);
+color: #C47A10;
+font-weight: 700;
+}
+#workspaces button.urgent {
+background: rgba(176, 32, 16, 0.15);
+color: #B02010;
+}
+#workspaces button:hover {
+background: rgba(196, 122, 16, 0.10);
+color: #B85510;
+}
+
+/* ── Center ── */
+#cpu,
+#memory,
+#custom-memory {
+color: #5A3A14;
+padding: 3px 10px;
+}
+
+#network,
+#custom-network {
+color: #B85510;
+padding: 3px 10px;
+}
+
+/* ── Rechts ── */
+#custom-keyd {
+color: #B85510;
+padding: 4px 10px 2px 10px;
+}
+
+#pulseaudio {
+color: #7A5020;
+padding: 3px 10px;
+}
+
+#battery {
+color: #3A2408;
+padding: 3px 10px;
+}
+
+#battery.warning { color: #B06010; }
+#battery.critical {
+color: #B02010;
+animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+    to { opacity: 0.4; }
+}
+
+/* ── Uhr (Rechts, jetzt im Kasten!) ── */
+#clock {
+background: rgba(184, 85, 16, 0.1);
+color: #C47A10;
+font-weight: 700;
+letter-spacing: 0.04em;
+padding: 4px 14px 2px 14px;
+border-radius: 12px; /* Abgerundete Ecken hinzugefügt */
+margin-left: 6px; /* Etwas Abstand zum Akku */
+}
+
+/* ── Control Center (Rechts, auch im Kasten!) ── */
+#custom-controlcenter {
+background: rgba(184, 85, 16, 0.1);
+color: #C47A10;
+font-weight: 700;
+padding: 4px 14px 2px 14px;
+border-radius: 12px;
+margin-left: 6px;
+}
+
+/* ── Trennlinien ── */
+/* Clock wurde hier entfernt, damit der Kasten nicht von der Linie durchschnitten wird */
+#memory,
+#custom-memory,
+#network,
+#custom-network,
+#pulseaudio,
+#battery {
+border-left: 1px solid rgba(180, 110, 30, 0.25);
+margin-left: 2px;
+padding-left: 12px;
+}
+
+#cpu,
+#memory,
+#custom-memory,
+#network,
+#custom-network,
+#custom-keyd,
+#pulseaudio,
+#battery {
+/* Vorher: padding: 3px 10px; */
+padding: 4px 10px 2px 10px; /* Leicht nach unten verschoben */
+}

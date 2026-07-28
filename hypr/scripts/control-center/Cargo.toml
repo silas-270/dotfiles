@@ -1,0 +1,26 @@
+[package]
+name = "control-center"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "control-center"
+path = "src/main.rs"
+
+[dependencies]
+smithay-client-toolkit = "0.19"
+wayland-client = "0.31"
+tiny-skia = "0.11"
+resvg = "0.44"
+fontdue = "0.9"
+calloop = "0.13"
+libc = "0.2"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+memmap2 = "0.9"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

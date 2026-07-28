@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Silas Theme
+Description=A custom SDDM theme
+Author=Silas
+Copyright=2026
+License=GPL
+Type=sddm-theme
+Version=0.1
+MainScript=Main.qml
+ConfigFile=theme.conf

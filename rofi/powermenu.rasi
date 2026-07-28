@@ -1,0 +1,75 @@
+configuration {
+    click-to-exit: true;
+}
+
+* {
+    font: "JetBrainsMono Nerd Font 33";
+    
+    bg-base:     #F5E8CC; 
+    bg-input:    #EBDCBB; 
+    fg-primary:  #3A2408;
+    accent-hover:#B85510;
+    accent-bg:   #E4C99E; 
+    
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+window {
+    background-color: @bg-base;
+    border:           0px;
+    border-radius:    42px;
+    width:            360px;
+    padding:          24px;
+    location:         center;
+    anchor:           center;
+}
+
+mainbox {
+    children:         [ listview ];
+    spacing:          0px;
+    padding:          0px;
+}
+
+listview {
+    fixed-height:     false;
+    fixed-columns:    true;
+    columns:          3;
+    lines:            1;
+    spacing:          21px;
+    scrollbar:        false;
+    padding:          0px;
+}
+
+/* Geometry im allgemeinen Block, Farben in den Zuständen */
+element {
+    children:         [ element-text ];
+    width:            90px;
+    padding:          15px 0px;
+    margin:           0px;
+    border:           0px;
+    border-radius:    45px;
+    cursor:           pointer;
+}
+
+element normal.normal,
+element alternate.normal {
+    background-color: @bg-input;
+    text-color:       @fg-primary;
+}
+
+element selected.normal {
+    background-color: @accent-bg;
+    text-color:       @accent-hover;
+}
+
+element-text {
+    margin:           0px;
+    border:           0px;
+    padding:          0px;
+    text-color:       inherit;
+    vertical-align:   0.5;
+    horizontal-align: 0.5;
+    cursor:           inherit;
+    expand:           true;
+}
