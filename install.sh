@@ -21,8 +21,14 @@ rm -rf ~/.config/kitty && ln -s ~/dotfiles/kitty ~/.config/kitty
 rm -rf ~/.config/gtk-3.0 && ln -s ~/dotfiles/gtk-3.0 ~/.config/gtk-3.0
 rm -rf ~/.config/gtk-4.0 && ln -s ~/dotfiles/gtk-4.0 ~/.config/gtk-4.0
 
-# Shell und Wallpaper
-rm -f ~/.bashrc && ln -s ~/dotfiles/shell/.bashrc ~/.bashrc
+# Shell (Nicht komplett überschreiben, sondern nur einbinden!)
+if ! grep -q "source ~/dotfiles/shell/custom_bash.sh" ~/.bashrc; then
+    echo "" >> ~/.bashrc
+    echo "# Lade Ricing & Custom Configs" >> ~/.bashrc
+    echo "source ~/dotfiles/shell/custom_bash.sh" >> ~/.bashrc
+fi
+
+# Wallpaper
 rm -f ~/Bilder/Wallpaper/wallpaper-home.jpg && ln -s ~/dotfiles/wallpapers/wallpaper-home.jpg ~/Bilder/Wallpaper/wallpaper-home.jpg
 
 echo "🦀 Kompiliere Custom Rust Control-Center..."
