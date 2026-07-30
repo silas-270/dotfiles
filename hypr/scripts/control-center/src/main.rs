@@ -346,14 +346,19 @@ impl ControlCenter {
         self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, text_y, font_size, false, text_color);
         let bracket_w = self.font_cache.measure_text("[", font_size, false);
 
-        // 2. Draw Icon with custom left padding
+        // Mathematical replication of Waybar's custom space padding:
+        // Waybar format: `[U+2004 󰖩 U+0020]`
+        let left_pad = font_size / 3.0; // U+2004 is 1/3 em
+        let right_pad = self.font_cache.measure_text(" ", font_size, false); // U+0020 is standard space width
+
+        // 2. Draw Icon with exact calculated left padding
         let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
-        let icon_pos_x = icon_x + bracket_w + 2.0; // 2px padding (pulls icon left)
+        let icon_pos_x = icon_x + bracket_w + left_pad; 
         self.font_cache.draw_text(&mut pixmap.as_mut(), icon_str, icon_pos_x, text_y, font_size, false, text_color);
         let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
 
-        // 3. Draw "]" with custom right padding
-        let right_bracket_x = icon_pos_x + icon_w + 12.0; // 12px padding (pushes right bracket away)
+        // 3. Draw "]" with exact calculated right padding
+        let right_bracket_x = icon_pos_x + icon_w + right_pad;
         self.font_cache.draw_text(&mut pixmap.as_mut(), "]", right_bracket_x, text_y, font_size, false, text_color);
         let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
 
@@ -447,12 +452,19 @@ impl ControlCenter {
 
         // Check if inside the WiFi row
         if y >= rect_y && y <= rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
-            let bracket_w = self.font_cache.measure_text("[", 21.0, false);
+            let font_size = 21.0;
+            let bracket_w = self.font_cache.measure_text("[", font_size, false);
             let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
-            let icon_w = self.font_cache.measure_text(icon_str, 21.0, false);
-            let right_bracket_w = self.font_cache.measure_text("]", 21.0, false);
+            let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+            let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
             
-            let total_icon_box_w = bracket_w + 2.0 + icon_w + 12.0 + right_bracket_w;
+            // Mathematical replication of Waybar's space characters:
+            // U+2004 (Three-per-em space) = 1/3 of em size
+            let left_pad = font_size / 3.0; 
+            // U+0020 (Standard space)
+            let right_pad = self.font_cache.measure_text(" ", font_size, false);
+            
+            let total_icon_box_w = bracket_w + left_pad + icon_w + right_pad + right_bracket_w;
             
             if x <= rect_x + 6.0 + total_icon_box_w {
                 // Clicked the icon
