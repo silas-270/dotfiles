@@ -54,7 +54,7 @@ pactl subscribe 2>/dev/null | grep --line-buffered -e "sink" -e "server" | while
     
     # Start new timer in background
     (
-        sleep 3
+        sleep 1
         print_json 0
     ) &
     TIMER_PID=$!

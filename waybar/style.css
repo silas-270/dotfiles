@@ -27,7 +27,7 @@ window#waybar {
 #cpu,
 #custom-centerpiece,
 #custom-memory,
-#pulseaudio,
+#custom-volume,
 #battery,
 #clock,
 #custom-controlcenter {
@@ -113,7 +113,7 @@ window#waybar {
 }
 
 /* ── Right Section Rectangles ── */
-#pulseaudio {
+#custom-volume {
     margin-left: 4px;
     color: @fg-muted;
 }
@@ -145,7 +145,7 @@ window#waybar {
 #cpu:focus,
 #custom-centerpiece:focus,
 #custom-memory:focus,
-#pulseaudio:focus,
+#custom-volume:focus,
 #battery:focus,
 #clock:focus,
 #custom-controlcenter:focus {
