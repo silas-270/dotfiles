@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_PATH=$(realpath "$0")
 
 if [[ -z "${ROFI_RETV:-}" ]]; then
-    rofi -show wifi -modi "wifi:$SCRIPT_PATH" -theme ~/.config/rofi/wifi.rasi
+    rofi -show wifi -modi "wifi:$SCRIPT_PATH" -theme /home/silas270/.config/rofi/wifi.rasi
     exit 0
 fi
 
@@ -81,40 +81,38 @@ case "$action" in
         
         ssid="$action"
         
-        (
-            active_ssid=$(nmcli -t -f ACTIVE,SSID dev wifi | awk -F: '$1=="yes"{print $2}')
+        active_ssid=$(nmcli -t -f ACTIVE,SSID dev wifi | awk -F: '$1=="yes"{print $2}')
+        
+        if [[ "$active_ssid" == "$ssid" ]]; then
+            nmcli device disconnect wlan0 2>/dev/null \
+                || nmcli device disconnect "$(nmcli -t -f DEVICE,TYPE dev | awk -F: '$2=="wifi"{print $1; exit}')" \
+                && notify "Wi-Fi" "Disconnected from $ssid"
+            exit 0
+        fi
+        
+        saved_conn=$(nmcli -t -f NAME connection show | grep -xF "$ssid" || true)
+        
+        if [[ -n "$saved_conn" ]]; then
+            nmcli connection up "$ssid" \
+                && notify "Wi-Fi" "Connected to $ssid" \
+                || notify "Wi-Fi" "Connection to $ssid failed"
+            exit 0
+        fi
+        
+        security=$(nmcli -t -f SSID,SECURITY device wifi list | awk -F: -v s="$ssid" '$1==s {print $2; exit}')
+        
+        if [[ -z "$security" || "$security" == "--" ]]; then
+            nmcli device wifi connect "$ssid" \
+                && notify "Wi-Fi" "Connected to $ssid" \
+                || notify "Wi-Fi" "Connection to $ssid failed"
+        else
+            password=$(rofi -dmenu -password -p "[ password for $ssid ]" -theme /home/silas270/.config/rofi/wifi.rasi)
+            [[ -z "$password" ]] && exit 0
             
-            if [[ "$active_ssid" == "$ssid" ]]; then
-                nmcli device disconnect wlan0 2>/dev/null \
-                    || nmcli device disconnect "$(nmcli -t -f DEVICE,TYPE dev | awk -F: '$2=="wifi"{print $1; exit}')" \
-                    && notify "Wi-Fi" "Disconnected from $ssid"
-                exit 0
-            fi
-            
-            saved_conn=$(nmcli -t -f NAME connection show | grep -xF "$ssid" || true)
-            
-            if [[ -n "$saved_conn" ]]; then
-                nmcli connection up "$ssid" \
-                    && notify "Wi-Fi" "Connected to $ssid" \
-                    || notify "Wi-Fi" "Connection to $ssid failed"
-                exit 0
-            fi
-            
-            security=$(nmcli -t -f SSID,SECURITY device wifi list | awk -F: -v s="$ssid" '$1==s {print $2; exit}')
-            
-            if [[ -z "$security" || "$security" == "--" ]]; then
-                nmcli device wifi connect "$ssid" \
-                    && notify "Wi-Fi" "Connected to $ssid" \
-                    || notify "Wi-Fi" "Connection to $ssid failed"
-            else
-                password=$(rofi -dmenu -password -p "[ password for $ssid ]" -theme ~/.config/rofi/wifi.rasi)
-                [[ -z "$password" ]] && exit 0
-                
-                nmcli device wifi connect "$ssid" password "$password" \
-                    && notify "Wi-Fi" "Connected to $ssid" \
-                    || notify "Wi-Fi" "Connection to $ssid failed (invalid password?)"
-            fi
-        ) &
+            nmcli device wifi connect "$ssid" password "$password" \
+                && notify "Wi-Fi" "Connected to $ssid" \
+                || notify "Wi-Fi" "Connection to $ssid failed (invalid password?)"
+        fi
         
         exit 0
         ;;
