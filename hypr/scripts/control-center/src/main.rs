@@ -137,9 +137,10 @@ impl ControlCenter {
 
     fn show_panel(&mut self) {
         if self.visible {
+            eprintln!("[CC] show_panel called but already visible");
             return;
         }
-        eprintln!("[CC] Showing panel");
+        eprintln!("[CC] Showing panel surface...");
         self.visible = true;
 
         self.panel_height = grid::PANEL_HEIGHT as u32;
@@ -187,7 +188,7 @@ impl ControlCenter {
         if !self.visible {
             return;
         }
-        eprintln!("[CC] Hiding panel");
+        eprintln!("[CC] Hiding panel surface!");
         self.visible = false;
         self.panel_surface = None;
         self.backdrop_surface = None;
@@ -203,6 +204,7 @@ impl ControlCenter {
         }
     }
 
+
     fn toggle_panel(&mut self) {
         if self.visible {
             self.hide_panel();
@@ -216,9 +218,11 @@ impl ControlCenter {
     fn draw_panel(&mut self) {
         let w = self.panel_width;
         let h = self.panel_height;
+        eprintln!("[CC] draw_panel called with size {}x{}", w, h);
         if w == 0 || h == 0 {
             return;
         }
+
 
         let stride = w as i32 * 4;
         let (buffer, canvas) = match self.pool.create_buffer(
@@ -292,17 +296,17 @@ impl ControlCenter {
         );
 
         // ── Top Header Rectangle (Waybar style) ──
-        let outer_pad = 12.0;
+        let outer_pad = 10.0;
         let rect_x = outer_pad;
         let rect_y = outer_pad;
         let rect_w = w as f32 - 2.0 * outer_pad;
-        let rect_h = 36.0;
+        let rect_h = 28.0;
 
-        // 2px orange accent border matching Waybar elements (@accent #D97736)
-        let orange_border = tiny_skia::Color::from_rgba(
-            217.0 / 255.0,
-            119.0 / 255.0,
-            54.0 / 255.0,
+        // 2px solid @border (#7A523D) matching Waybar box elements
+        let box_border = tiny_skia::Color::from_rgba(
+            122.0 / 255.0,  // R (#7A523D)
+            82.0 / 255.0,   // G
+            61.0 / 255.0,   // B
             1.0,
         ).unwrap();
 
@@ -311,15 +315,15 @@ impl ControlCenter {
             rect_x, rect_y,
             rect_w, rect_h,
             2.0,
-            orange_border,
+            box_border,
         );
 
         // Text inside rectangle (Waybar white tone #F2E3D5, JetBrainsMono 16px)
         let placeholder_text = "[ CONTROL CENTER ]";
         let text_color = tiny_skia::Color::from_rgba(
-            242.0 / 255.0,
-            227.0 / 255.0,
-            213.0 / 255.0,
+            242.0 / 255.0,  // R (#F2E3D5)
+            227.0 / 255.0,  // G
+            213.0 / 255.0,  // B
             1.0,
         ).unwrap();
 
@@ -336,6 +340,7 @@ impl ControlCenter {
             false,
             text_color,
         );
+
 
         // Copy RGBA → BGRA
 
