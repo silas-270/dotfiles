@@ -1,29 +1,22 @@
 #!/usr/bin/env bash
-#
-# rofi-bluetooth-menu.sh
-# Zeigt verfuegbare Bluetooth-Geräte in Rofi, erlaubt Verbinden/Trennen per Klick.
-# Nutzen von Rofi Script-Modi für dynamisches Aktualisieren ohne Schließen.
+# rofi-bluetooth-menu.sh - Interactive Rofi Bluetooth manager
 
 set -euo pipefail
 
-# Stelle sicher, dass wir den absoluten Pfad zu diesem Skript haben
 SCRIPT_PATH=$(realpath "$0")
 
-# Wenn wir NICHT von Rofi aufgerufen wurden, starte Rofi im Script-Modus
 if [[ -z "${ROFI_RETV:-}" ]]; then
-    rofi -show bluetooth -modi "bluetooth:$SCRIPT_PATH" -theme /home/silas270/.config/rofi/bluetooth.rasi
+    rofi -show bluetooth -modi "bluetooth:$SCRIPT_PATH" -theme ~/.config/rofi/bluetooth.rasi
     exit 0
 fi
 
-# Icons (nerd font, passend zu deiner waybar config / latte theme)
 ICON_CONNECTED="󰄬"
 ICON_PAIRED="󰂱"
 ICON_DISCOVERED="󰂯"
 ICON_RESCAN="󰑐 Rescan"
-ICON_DISABLE_BT="󰂲 BT deaktivieren"
-ICON_ENABLE_BT="󰂯 BT aktivieren"
+ICON_DISABLE_BT="󰂲 Disable Bluetooth"
+ICON_ENABLE_BT="󰂯 Enable Bluetooth"
 
-# Wrapper um notify-send
 notify() {
     timeout 2 notify-send "$@" >/dev/null 2>&1 || echo "$*" >&2
 }
@@ -36,9 +29,7 @@ is_powered() {
     fi
 }
 
-
 get_devices() {
-    # 1. Connected devices
     local connected_macs=""
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
@@ -47,7 +38,6 @@ get_devices() {
         fi
     done < <(bluetoothctl devices Connected 2>/dev/null)
 
-    # 2. Paired but not connected devices
     local paired_macs=""
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
@@ -58,7 +48,6 @@ get_devices() {
         fi
     done < <(bluetoothctl devices Paired 2>/dev/null)
 
-    # 3. Discovered / cached devices
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
             if ! echo -e "$connected_macs" | grep -Fq "$mac" && ! echo -e "$paired_macs" | grep -Fq "$mac"; then
@@ -74,81 +63,84 @@ build_menu() {
         return
     fi
 
-    # 1. Kontroll-Elemente
     printf "%s\x00info\x1f%s\n" "${ICON_DISABLE_BT}" "__disable_bt__"
     printf "%s\x00info\x1f%s\n" "${ICON_RESCAN}" "__rescan__"
 
-    # 2. Alle Geräte ausgeben
-    while IFS=: read -r status mac name; do
+    while IFS=: read -r state mac name; do
+        [[ -z "$mac" ]] && continue
         local icon="$ICON_DISCOVERED"
-        local mark=""
-        if [[ "$status" == "connected" ]]; then
+        local suffix=""
+        
+        if [[ "$state" == "connected" ]]; then
             icon="$ICON_CONNECTED"
-            mark="  [Verbunden]"
-        elif [[ "$status" == "paired" ]]; then
+            suffix=" (Connected)"
+        elif [[ "$state" == "paired" ]]; then
             icon="$ICON_PAIRED"
+            suffix=" (Paired)"
         fi
         
-        local display="${icon}  ${name} (${mac})${mark}"
-        printf "%s\x00info\x1f%s\n" "$display" "$mac:$name:$status"
+        local display="${icon}  ${name:-$mac}${suffix}"
+        printf "%s\x00info\x1f%s\n" "$display" "${state}:${mac}:${name}"
     done < <(get_devices)
 }
 
-# Falls Rofi initial aufruft (ROFI_RETV == 0)
 if [[ "$ROFI_RETV" -eq 0 ]]; then
     build_menu
     exit 0
 fi
 
-# Wenn ein Element ausgewählt wurde (ROFI_RETV == 1)
 action="${ROFI_INFO:-}"
 
 case "$action" in
     "__enable_bt__")
-        rfkill unblock bluetooth
-        sleep 0.5
-        bluetoothctl power on >/dev/null 2>&1 || true
-        sleep 0.5
+        bluetoothctl power on >/dev/null 2>&1 || rfkill unblock bluetooth 2>/dev/null || true
+        sleep 1
         build_menu
+        notify "Bluetooth" "Bluetooth Enabled"
         ;;
     "__disable_bt__")
-        bluetoothctl power off >/dev/null 2>&1 || true
-        rfkill block bluetooth
+        bluetoothctl power off >/dev/null 2>&1 || rfkill block bluetooth 2>/dev/null || true
         sleep 0.5
         build_menu
+        notify "Bluetooth" "Bluetooth Disabled"
         ;;
     "__rescan__")
-        # Starte Background Scan für 10 Sekunden
-        timeout 10 bluetoothctl scan on >/dev/null 2>&1 &
-        sleep 1.0
+        (
+            bluetoothctl scan on >/dev/null 2>&1 &
+            scan_pid=$!
+            sleep 5
+            kill "$scan_pid" 2>/dev/null || true
+            bluetoothctl scan off >/dev/null 2>&1 || true
+        ) &
+        sleep 0.5
         build_menu
+        notify "Bluetooth" "Scanning for devices..."
         ;;
     *)
-        # Ein Gerät wurde ausgewählt
         if [[ -z "$action" ]]; then
             exit 0
         fi
         
-        # Split info: mac:name:status
-        IFS=: read -r mac name status <<< "$action"
+        IFS=: read -r state mac name <<< "$action"
         
-        # Verbindung im Hintergrund ausführen, damit Rofi sofort schließt
         (
-            if [[ "$status" == "connected" ]]; then
-                notify "Bluetooth" "Trenne Verbindung mit $name..."
+            if [[ "$state" == "connected" ]]; then
                 bluetoothctl disconnect "$mac" \
-                    && notify "Bluetooth" "Verbindung mit $name getrennt" \
-                    || notify "Bluetooth" "Trennen von $name fehlgeschlagen"
+                    && notify "Bluetooth" "Disconnected from ${name:-$mac}" \
+                    || notify "Bluetooth" "Failed to disconnect ${name:-$mac}"
             else
-                notify "Bluetooth" "Verbinde mit $name..."
-                bluetoothctl trust "$mac" >/dev/null 2>&1 || true
-                bluetoothctl connect "$mac" \
-                    && notify "Bluetooth" "Erfolgreich verbunden mit $name" \
-                    || notify "Bluetooth" "Verbindung mit $name fehlgeschlagen"
+                notify "Bluetooth" "Connecting to ${name:-$mac}..."
+                bluetoothctl pair "$mac" 2>/dev/null || true
+                bluetoothctl trust "$mac" 2>/dev/null || true
+                
+                if bluetoothctl connect "$mac"; then
+                    notify "Bluetooth" "Connected to ${name:-$mac}"
+                else
+                    notify "Bluetooth" "Connection to ${name:-$mac} failed"
+                fi
             fi
         ) &
         
-        # Leere Ausgabe schließt Rofi
         exit 0
         ;;
 esac

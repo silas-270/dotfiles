@@ -1,3 +1,5 @@
+/* Rofi Power Menu Theme - Brutalist CLI Style */
+
 configuration {
     click-to-exit: true;
 }
@@ -5,17 +7,18 @@ configuration {
 @import "../theme/generated/colors.rasi"
 
 * {
-    font: "JetBrainsMono Nerd Font 33";
+    font: "JetBrainsMono Nerd Font 24";
     background-color: transparent;
     text-color:       @fg-primary;
 }
 
 window {
     background-color: @bg-base;
-    border:           0px;
-    border-radius:    42px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     width:            360px;
-    padding:          24px;
+    padding:          20px;
     location:         center;
     anchor:           center;
 }
@@ -31,19 +34,19 @@ listview {
     fixed-columns:    true;
     columns:          3;
     lines:            1;
-    spacing:          21px;
+    spacing:          16px;
     scrollbar:        false;
     padding:          0px;
 }
 
-/* Geometry im allgemeinen Block, Farben in den Zuständen */
 element {
     children:         [ element-text ];
     width:            90px;
-    padding:          15px 0px;
+    padding:          14px 0px;
     margin:           0px;
-    border:           0px;
-    border-radius:    45px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     cursor:           pointer;
 }
 
@@ -54,11 +57,13 @@ element alternate.normal {
 }
 
 element selected.normal {
-    background-color: @accent-bg;
-    text-color:       @accent-hover;
+    background-color: @accent;
+    text-color:       @bg-base;
+    border-color:     @accent;
 }
 
 element-text {
+    font:             "JetBrainsMono Nerd Font 24";
     margin:           0px;
     border:           0px;
     padding:          0px;

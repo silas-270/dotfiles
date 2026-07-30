@@ -49,11 +49,12 @@ prompt {
 }
 
 entry {
-    placeholder:      "Suchen...";
+    placeholder:      "search...";
     placeholder-color:@fg-muted;
     vertical-align:   0.5;
     text-color:       @fg-primary;
     background-color: transparent;
+    font:             "JetBrainsMono Nerd Font 12";
 }
 
 listview {
@@ -85,6 +86,7 @@ element selected.normal {
 }
 
 element-text {
+    font:             "JetBrainsMono Nerd Font 12";
     text-color:       inherit;
     vertical-align:   0.5;
 }
