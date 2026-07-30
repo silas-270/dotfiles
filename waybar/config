@@ -68,7 +68,7 @@
   },
 
   "custom/volume": {
-    "exec": "~/.config/hypr/scripts/waybar-volume.py",
+    "exec": "~/.config/hypr/scripts/waybar-volume.sh",
     "return-type": "json",
     "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
     "tooltip": false
