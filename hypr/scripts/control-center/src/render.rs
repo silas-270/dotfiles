@@ -60,6 +60,27 @@ pub fn fill_rect(pixmap: &mut PixmapMut, x: f32, y: f32, w: f32, h: f32, color: 
     fill_rounded_rect(pixmap, x, y, w, h, 0.0, color);
 }
 
+/// Draw a rectangle outline with specified thickness.
+pub fn draw_rect_outline(
+    pixmap: &mut PixmapMut,
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+    thickness: f32,
+    color: Color,
+) {
+    // Top
+    fill_rect(pixmap, x, y, w, thickness, color);
+    // Bottom
+    fill_rect(pixmap, x, y + h - thickness, w, thickness, color);
+    // Left
+    fill_rect(pixmap, x, y, thickness, h, color);
+    // Right
+    fill_rect(pixmap, x + w - thickness, y, thickness, h, color);
+}
+
+
 /// Composite a source `Pixmap` into `dest` at `(dx,dy)`, scaling it to
 /// `(dw,dh)` pixels using bilinear filtering.
 pub fn draw_pixmap_scaled(

@@ -291,7 +291,54 @@ impl ControlCenter {
             border_color,
         );
 
+        // ── Top Header Rectangle (Waybar style) ──
+        let outer_pad = 12.0;
+        let rect_x = outer_pad;
+        let rect_y = outer_pad;
+        let rect_w = w as f32 - 2.0 * outer_pad;
+        let rect_h = 36.0;
+
+        // 2px orange accent border matching Waybar elements (@accent #D97736)
+        let orange_border = tiny_skia::Color::from_rgba(
+            217.0 / 255.0,
+            119.0 / 255.0,
+            54.0 / 255.0,
+            1.0,
+        ).unwrap();
+
+        render::draw_rect_outline(
+            &mut pixmap.as_mut(),
+            rect_x, rect_y,
+            rect_w, rect_h,
+            2.0,
+            orange_border,
+        );
+
+        // Text inside rectangle (Waybar white tone #F2E3D5, JetBrainsMono 16px)
+        let placeholder_text = "[ CONTROL CENTER ]";
+        let text_color = tiny_skia::Color::from_rgba(
+            242.0 / 255.0,
+            227.0 / 255.0,
+            213.0 / 255.0,
+            1.0,
+        ).unwrap();
+
+        let text_w = self.font_cache.measure_text(placeholder_text, 16.0, false);
+        let text_x = rect_x + (rect_w - text_w) / 2.0;
+        let text_y = rect_y + (rect_h - 16.0) / 2.0 - 1.0;
+
+        self.font_cache.draw_text(
+            &mut pixmap.as_mut(),
+            placeholder_text,
+            text_x,
+            text_y,
+            16.0,
+            false,
+            text_color,
+        );
+
         // Copy RGBA → BGRA
+
         render::rgba_to_bgra(pixmap.data(), canvas);
 
         // Submit
