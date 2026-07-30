@@ -21,6 +21,9 @@ if [[ "$player_status" == "Playing" || "$player_status" == "Paused" ]]; then
             track="${track:0:30}..."
         fi
         
+        # Escape XML/Pango markup special characters
+        track=$(echo "$track" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+        
         if [[ "$player_status" == "Paused" ]]; then
             echo "[ 󰏤 ${track} ]"
         else
