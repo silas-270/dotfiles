@@ -1,4 +1,4 @@
-/* Rofi Bluetooth Menu Theme - Latte Style */
+/* Rofi Bluetooth Menu Theme - Brutalist CLI Style */
 
 configuration {
     click-to-exit: true;
@@ -9,7 +9,6 @@ configuration {
 * {
     font: "JetBrainsMono Nerd Font 12";
     
-    /* Remove Borders */
     border-ui:   transparent;
     border-win:  transparent;
     
@@ -19,8 +18,9 @@ configuration {
 
 window {
     background-color: @bg-base;
-    border:           0px;
-    border-radius:    12px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     width:            380px;
     padding:          12px;
 }
@@ -32,10 +32,11 @@ mainbox {
 
 inputbar {
     spacing:          8px;
-    padding:          8px;
+    padding:          6px 8px;
     background-color: @bg-input;
-    border:           0px;
-    border-radius:    10px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     children:         [ prompt, entry ];
 }
 
@@ -43,7 +44,7 @@ prompt {
     background-color: transparent;
     text-color:       @accent;
     font:             "JetBrainsMono Nerd Font Bold 12";
-    padding:          4px 10px;
+    padding:          4px 8px;
     vertical-align:   0.5;
 }
 
@@ -59,12 +60,12 @@ listview {
     fixed-height:     false;
     spacing:          4px;
     scrollbar:        false;
-    lines:            15;
+    lines:            12;
 }
 
 element {
-    padding:          6px 10px;
-    border-radius:    10px;
+    padding:          6px 8px;
+    border-radius:    0px;
     spacing:          8px;
 }
 
@@ -79,8 +80,8 @@ element alternate.normal {
 }
 
 element selected.normal {
-    background-color: @accent-bg;
-    text-color:       @accent-hover;
+    background-color: @accent;
+    text-color:       @bg-base;
 }
 
 element-text {
