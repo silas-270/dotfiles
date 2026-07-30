@@ -26,7 +26,7 @@ window#waybar {
 /* ── Logo ── */
 #custom-logo {
     background: transparent;
-    color: @fg-primary;
+    color: @accent;
     border: 2px solid @border;
     border-radius: 0px;
     padding: 0px 4px;
