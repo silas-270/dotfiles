@@ -11,7 +11,9 @@
     "network",
     "bluetooth"
   ],
-  "modules-center": [],
+  "modules-center": [
+    "hyprland/window"
+  ],
   "modules-right": [
     "custom/sound",
     "battery",
@@ -29,6 +31,12 @@
     "on-click": "activate",
     "sort-by-number": true,
     "active-only": false,
+    "tooltip": false
+  },
+
+  "hyprland/window": {
+    "format": "[ {title} ]",
+    "separate-outputs": true,
     "tooltip": false
   },
 

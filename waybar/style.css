@@ -23,6 +23,7 @@ window#waybar {
 /* ── Common Box Base ── */
 #custom-logo,
 #workspaces,
+#window,
 #network,
 #bluetooth,
 #custom-sound,
@@ -82,6 +83,11 @@ window#waybar {
 
 #bluetooth {
     margin-left: 2px;
+}
+
+/* ── Center Section ── */
+#window {
+    color: @fg-primary;
 }
 
 /* ── Right Section Rectangles ── */
