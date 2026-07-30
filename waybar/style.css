@@ -136,6 +136,22 @@ window#waybar {
     color: @accent;
 }
 
+/* ── Keyboard Navigation Focus Highlight ── */
+#workspaces button:focus,
+#network:focus,
+#bluetooth:focus,
+#cpu:focus,
+#custom-centerpiece:focus,
+#custom-memory:focus,
+#pulseaudio:focus,
+#battery:focus,
+#clock:focus,
+#custom-controlcenter:focus {
+    background-color: @accent;
+    color: @bg-base;
+    outline: none;
+}
+
 @keyframes blink {
     to { opacity: 0.4; }
 }
