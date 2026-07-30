@@ -49,7 +49,7 @@
   "custom/centerpiece": {
     "exec": "~/.config/hypr/scripts/waybar-centerpiece.sh",
     "interval": 1,
-    "on-click": "playerctl play-pause",
+    "on-click": "playerctl status 2>/dev/null | grep -qE 'Playing|Paused' && ~/.config/hypr/scripts/control-center/target/release/control-center",
     "tooltip": false
   },
 
