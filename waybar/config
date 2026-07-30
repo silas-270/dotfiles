@@ -73,7 +73,7 @@
     "format-icons": {
       "default": ["󰕿", "󰖀", "󰕾"]
     },
-    "on-click": "pavucontrol",
+    "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
     "tooltip": false
   },
 
