@@ -35,9 +35,10 @@ use std::time::Duration;
 mod api;
 mod grid;
 mod render;
-mod widgets;
 
-use widgets::{FontCache, IconButton, MediaPlayer, QuickSettingButton, VerticalSlider};
+// We keep the widgets module around for FontCache (text rendering).
+mod widgets;
+use widgets::FontCache;
 
 /// Socket path unique per user so multiple sessions don't collide.
 fn socket_path() -> std::path::PathBuf {
@@ -80,16 +81,6 @@ enum SyncMessage {
 }
 
 // ---------------------------------------------------------------------------
-// Slider drag tracking
-// ---------------------------------------------------------------------------
-
-#[derive(Clone, Copy, PartialEq)]
-enum DraggingSlider {
-    Brightness,
-    Volume,
-}
-
-// ---------------------------------------------------------------------------
 // Main application state
 // ---------------------------------------------------------------------------
 
@@ -120,23 +111,19 @@ struct ControlCenter {
     visible: bool,
     needs_draw: bool,
 
-    // Widgets
-    wifi_btn: QuickSettingButton,
-    bluetooth_btn: QuickSettingButton,
-    brightness_btn: IconButton,
-    brightness_slider: VerticalSlider,
-    volume_btn: IconButton,
-    volume_slider: VerticalSlider,
-    media_player: MediaPlayer,
-
     // Sync state
     sync_sender: calloop::channel::Sender<SyncMessage>,
     wifi_toggle_time: Option<std::time::Instant>,
     bt_toggle_time: Option<std::time::Instant>,
-    last_volume: f64,
 
-    // Active drag
-    dragging: Option<DraggingSlider>,
+    // Cached state from API syncs (to be used by future widgets)
+    wifi_active: bool,
+    wifi_status: String,
+    bt_active: bool,
+    brightness: f64,
+    blue_light_active: bool,
+    volume: f64,
+    volume_muted: bool,
 
     // Font cache
     font_cache: FontCache,
@@ -155,17 +142,8 @@ impl ControlCenter {
         eprintln!("[CC] Showing panel");
         self.visible = true;
 
-        // Synchronously fetch media state to determine window height
-        let media_state = api::media::get_media_state();
-        self.media_player.update_from_state(&media_state);
-
-        let panel_h = if self.media_player.visible {
-            grid::GRID_HEIGHT_WITH_MEDIA
-        } else {
-            grid::GRID_HEIGHT
-        };
-        self.panel_height = panel_h as u32;
-        self.panel_width = grid::GRID_WIDTH as u32;
+        self.panel_height = grid::PANEL_HEIGHT as u32;
+        self.panel_width = grid::PANEL_WIDTH as u32;
 
         // Create backdrop (fullscreen click-catcher)
         let backdrop_wl = self.compositor_state.create_surface(&self.qh);
@@ -211,7 +189,6 @@ impl ControlCenter {
         }
         eprintln!("[CC] Hiding panel");
         self.visible = false;
-        self.dragging = None;
         self.panel_surface = None;
         self.backdrop_surface = None;
         self.panel_configured = false;
@@ -264,23 +241,55 @@ impl ControlCenter {
         };
         pixmap.fill(tiny_skia::Color::TRANSPARENT);
 
-        // Window background with rounded corners
-        let win_bg = tiny_skia::Color::from_rgba(0.961, 0.910, 0.800, 0.85).unwrap();
-        render::fill_rounded_rect(
-            &mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32,
-            grid::WINDOW_RADIUS, win_bg,
+        // ── Background: flat @bg-base (#382319) — same as Waybar ──
+        // R=0x38=56  G=0x23=35  B=0x19=25 → normalized
+        let bg = tiny_skia::Color::from_rgba(
+            56.0 / 255.0,   // R = 0.2196
+            35.0 / 255.0,   // G = 0.1373
+            25.0 / 255.0,   // B = 0.0980
+            1.0,
+        ).unwrap();
+        render::fill_rect(
+            &mut pixmap.as_mut(),
+            0.0, 0.0,
+            w as f32, h as f32,
+            bg,
         );
 
-        // Draw widgets
-        self.wifi_btn.draw(&mut pixmap.as_mut(), &self.font_cache);
-        self.bluetooth_btn.draw(&mut pixmap.as_mut(), &self.font_cache);
-        self.brightness_btn.draw(&mut pixmap.as_mut(), &self.font_cache);
-        self.brightness_slider.draw(&mut pixmap.as_mut(), &self.font_cache);
-        self.volume_btn.draw(&mut pixmap.as_mut(), &self.font_cache);
-        self.volume_slider.draw(&mut pixmap.as_mut(), &self.font_cache);
-        if self.media_player.visible {
-            self.media_player.draw(&mut pixmap.as_mut(), &self.font_cache);
-        }
+        // ── Border: 1px @border (#7A523D) on bottom edge — same as Waybar ──
+        let border_color = tiny_skia::Color::from_rgba(
+            122.0 / 255.0,  // R
+            82.0 / 255.0,   // G
+            61.0 / 255.0,   // B
+            1.0,
+        ).unwrap();
+        render::fill_rect(
+            &mut pixmap.as_mut(),
+            0.0, h as f32 - grid::BORDER as f32,
+            w as f32, grid::BORDER as f32,
+            border_color,
+        );
+        // Left border
+        render::fill_rect(
+            &mut pixmap.as_mut(),
+            0.0, 0.0,
+            grid::BORDER as f32, h as f32,
+            border_color,
+        );
+        // Right border
+        render::fill_rect(
+            &mut pixmap.as_mut(),
+            w as f32 - grid::BORDER as f32, 0.0,
+            grid::BORDER as f32, h as f32,
+            border_color,
+        );
+        // Top border
+        render::fill_rect(
+            &mut pixmap.as_mut(),
+            0.0, 0.0,
+            w as f32, grid::BORDER as f32,
+            border_color,
+        );
 
         // Copy RGBA → BGRA
         render::rgba_to_bgra(pixmap.data(), canvas);
@@ -317,7 +326,7 @@ impl ControlCenter {
         };
 
         // Fully transparent background to catch clicks without visual artifacts
-        // REMOVED canvas.fill(0) to prevent 35MB physical RAM allocation (relying on kernel zero-page instead)
+        let _ = canvas;
 
         if let Some(ref surface) = self.backdrop_surface {
             let wl = surface.wl_surface();
@@ -331,125 +340,18 @@ impl ControlCenter {
         self.needs_draw = true;
     }
 
-    // ── Pointer event dispatch ──────────────────────────────────────────
+    // ── Pointer event dispatch (stub — no widgets yet) ─────────────────
 
-    fn handle_pointer_motion(&mut self, x: f64, y: f64) {
-        let mut redraw = false;
-
-        // If dragging a slider, forward to it regardless of hit test
-        if let Some(slider_id) = self.dragging {
-            match slider_id {
-                DraggingSlider::Brightness => {
-                    redraw |= self.brightness_slider.on_pointer_motion(x, y);
-                }
-                DraggingSlider::Volume => {
-                    redraw |= self.volume_slider.on_pointer_motion(x, y);
-                }
-            }
-            if redraw { self.request_redraw(); }
-            return;
-        }
-
-        // Normal hit testing for hover state
-        redraw |= if self.wifi_btn.contains(x, y) {
-            self.wifi_btn.on_pointer_motion(x, y)
-        } else {
-            self.wifi_btn.on_pointer_leave()
-        };
-        redraw |= if self.bluetooth_btn.contains(x, y) {
-            self.bluetooth_btn.on_pointer_motion(x, y)
-        } else {
-            self.bluetooth_btn.on_pointer_leave()
-        };
-        redraw |= if self.brightness_btn.contains(x, y) {
-            self.brightness_btn.on_pointer_enter()
-        } else {
-            self.brightness_btn.on_pointer_leave()
-        };
-        redraw |= if self.volume_btn.contains(x, y) {
-            self.volume_btn.on_pointer_enter()
-        } else {
-            self.volume_btn.on_pointer_leave()
-        };
-        // Sliders don't have hover state
-        redraw |= if self.media_player.contains(x, y) {
-            self.media_player.on_pointer_motion(x, y)
-        } else {
-            self.media_player.on_pointer_leave()
-        };
-
-        if redraw {
-            self.request_redraw();
-        }
+    fn handle_pointer_motion(&mut self, _x: f64, _y: f64) {
+        // Will be filled in as we add widgets
     }
 
-    fn handle_pointer_press(&mut self, x: f64, y: f64) {
-        let mut redraw = false;
-
-        if self.wifi_btn.contains(x, y) {
-            redraw |= self.wifi_btn.on_pointer_press(x, y);
-        } else if self.bluetooth_btn.contains(x, y) {
-            redraw |= self.bluetooth_btn.on_pointer_press(x, y);
-        } else if self.brightness_btn.contains(x, y) {
-            redraw |= self.brightness_btn.on_pointer_press();
-        } else if self.brightness_slider.contains(x, y) {
-            redraw |= self.brightness_slider.on_pointer_press(x, y);
-            self.dragging = Some(DraggingSlider::Brightness);
-        } else if self.volume_btn.contains(x, y) {
-            redraw |= self.volume_btn.on_pointer_press();
-        } else if self.volume_slider.contains(x, y) {
-            redraw |= self.volume_slider.on_pointer_press(x, y);
-            self.dragging = Some(DraggingSlider::Volume);
-        } else if self.media_player.contains(x, y) {
-            redraw |= self.media_player.on_pointer_press(x, y);
-        }
-
-        if redraw {
-            self.request_redraw();
-        }
+    fn handle_pointer_press(&mut self, _x: f64, _y: f64) {
+        // Will be filled in as we add widgets
     }
 
-    fn handle_pointer_release(&mut self, x: f64, y: f64) {
-        let mut redraw = false;
-        
-        if let Some(slider_id) = self.dragging.take() {
-            match slider_id {
-                DraggingSlider::Brightness => redraw |= self.brightness_slider.on_pointer_release(),
-                DraggingSlider::Volume => redraw |= self.volume_slider.on_pointer_release(),
-            }
-        }
-        
-        if self.wifi_btn.contains(x, y) {
-            redraw |= self.wifi_btn.on_pointer_release();
-            self.wifi_toggle_time = Some(std::time::Instant::now());
-            self.wifi_btn.set_status(if self.wifi_btn.active() { "Enabling..." } else { "Disabling..." });
-        } else if self.bluetooth_btn.contains(x, y) {
-            redraw |= self.bluetooth_btn.on_pointer_release();
-            self.bt_toggle_time = Some(std::time::Instant::now());
-            self.bluetooth_btn.set_status(if self.bluetooth_btn.active() { "Enabling..." } else { "Disabling..." });
-        } else if self.brightness_btn.contains(x, y) {
-            redraw |= self.brightness_btn.on_pointer_release();
-            api::compositor::set_blue_light_enabled(self.brightness_btn.active());
-        } else if self.volume_btn.contains(x, y) {
-            redraw |= self.volume_btn.on_pointer_release();
-            if self.volume_btn.active() {
-                self.volume_slider.set_locked(true);
-                let current = self.volume_slider.value();
-                if current > 0.0 { self.last_volume = current; }
-                self.volume_slider.set_value(0.0);
-                api::audio::set_mute(true);
-            } else {
-                self.volume_slider.set_locked(false);
-                self.volume_slider.set_value(0.0);
-                api::audio::set_mute(false);
-                api::audio::set_volume(0.0);
-            }
-
-        } else if self.media_player.contains(x, y) {
-            redraw |= self.media_player.on_pointer_release();
-        }
-        
-        if redraw { self.request_redraw(); }
+    fn handle_pointer_release(&mut self, _x: f64, _y: f64) {
+        // Will be filled in as we add widgets
     }
 
     // ── Background sync ────────────────────────────────────────────────
@@ -520,81 +422,23 @@ impl ControlCenter {
         match msg {
             SyncMessage::WifiBluetooth { wifi, bt } => {
                 if let Some((active, status)) = wifi {
-                    if self.wifi_btn.active() != active {
-                        self.wifi_btn.set_active(active);
-                    }
-                    self.wifi_btn.set_status(&status);
+                    self.wifi_active = active;
+                    self.wifi_status = status;
                 }
                 if let Some(active) = bt {
-                    if self.bluetooth_btn.active() != active {
-                        self.bluetooth_btn.set_active(active);
-                    }
-                    self.bluetooth_btn.set_status(if active { "On" } else { "Off" });
+                    self.bt_active = active;
                 }
             }
             SyncMessage::Brightness { brightness, blue_active } => {
-                if !self.brightness_slider.is_dragging() {
-                    if (self.brightness_slider.value() - brightness).abs() > 0.01 {
-                        self.brightness_slider.set_value(brightness);
-                    }
-                }
-                if self.brightness_btn.active() != blue_active {
-                    self.brightness_btn.set_active(blue_active);
-                }
+                self.brightness = brightness;
+                self.blue_light_active = blue_active;
             }
             SyncMessage::Volume { volume, muted } => {
-                if self.volume_btn.active() != muted {
-                    self.volume_btn.set_active(muted);
-                }
-                if !self.volume_slider.is_dragging() {
-                    if muted {
-                        self.volume_slider.set_locked(true);
-                        if self.volume_slider.value() != 0.0 {
-                            self.volume_slider.set_value(0.0);
-                        }
-                    } else {
-                        self.volume_slider.set_locked(false);
-                        if (self.volume_slider.value() - volume).abs() > 0.01 {
-                            self.volume_slider.set_value(volume);
-                        }
-                        if volume > 0.0 {
-                            self.last_volume = volume;
-                        }
-                    }
-                }
+                self.volume = volume;
+                self.volume_muted = muted;
             }
-            SyncMessage::Media(state) => {
-                let was_visible = self.media_player.visible;
-                self.media_player.update_from_state(&state);
-                let is_visible = self.media_player.visible;
-
-                if was_visible != is_visible {
-                    let target_h = if is_visible {
-                        grid::GRID_HEIGHT_WITH_MEDIA
-                    } else {
-                        grid::GRID_HEIGHT
-                    };
-                    self.panel_height = target_h as u32;
-                    // Recreate panel surface with new height
-                    if self.visible {
-                        if let Some(old) = self.panel_surface.take() {
-                            drop(old);
-                        }
-                        let panel_wl = self.compositor_state.create_surface(&self.qh);
-                        let panel_layer = self.layer_shell.create_layer_surface(
-                            &self.qh, panel_wl, Layer::Overlay,
-                            Some("control-center"), None,
-                        );
-                        panel_layer.set_anchor(Anchor::TOP | Anchor::RIGHT);
-                        panel_layer.set_size(self.panel_width, self.panel_height);
-                        panel_layer.set_margin(58, 10, 0, 0);
-                        panel_layer.set_exclusive_zone(-1);
-                        panel_layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
-                        panel_layer.commit();
-                        self.panel_surface = Some(panel_layer);
-                        self.panel_configured = false;
-                    }
-                }
+            SyncMessage::Media(_state) => {
+                // Media player will be added later
             }
         }
         self.request_redraw();
@@ -638,16 +482,12 @@ impl LayerShellHandler for ControlCenter {
             .unwrap_or(false);
 
         if is_panel {
-            // IGNORE compositor requested size to prevent stretching if Hyprland applies weird window rules
-            self.panel_width = grid::GRID_WIDTH as u32;
-            let panel_h = if self.media_player.visible { grid::GRID_HEIGHT_WITH_MEDIA } else { grid::GRID_HEIGHT };
-            self.panel_height = panel_h as u32;
+            self.panel_width = grid::PANEL_WIDTH as u32;
+            self.panel_height = grid::PANEL_HEIGHT as u32;
             self.panel_configured = true;
             self.draw_panel();
         } else if is_backdrop {
             let (w, h) = configure.new_size;
-            // Use a massive fallback size (4K) to prevent 1x1 OpenGL texture scaling bugs
-            // Because it's filled with 0s, Linux deduplicates it to the zero page (0 RAM usage)
             self.backdrop_width = if w == 0 { 4096 } else { w };
             self.backdrop_height = if h == 0 { 2160 } else { h };
             self.backdrop_configured = true;
@@ -702,16 +542,7 @@ impl PointerHandler for ControlCenter {
                     }
                 }
                 PointerEventKind::Leave { .. } => {
-                    if is_panel {
-                        // Clear all hover states
-                        let mut r = false;
-                        r |= self.wifi_btn.on_pointer_leave();
-                        r |= self.bluetooth_btn.on_pointer_leave();
-                        r |= self.brightness_btn.on_pointer_leave();
-                        r |= self.volume_btn.on_pointer_leave();
-                        r |= self.media_player.on_pointer_leave();
-                        if r { self.request_redraw(); }
-                    }
+                    // No widget hover states to clear yet
                 }
                 _ => {}
             }
@@ -826,126 +657,6 @@ fn main() {
         )
         .expect("wifi/bt sync timer");
 
-
-    // ── Build widgets ──────────────────────────────────────────────────
-    let assets = env!("CARGO_MANIFEST_DIR").to_string() + "/assets";
-
-    let mut wifi_btn = QuickSettingButton::new();
-    let (x, y, w, h) = grid::calc_rect((0, 0), (2, 0));
-    wifi_btn.set_rect(x, y, w, h);
-    wifi_btn.set_label("WiFi");
-    wifi_btn.set_active(false);
-    wifi_btn.set_status("Loading...");
-    wifi_btn.set_icons(
-        Some(format!("{}/wifi.svg", assets)),
-        Some(format!("{}/wifi-off.svg", assets)),
-    );
-    {
-        let s = sync_sender.clone();
-        wifi_btn.connect_toggle(move |active| {
-            api::network::set_wifi_enabled(active);
-            // Force a re-sync after a short delay
-            let s2 = s.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(Duration::from_secs(1));
-                let wifi = Some((api::network::is_wifi_active(), api::network::get_wifi_status()));
-                let _ = s2.send(SyncMessage::WifiBluetooth { wifi, bt: None });
-            });
-        });
-    }
-    wifi_btn.connect_detail_clicked(|| api::network::open_wifi_menu());
-
-    let mut bluetooth_btn = QuickSettingButton::new();
-    let (x, y, w, h) = grid::calc_rect((3, 0), (5, 0));
-    bluetooth_btn.set_rect(x, y, w, h);
-    bluetooth_btn.set_label("BT");
-    bluetooth_btn.set_active(false);
-    bluetooth_btn.set_status("Loading...");
-    bluetooth_btn.set_icons(
-        Some(format!("{}/bluetooth.svg", assets)),
-        Some(format!("{}/bluetooth-off.svg", assets)),
-    );
-    {
-        let s = sync_sender.clone();
-        bluetooth_btn.connect_toggle(move |active| {
-            api::bluetooth::set_bluetooth_enabled(active);
-            let s2 = s.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(Duration::from_secs(1));
-                let bt = Some(api::bluetooth::is_bluetooth_active());
-                let _ = s2.send(SyncMessage::WifiBluetooth { wifi: None, bt });
-            });
-        });
-    }
-    bluetooth_btn.connect_detail_clicked(|| api::bluetooth::open_bluetooth_menu());
-
-    // Brightness row
-    let mut brightness_btn = IconButton::new();
-    let (x, y, w, h) = grid::calc_rect((0, 1), (0, 1));
-    brightness_btn.set_rect(x, y, w, h);
-    brightness_btn.set_active(false);
-    brightness_btn.set_icon_colors("#7A5020", "#D97706");
-    brightness_btn.set_icon_from_file(Some(format!("{}/blue-filter.svg", assets)));
-
-    let init_brightness = api::brightness::get_brightness();
-    let mut brightness_slider = VerticalSlider::new(init_brightness);
-    let (x, y, w, h) = grid::calc_rect((1, 1), (5, 1));
-    brightness_slider.set_rect(x, y, w, h);
-    brightness_slider.set_icon_generator({
-        let a = assets.clone();
-        move |val| {
-            let name = if val <= 0.33 { "brightness-0.svg" }
-                else if val <= 0.66 { "brightness-1.svg" }
-                else { "brightness-2.svg" };
-            Some(std::path::PathBuf::from(format!("{}/{}", a, name)))
-        }
-    });
-    brightness_slider.connect_value_changed(|value| api::brightness::set_brightness(value));
-
-    // Volume row
-    let mut volume_btn = IconButton::new();
-    let (x, y, w, h) = grid::calc_rect((0, 2), (0, 2));
-    volume_btn.set_rect(x, y, w, h);
-    let (init_vol, init_muted) = api::audio::get_volume();
-    volume_btn.set_active(init_muted);
-    volume_btn.set_icon_colors("#7A5020", "#B02010");
-    volume_btn.set_icon_from_file(Some(format!("{}/volume-0.svg", assets)));
-
-    let mut volume_slider = VerticalSlider::new(if init_muted { 0.0 } else { init_vol });
-    if init_muted {
-        volume_slider.set_locked(true);
-    }
-    let (x, y, w, h) = grid::calc_rect((1, 2), (5, 2));
-    volume_slider.set_rect(x, y, w, h);
-    volume_slider.set_icon_generator({
-        let a = assets.clone();
-        move |val| {
-            let name = if val <= 0.01 { "volume-0.svg" }
-                else if val <= 0.50 { "volume-1.svg" }
-                else { "volume-2.svg" };
-            Some(std::path::PathBuf::from(format!("{}/{}", a, name)))
-        }
-    });
-    volume_slider.connect_value_changed(|value| {
-        api::audio::set_volume(value);
-        if value > 0.0 {
-            api::audio::set_mute(false);
-        }
-    });
-
-
-    // Media player
-    let mut media_player = MediaPlayer::new();
-    let (x, y, w, h) = grid::calc_rect((0, 3), (5, 4));
-    media_player.set_rect(x, y, w, h);
-    media_player.connect_play_pause(|| api::media::play_pause());
-    media_player.connect_next(|| api::media::next());
-    media_player.connect_previous(|| api::media::previous());
-
-    // Initial media state
-    let startup_media = api::media::get_media_state();
-    media_player.update_from_state(&startup_media);
-
     // Font cache
     let font_cache = FontCache::new();
 
@@ -961,26 +672,24 @@ fn main() {
         pool,
         panel_surface: None,
         backdrop_surface: None,
-        panel_width: grid::GRID_WIDTH as u32,
-        panel_height: grid::GRID_HEIGHT as u32,
+        panel_width: grid::PANEL_WIDTH as u32,
+        panel_height: grid::PANEL_HEIGHT as u32,
         backdrop_width: 0,
         backdrop_height: 0,
         panel_configured: false,
         backdrop_configured: false,
         visible: false,
         needs_draw: false,
-        wifi_btn,
-        bluetooth_btn,
-        brightness_btn,
-        brightness_slider,
-        volume_btn,
-        volume_slider,
-        media_player,
         sync_sender: sync_sender.clone(),
         wifi_toggle_time: None,
         bt_toggle_time: None,
-        last_volume: 0.0,
-        dragging: None,
+        wifi_active: false,
+        wifi_status: String::new(),
+        bt_active: false,
+        brightness: 0.0,
+        blue_light_active: false,
+        volume: 0.0,
+        volume_muted: false,
         font_cache,
         qh: qh.clone(),
     };
