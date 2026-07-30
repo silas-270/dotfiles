@@ -2,15 +2,10 @@ configuration {
     click-to-exit: true;
 }
 
+@import "../theme/generated/colors.rasi"
+
 * {
     font: "JetBrainsMono Nerd Font 33";
-    
-    bg-base:     #F5E8CC; 
-    bg-input:    #EBDCBB; 
-    fg-primary:  #3A2408;
-    accent-hover:#B85510;
-    accent-bg:   #E4C99E; 
-    
     background-color: transparent;
     text-color:       @fg-primary;
 }

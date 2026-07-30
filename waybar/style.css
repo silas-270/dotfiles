@@ -1,14 +1,17 @@
+@import "../theme/generated/colors.css";
+
 * {
-font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-border: none;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    border: none;
+    border-radius: 0px;
 }
 
 window#waybar {
-    background: #F5E8CC;
-    border-bottom: 1px solid rgba(180, 110, 30, 0.25);
-    color: #3A2408;
+    background: @bg-base;
+    border-bottom: 1px solid @border;
+    color: @fg-primary;
     font-size: 12px;
-    border-radius: 16px;
+    border-radius: 0px;
 }
 
 .modules-left,
@@ -19,114 +22,113 @@ window#waybar {
 
 /* ── Logo (Links, im Kasten) ── */
 #custom-logo {
-background: rgba(196, 122, 16, 0.13);
-color: #C47A10;
-padding: 4px 14px 2px 14px;
-border-radius: 12px;
-font-weight: 700;
-letter-spacing: 0.06em;
+    background: @bg-box;
+    color: @accent;
+    padding: 4px 14px 2px 14px;
+    border-radius: 0px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
 }
 
 /* ── Workspaces ── */
 #workspaces {
-margin-left: 6px;
+    margin-left: 6px;
 }
 #workspaces button {
-background: transparent;
-color: #7A5020;
-padding: 4px 7px 2px 7px;
-border-radius: 12px;
-min-width: 26px;
-font-family: "JetBrains Mono", monospace;
-font-size: 12px;
-transition: all 0.15s ease;
+    background: transparent;
+    color: @fg-muted;
+    padding: 4px 7px 2px 7px;
+    border-radius: 0px;
+    min-width: 26px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    transition: all 0.15s ease;
 }
 #workspaces button.active {
-background: rgba(196, 122, 16, 0.18);
-color: #C47A10;
-font-weight: 700;
+    background: @accent-bg;
+    color: @accent;
+    font-weight: 700;
 }
 #workspaces button.urgent {
-background: rgba(176, 32, 16, 0.15);
-color: #B02010;
+    background: @accent-bg;
+    color: @danger;
 }
 #workspaces button:hover {
-background: rgba(196, 122, 16, 0.10);
-color: #B85510;
+    background: @bg-box;
+    color: @accent-hover;
 }
 
 /* ── Center ── */
 #cpu,
 #memory,
 #custom-memory {
-color: #5A3A14;
-padding: 3px 10px;
+    color: @fg-dark;
+    padding: 3px 10px;
 }
 
 #network,
 #custom-network {
-color: #B85510;
-padding: 3px 10px;
+    color: @accent-hover;
+    padding: 3px 10px;
 }
 
 /* ── Rechts ── */
 #custom-keyd {
-color: #B85510;
-padding: 4px 10px 2px 10px;
+    color: @accent-hover;
+    padding: 4px 10px 2px 10px;
 }
 
 #pulseaudio {
-color: #7A5020;
-padding: 3px 10px;
+    color: @fg-muted;
+    padding: 3px 10px;
 }
 
 #battery {
-color: #3A2408;
-padding: 3px 10px;
+    color: @fg-primary;
+    padding: 3px 10px;
 }
 
-#battery.warning { color: #B06010; }
+#battery.warning { color: @warning; }
 #battery.critical {
-color: #B02010;
-animation: blink 1s linear infinite;
+    color: @danger;
+    animation: blink 1s linear infinite;
 }
 
 @keyframes blink {
     to { opacity: 0.4; }
 }
 
-/* ── Uhr (Rechts, jetzt im Kasten!) ── */
+/* ── Uhr (Rechts, im Kasten) ── */
 #clock {
-background: rgba(184, 85, 16, 0.1);
-color: #C47A10;
-font-weight: 700;
-letter-spacing: 0.04em;
-padding: 4px 14px 2px 14px;
-border-radius: 12px; /* Abgerundete Ecken hinzugefügt */
-margin-left: 6px; /* Etwas Abstand zum Akku */
+    background: @bg-box;
+    color: @accent;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 4px 14px 2px 14px;
+    border-radius: 0px;
+    margin-left: 6px;
 }
 
-/* ── Control Center (Rechts, auch im Kasten!) ── */
+/* ── Control Center (Rechts, auch im Kasten) ── */
 #custom-controlcenter {
-background: rgba(184, 85, 16, 0.1);
-color: #C47A10;
-font-weight: 700;
-padding: 4px 14px 2px 14px;
-border-radius: 12px;
-margin-left: 6px;
+    background: @bg-box;
+    color: @accent;
+    font-weight: 700;
+    padding: 4px 14px 2px 14px;
+    border-radius: 0px;
+    margin-left: 6px;
 }
 
 /* ── Trennlinien ── */
-/* Clock wurde hier entfernt, damit der Kasten nicht von der Linie durchschnitten wird */
 #memory,
 #custom-memory,
 #network,
 #custom-network,
 #pulseaudio,
 #battery {
-border-left: 1px solid rgba(180, 110, 30, 0.25);
-margin-left: 2px;
-padding-left: 12px;
+    border-left: 1px solid @border;
+    margin-left: 2px;
+    padding-left: 12px;
 }
 
 #cpu,
@@ -137,6 +139,5 @@ padding-left: 12px;
 #custom-keyd,
 #pulseaudio,
 #battery {
-/* Vorher: padding: 3px 10px; */
-padding: 4px 10px 2px 10px; /* Leicht nach unten verschoben */
+    padding: 4px 10px 2px 10px;
 }

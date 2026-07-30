@@ -4,21 +4,10 @@ configuration {
     click-to-exit: true;
 }
 
+@import "../theme/generated/colors.rasi"
+
 * {
     font: "JetBrainsMono Nerd Font 12";
-    
-    /* Theme Colors - Solid "Ton/Afrika" Look */
-    bg-base:     #F5E8CC; 
-    bg-input:    #EBDCBB; 
-    
-    /* Foreground / Text */
-    fg-primary:  #3A2408;
-    fg-muted:    #7A5020;
-    
-    /* Accents */
-    accent:      #C47A10;
-    accent-hover:#B85510;
-    accent-bg:   #E4C99E; 
     
     /* Remove Borders */
     border-ui:   transparent;

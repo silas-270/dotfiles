@@ -1,0 +1,21 @@
+{
+  "name": "Sand & Clay",
+  "colors": {
+    "bg_base": "#F5E8CC",
+    "bg_input": "#EBDCBB",
+    "bg_box": "rgba(184, 85, 16, 0.1)",
+    "bg_box_solid": "#E4C99E",
+    "fg_primary": "#3A2408",
+    "fg_muted": "#7A5020",
+    "fg_dark": "#5A3A14",
+    "accent": "#C47A10",
+    "accent_hover": "#B85510",
+    "accent_bg": "rgba(196, 122, 16, 0.18)",
+    "border": "rgba(180, 110, 30, 0.25)",
+    "border_subtle": "rgba(196, 122, 16, 0.15)",
+    "warning": "#B06010",
+    "danger": "#B02010",
+    "hypr_active_border": "0xffffffaa",
+    "hypr_inactive_border": "0x00000000"
+  }
+}

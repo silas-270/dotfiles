@@ -28,6 +28,11 @@ hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
 hl.env("XDG_SESSION_TYPE", "wayland")
 hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 
+local theme = {}
+pcall(function()
+    theme = dofile(os.getenv("HOME") .. "/dotfiles/theme/generated/colors.lua")
+end)
+
 -- general, input, decoration, misc, xwayland
 hl.config({
     input = {
@@ -40,14 +45,14 @@ hl.config({
         gaps_out = 10,
         border_size = 1,
         col = {
-            active_border   = "0xffffffaa",
-            inactive_border = "0x00000000",
+            active_border   = theme.hypr_active_border or "0xffffffaa",
+            inactive_border = theme.hypr_inactive_border or "0x00000000",
         },
         layout = "dwindle",
     },
 
     decoration = {
-        rounding = 16,
+        rounding = 0,
         blur = {
             enabled = true,
             size    = 8,

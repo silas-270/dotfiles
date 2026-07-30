@@ -24,22 +24,10 @@ configuration {
     me-accept-entry:    "MousePrimary";
 }
 
+@import "../theme/generated/colors.rasi"
+
 * {
     font: "JetBrainsMono Nerd Font 12";
-    
-    /* Theme Colors - Solid "Ton/Afrika" Look */
-    bg-base:     #F5E8CC; /* Solider Sand/Ton, exakt wie Waybar */
-    bg-input:    #EBDCBB; /* Ein Hauch dunkler für Suchfeld und Buttons */
-    
-    /* Foreground / Text */
-    fg-primary:  #3A2408; /* Tiefbraun */
-    fg-muted:    #7A5020; /* Gedämpftes Braun */
-    
-    /* Accents */
-    accent:      #C47A10; /* Terracotta / sattes Orange */
-    accent-hover:#B85510;
-    accent-bg:   #E4C99E; /* Solides, sattes Sand/Orange für Hervorhebungen */
-    
     background-color: transparent;
     text-color:       @fg-primary;
 }

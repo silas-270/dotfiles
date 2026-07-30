@@ -4,18 +4,20 @@
    ║  clickable icons for Volume Mute & Blue-Light    ║
    ╚══════════════════════════════════════════════════╝ */
 
+@import "../theme/generated/colors.css";
+
 /* ── Global ── */
 * {
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
     font-weight: 600;
-    color: #3A2408;
+    color: @fg-primary;
 }
 
 /* ── Frosted Glass Panel ── */
 .control-center {
-    background-color: rgba(245, 232, 204, 0.72);
+    background-color: @bg-base;
     border-radius: 28px;
-    border: 1px solid rgba(196, 122, 16, 0.15);
+    border: 1px solid @border-subtle;
     padding: 16px;
 }
 
