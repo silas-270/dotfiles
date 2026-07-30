@@ -2,17 +2,17 @@
 * {
     bg-base: #1A1210;
     bg-input: #291D19;
-    bg-box: rgba(217, 119, 54, 0.1);
+    bg-box: rgba(166, 88, 42, 0.1);
     bg-box-solid: #291D19;
     fg-primary: #E6D4C2;
     fg-muted: #A38B77;
     fg-dark: #D1BEAA;
-    accent: #D97736;
-    accent-hover: #E58544;
-    accent-bg: rgba(217, 119, 54, 0.2);
-    border: #3E2B23;
-    border-subtle: #3E2B23;
-    warning: #D97736;
+    accent: #A6582A;
+    accent-hover: #B86735;
+    accent-bg: rgba(166, 88, 42, 0.2);
+    border: #A6582A;
+    border-subtle: rgba(166, 88, 42, 0.3);
+    warning: #A6582A;
     danger: #C0392B;
     term-bg: #140E0C;
     term-fg: #E6D4C2;
