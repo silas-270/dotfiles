@@ -23,9 +23,10 @@ window#waybar {
 /* ── Common Box Base ── */
 #custom-logo,
 #workspaces,
+#pulseaudio,
+#battery,
 #network,
 #bluetooth,
-#battery,
 #clock,
 #custom-controlcenter {
     background: transparent;
@@ -74,25 +75,14 @@ window#waybar {
     color: @accent-hover;
 }
 
-/* ── Network, Bluetooth & Battery Merged Rectangle ── */
-#network {
-    border-right: none;
-    padding-right: 2px;
-    margin-right: 0px;
-}
-#bluetooth {
-    border-left: none;
-    border-right: none;
-    padding-left: 2px;
-    padding-right: 2px;
-    margin-left: 0px;
-    margin-right: 0px;
-}
-#battery {
-    border-left: none;
-    padding-left: 2px;
-    margin-left: 0px;
-    margin-right: 6px;
+/* ── Right Section Rectangles ── */
+#pulseaudio,
+#battery,
+#network,
+#bluetooth,
+#clock,
+#custom-controlcenter {
+    margin-left: 4px;
 }
 
 #battery.warning { color: @warning; }
@@ -103,15 +93,4 @@ window#waybar {
 
 @keyframes blink {
     to { opacity: 0.4; }
-}
-
-/* ── Clock Rectangle ── */
-#clock {
-    margin-left: 2px;
-    margin-right: 6px;
-}
-
-/* ── Control Center Rectangle ── */
-#custom-controlcenter {
-    margin-left: 2px;
 }

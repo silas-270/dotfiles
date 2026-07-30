@@ -11,9 +11,10 @@
   ],
   "modules-center": [],
   "modules-right": [
+    "pulseaudio",
+    "battery",
     "network",
     "bluetooth",
-    "battery",
     "clock",
     "custom/controlcenter"
   ],
@@ -31,21 +32,13 @@
     "tooltip": false
   },
 
-  "network": {
-    "format-wifi": "[ 󰖩 ]",
-    "format-ethernet": "[ 󰈀 ]",
-    "format-disconnected": "[ 󰖪 ]",
-    "format-disabled": "[ 󰖪 ]",
-    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
-    "tooltip": false
-  },
-
-  "bluetooth": {
-    "format": "[  ]",
-    "format-disabled": "[ 󰂲 ]",
-    "format-connected": "[ 󰂱 ]",
-    "format-connected-battery": "[ 󰂱 ]",
-    "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
+  "pulseaudio": {
+    "format": "[ {icon} {volume}% ]",
+    "format-muted": "[ 󰝟 ]",
+    "format-icons": {
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
+    "on-click": "pavucontrol",
     "tooltip": false
   },
 
@@ -64,6 +57,24 @@
       "warning": 30,
       "critical": 15
     },
+    "tooltip": false
+  },
+
+  "network": {
+    "format-wifi": "[ 󰖩 ]",
+    "format-ethernet": "[ 󰈀 ]",
+    "format-disconnected": "[ 󰖪 ]",
+    "format-disabled": "[ 󰖪 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
+    "tooltip": false
+  },
+
+  "bluetooth": {
+    "format": "[  ]",
+    "format-disabled": "[ 󰂲 ]",
+    "format-connected": "[ 󰂱 ]",
+    "format-connected-battery": "[ 󰂱 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
     "tooltip": false
   },
 
