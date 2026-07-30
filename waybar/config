@@ -85,7 +85,7 @@
   },
 
   "custom/controlcenter": {
-    "format": "[  ]",
+    "format": "[  ]",
     "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
     "tooltip": false
   }
