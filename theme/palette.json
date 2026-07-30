@@ -15,7 +15,7 @@
     "border_subtle": "rgba(196, 122, 16, 0.15)",
     "warning": "#B06010",
     "danger": "#B02010",
-    "hypr_active_border": "0xffffffaa",
+    "hypr_active_border": "0xffff8c00",
     "hypr_inactive_border": "0x00000000",
     "term_bg": "#111111",
     "term_fg": "#eeeeee"
