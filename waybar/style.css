@@ -23,10 +23,10 @@ window#waybar {
 /* ── Common Box Base ── */
 #custom-logo,
 #workspaces,
-#pulseaudio,
-#battery,
 #network,
 #bluetooth,
+#pulseaudio,
+#battery,
 #clock,
 #custom-controlcenter {
     background: transparent;
@@ -39,15 +39,15 @@ window#waybar {
     font-weight: 400;
 }
 
-/* ── Logo ── */
+/* ── Left Section Rectangles ── */
 #custom-logo {
-    margin-right: 4px;
+    margin-right: 2px;
 }
 
-/* ── Workspaces ── */
 #workspaces {
     padding: 0px 2px;
     margin-left: 2px;
+    margin-right: 2px;
 }
 #workspaces button {
     background: transparent;
@@ -75,11 +75,18 @@ window#waybar {
     color: @accent-hover;
 }
 
+#network {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+#bluetooth {
+    margin-left: 2px;
+}
+
 /* ── Right Section Rectangles ── */
 #pulseaudio,
 #battery,
-#network,
-#bluetooth,
 #clock,
 #custom-controlcenter {
     margin-left: 4px;

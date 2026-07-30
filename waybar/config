@@ -7,14 +7,14 @@
 
   "modules-left": [
     "custom/logo",
-    "hyprland/workspaces"
+    "hyprland/workspaces",
+    "network",
+    "bluetooth"
   ],
   "modules-center": [],
   "modules-right": [
     "pulseaudio",
     "battery",
-    "network",
-    "bluetooth",
     "clock",
     "custom/controlcenter"
   ],
@@ -29,6 +29,24 @@
     "on-click": "activate",
     "sort-by-number": true,
     "active-only": false,
+    "tooltip": false
+  },
+
+  "network": {
+    "format-wifi": "[ 󰖩 ]",
+    "format-ethernet": "[ 󰈀 ]",
+    "format-disconnected": "[ 󰖪 ]",
+    "format-disabled": "[ 󰖪 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
+    "tooltip": false
+  },
+
+  "bluetooth": {
+    "format": "[  ]",
+    "format-disabled": "[ 󰂲 ]",
+    "format-connected": "[ 󰂱 ]",
+    "format-connected-battery": "[ 󰂱 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
     "tooltip": false
   },
 
@@ -57,24 +75,6 @@
       "warning": 30,
       "critical": 15
     },
-    "tooltip": false
-  },
-
-  "network": {
-    "format-wifi": "[ 󰖩 ]",
-    "format-ethernet": "[ 󰈀 ]",
-    "format-disconnected": "[ 󰖪 ]",
-    "format-disabled": "[ 󰖪 ]",
-    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
-    "tooltip": false
-  },
-
-  "bluetooth": {
-    "format": "[  ]",
-    "format-disabled": "[ 󰂲 ]",
-    "format-connected": "[ 󰂱 ]",
-    "format-connected-battery": "[ 󰂱 ]",
-    "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
     "tooltip": false
   },
 
