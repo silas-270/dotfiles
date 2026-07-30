@@ -346,15 +346,22 @@ impl ControlCenter {
         self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, text_y, font_size, false, text_color);
         let bracket_w = self.font_cache.measure_text("[", font_size, false);
 
-        // Mathematical replication of Waybar's custom space padding, shifted slightly left
-        let left_pad = (font_size / 3.0) - 1.5;
-        let right_pad = self.font_cache.measure_text(" ", font_size, false) + 1.5;
+        // Pre-calculate Bluetooth inner width to force WiFi bracket alignment
+        let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+        let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+        let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
+
+        // Mathematical alignment: use Bluetooth inner width minus WiFi icon width to find total available padding.
+        // We still want it shifted left by 1.5px.
+        let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
+        let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+        let available_pad = bt_inner_w - icon_w;
+        let left_pad = (available_pad / 2.0) - 1.5;
+        let right_pad = (available_pad / 2.0) + 1.5;
 
         // 2. Draw Icon with exact calculated left padding
-        let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
         let icon_pos_x = icon_x + bracket_w + left_pad; 
         self.font_cache.draw_text(&mut pixmap.as_mut(), icon_str, icon_pos_x, text_y, font_size, false, text_color);
-        let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
 
         // 3. Draw "]" with exact calculated right padding
         let right_bracket_x = icon_pos_x + icon_w + right_pad;
@@ -485,14 +492,20 @@ impl ControlCenter {
         if y >= rect_y && y <= rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
             let font_size = 21.0;
             let bracket_w = self.font_cache.measure_text("[", font_size, false);
+            
+            // 1. Calculate Bluetooth inner width to force alignment
+            let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+            let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+            let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
+
+            // 2. Calculate WiFi padding to match BT width, keeping the 1.5px left shift
             let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
             let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+            let available_pad = bt_inner_w - icon_w;
+            let left_pad = (available_pad / 2.0) - 1.5;
+            let right_pad = (available_pad / 2.0) + 1.5;
+
             let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
-            
-            // Mathematical replication of Waybar's space characters, shifted slightly left
-            let left_pad = (font_size / 3.0) - 1.5; 
-            let right_pad = self.font_cache.measure_text(" ", font_size, false) + 1.5;
-            
             let total_icon_box_w = bracket_w + left_pad + icon_w + right_pad + right_bracket_w;
             
             if x <= rect_x + 6.0 + total_icon_box_w {
