@@ -321,12 +321,12 @@ impl ControlCenter {
         // Network state
         let (icon_str, name_str) = if self.wifi_active {
             if self.wifi_status == "On" {
-                ("[ 󰖪 ]", "Disconnected")
+                ("[ 󰖪 ]", "Disconnected")
             } else {
-                ("[ 󰖩 ]", self.wifi_status.as_str())
+                ("[ 󰖩 ]", self.wifi_status.as_str())
             }
         } else {
-            ("[ 󰖪 ]", "Disabled")
+            ("[ 󰖪 ]", "Disabled")
         };
 
         // Text color (@fg-primary)
@@ -436,7 +436,7 @@ impl ControlCenter {
 
         // Check if inside the WiFi row
         if y >= rect_y && y <= rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
-            let icon_str = if self.wifi_active { "[ 󰖩 ]" } else { "[ 󰖪 ]" };
+            let icon_str = if self.wifi_active { "[ 󰖩 ]" } else { "[ 󰖪 ]" };
             let icon_w = self.font_cache.measure_text(icon_str, 21.0, false);
             
             if x <= rect_x + 6.0 + icon_w {
