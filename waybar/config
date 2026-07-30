@@ -13,7 +13,7 @@
   ],
   "modules-center": [],
   "modules-right": [
-    "pulseaudio",
+    "custom/sound",
     "battery",
     "clock",
     "custom/controlcenter"
@@ -50,13 +50,13 @@
     "tooltip": false
   },
 
-  "pulseaudio": {
-    "format": "[ {icon} {volume}% ]",
-    "format-muted": "[ 󰝟 ]",
-    "format-icons": {
-      "default": ["󰕿", "󰖀", "󰕾"]
-    },
+  "custom/sound": {
+    "exec": "~/.config/hypr/scripts/waybar-sound.sh",
+    "interval": 1,
     "on-click": "pavucontrol",
+    "on-click-right": "playerctl play-pause",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+ && ~/.config/hypr/scripts/waybar-sound.sh",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && ~/.config/hypr/scripts/waybar-sound.sh",
     "tooltip": false
   },
 

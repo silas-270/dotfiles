@@ -25,7 +25,7 @@ window#waybar {
 #workspaces,
 #network,
 #bluetooth,
-#pulseaudio,
+#custom-sound,
 #battery,
 #clock,
 #custom-controlcenter {
@@ -85,7 +85,7 @@ window#waybar {
 }
 
 /* ── Right Section Rectangles ── */
-#pulseaudio,
+#custom-sound,
 #battery,
 #clock,
 #custom-controlcenter {
