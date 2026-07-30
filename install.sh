@@ -11,15 +11,27 @@ mkdir -p ~/Bilder/Wallpaper
 
 echo "🔗 Verlinke Konfigurationen..."
 
-# Alte Standard-Ordner löschen (falls vom frischen System angelegt) und neu verlinken
-rm -rf ~/.config/hypr && ln -s ~/dotfiles/hypr ~/.config/hypr
-rm -rf ~/.config/waybar && ln -s ~/dotfiles/waybar ~/.config/waybar
-rm -rf ~/.config/fastfetch && ln -s ~/dotfiles/fastfetch ~/.config/fastfetch
-rm -rf ~/.config/rofi && ln -s ~/dotfiles/rofi ~/.config/rofi
-rm -rf ~/.config/swaync && ln -s ~/dotfiles/swaync ~/.config/swaync
-rm -rf ~/.config/kitty && ln -s ~/dotfiles/kitty ~/.config/kitty
-rm -rf ~/.config/gtk-3.0 && ln -s ~/dotfiles/gtk-3.0 ~/.config/gtk-3.0
-rm -rf ~/.config/gtk-4.0 && ln -s ~/dotfiles/gtk-4.0 ~/.config/gtk-4.0
+# Ordner in ~/.config sichern (falls vorhanden) und neu verlinken
+link_config() {
+    local src="$1"
+    local dest="$2"
+    if [ -e "$dest" ] && [ ! -L "$dest" ]; then
+        echo "  📦 Sichere bestehenden Ordner: $dest -> $dest.bak"
+        mv "$dest" "$dest.bak"
+    elif [ -L "$dest" ]; then
+        rm "$dest"
+    fi
+    ln -s "$src" "$dest"
+}
+
+link_config ~/dotfiles/hypr ~/.config/hypr
+link_config ~/dotfiles/waybar ~/.config/waybar
+link_config ~/dotfiles/fastfetch ~/.config/fastfetch
+link_config ~/dotfiles/rofi ~/.config/rofi
+link_config ~/dotfiles/swaync ~/.config/swaync
+link_config ~/dotfiles/kitty ~/.config/kitty
+link_config ~/dotfiles/gtk/gtk-3.0 ~/.config/gtk-3.0
+link_config ~/dotfiles/gtk/gtk-4.0 ~/.config/gtk-4.0
 
 # Shell (Nicht komplett überschreiben, sondern nur einbinden!)
 if ! grep -q "source ~/dotfiles/shell/custom_bash.sh" ~/.bashrc; then

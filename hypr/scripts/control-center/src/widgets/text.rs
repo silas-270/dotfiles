@@ -1,14 +1,12 @@
 use std::fs::File;
 use std::path::PathBuf;
-use fontdue::{Font, FontSettings};
 use memmap2::Mmap;
+use rusttype::{Font, Scale, point};
 
 /// Pre-loaded fonts for text rendering.
 pub struct FontCache {
-    _bold_mmap: Option<Mmap>,
-    _regular_mmap: Option<Mmap>,
-    bold_font: Option<Font>,
-    regular_font: Option<Font>,
+    bold_mmap: Option<Mmap>,
+    regular_mmap: Option<Mmap>,
 }
 
 impl FontCache {
@@ -22,42 +20,33 @@ impl FontCache {
             .or_else(|| find_font("JetBrains Mono:style=Regular"))
             .or_else(|| find_font("monospace"));
 
-        let (bold_mmap, bold_font) = bold_path
-            .and_then(|p| {
-                let file = File::open(&p).ok()?;
-                let mmap = unsafe { Mmap::map(&file).ok()? };
-                let font = Font::from_bytes(&mmap[..], FontSettings::default()).ok()?;
-                Some((mmap, font))
-            })
-            .unzip();
+        let bold_mmap = bold_path.and_then(|p| {
+            let file = File::open(&p).ok()?;
+            unsafe { Mmap::map(&file).ok() }
+        });
 
-        let (regular_mmap, regular_font) = regular_path
-            .and_then(|p| {
-                let file = File::open(&p).ok()?;
-                let mmap = unsafe { Mmap::map(&file).ok()? };
-                let font = Font::from_bytes(&mmap[..], FontSettings::default()).ok()?;
-                Some((mmap, font))
-            })
-            .unzip();
+        let regular_mmap = regular_path.and_then(|p| {
+            let file = File::open(&p).ok()?;
+            unsafe { Mmap::map(&file).ok() }
+        });
 
-        if bold_font.is_none() && regular_font.is_none() {
+        if bold_mmap.is_none() && regular_mmap.is_none() {
             eprintln!("[CC] Warning: No suitable monospace font found for text rendering!");
         }
 
         Self {
-            _bold_mmap: bold_mmap,
-            _regular_mmap: regular_mmap,
-            bold_font,
-            regular_font,
+            bold_mmap,
+            regular_mmap,
         }
     }
 
-    fn get_font(&self, bold: bool) -> Option<&Font> {
-        if bold {
-            self.bold_font.as_ref().or(self.regular_font.as_ref())
+    fn get_font(&self, bold: bool) -> Option<Font<'_>> {
+        let mmap = if bold {
+            self.bold_mmap.as_ref().or(self.regular_mmap.as_ref())
         } else {
-            self.regular_font.as_ref().or(self.bold_font.as_ref())
-        }
+            self.regular_mmap.as_ref().or(self.bold_mmap.as_ref())
+        }?;
+        Font::try_from_bytes(mmap)
     }
 
     /// Measure the horizontal advance width of `text` at `size` px.
@@ -65,12 +54,15 @@ impl FontCache {
         let Some(font) = self.get_font(bold) else {
             return 0.0;
         };
-        text.chars()
-            .map(|ch| {
-                let (metrics, _) = font.rasterize(ch, size);
-                metrics.advance_width
-            })
-            .sum()
+        let scale = Scale::uniform(size);
+        let v_metrics = font.v_metrics(scale);
+        
+        let glyphs: Vec<_> = font.layout(text, scale, point(0.0, v_metrics.ascent)).collect();
+        if let Some(last) = glyphs.last() {
+            last.position().x + last.unpositioned().h_metrics().advance_width
+        } else {
+            0.0
+        }
     }
 
     /// Render `text` into `pixmap` at `(x, y)` (top-left of the em box).
@@ -90,10 +82,8 @@ impl FontCache {
         let Some(font) = self.get_font(bold) else {
             return;
         };
-
-        let line_metrics = font.horizontal_line_metrics(size);
-        let ascent = line_metrics.map(|m| m.ascent).unwrap_or(size * 0.8);
-        let baseline_y = y + ascent;
+        let scale = Scale::uniform(size);
+        let v_metrics = font.v_metrics(scale);
 
         let cr = color.red();
         let cg = color.green();
@@ -103,57 +93,34 @@ impl FontCache {
         let pw = pixmap.width() as i32;
         let ph = pixmap.height() as i32;
 
-        let mut cursor_x = x;
+        for glyph in font.layout(text, scale, point(x, y + v_metrics.ascent)) {
+            if let Some(bounding_box) = glyph.pixel_bounding_box() {
+                glyph.draw(|gx, gy, v| {
+                    let px = bounding_box.min.x + gx as i32;
+                    let py = bounding_box.min.y + gy as i32;
+                    if px >= 0 && px < pw && py >= 0 && py < ph {
+                        let src_a = ca * v;
+                        if src_a > 0.0 {
+                            let idx = ((py as usize) * (pw as usize) + (px as usize)) * 4;
+                            let data = pixmap.data_mut();
+                            if idx + 3 >= data.len() {
+                                return;
+                            }
+                            
+                            let inv = 1.0 - src_a;
+                            let dst_r = data[idx] as f32 / 255.0;
+                            let dst_g = data[idx + 1] as f32 / 255.0;
+                            let dst_b = data[idx + 2] as f32 / 255.0;
+                            let dst_a = data[idx + 3] as f32 / 255.0;
 
-        for ch in text.chars() {
-            let (metrics, bitmap) = font.rasterize(ch, size);
-
-            if metrics.width > 0 && metrics.height > 0 {
-                let gx = cursor_x as i32 + metrics.xmin;
-                let gy = baseline_y as i32 - metrics.height as i32 - metrics.ymin;
-
-                for row in 0..metrics.height {
-                    let py = gy + row as i32;
-                    if py < 0 || py >= ph {
-                        continue;
+                            data[idx] = ((cr * src_a + dst_r * inv) * 255.0).min(255.0) as u8;
+                            data[idx + 1] = ((cg * src_a + dst_g * inv) * 255.0).min(255.0) as u8;
+                            data[idx + 2] = ((cb * src_a + dst_b * inv) * 255.0).min(255.0) as u8;
+                            data[idx + 3] = ((src_a + dst_a * inv) * 255.0).min(255.0) as u8;
+                        }
                     }
-                    for col in 0..metrics.width {
-                        let px = gx + col as i32;
-                        if px < 0 || px >= pw {
-                            continue;
-                        }
-
-                        let coverage = bitmap[row * metrics.width + col];
-                        if coverage == 0 {
-                            continue;
-                        }
-
-                        let src_a = ca * (coverage as f32 / 255.0);
-                        if src_a <= 0.0 {
-                            continue;
-                        }
-
-                        let idx = ((py as usize) * (pw as usize) + (px as usize)) * 4;
-                        let data = pixmap.data_mut();
-                        if idx + 3 >= data.len() {
-                            continue;
-                        }
-
-                        let inv = 1.0 - src_a;
-                        let dst_r = data[idx] as f32 / 255.0;
-                        let dst_g = data[idx + 1] as f32 / 255.0;
-                        let dst_b = data[idx + 2] as f32 / 255.0;
-                        let dst_a = data[idx + 3] as f32 / 255.0;
-
-                        data[idx] = ((cr * src_a + dst_r * inv) * 255.0).min(255.0) as u8;
-                        data[idx + 1] = ((cg * src_a + dst_g * inv) * 255.0).min(255.0) as u8;
-                        data[idx + 2] = ((cb * src_a + dst_b * inv) * 255.0).min(255.0) as u8;
-                        data[idx + 3] = ((src_a + dst_a * inv) * 255.0).min(255.0) as u8;
-                    }
-                }
+                });
             }
-
-            cursor_x += metrics.advance_width;
         }
     }
 }

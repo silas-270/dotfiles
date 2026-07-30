@@ -28,10 +28,14 @@ notify() {
     timeout 2 notify-send "$@" >/dev/null 2>&1 || echo "$*" >&2
 }
 
-# Aktuellen Status holen
 is_powered() {
-    bluetoothctl show | grep -q "Powered: yes"
+    if command -v bluetoothctl >/dev/null 2>&1; then
+        bluetoothctl show 2>/dev/null | grep -q "Powered: yes"
+    else
+        rfkill list bluetooth 2>/dev/null | grep -q "Soft blocked: no"
+    fi
 }
+
 
 get_devices() {
     # 1. Connected devices

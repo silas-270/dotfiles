@@ -317,7 +317,7 @@ impl ControlCenter {
         };
 
         // Fully transparent background to catch clicks without visual artifacts
-        canvas.fill(0);
+        // REMOVED canvas.fill(0) to prevent 35MB physical RAM allocation (relying on kernel zero-page instead)
 
         if let Some(ref surface) = self.backdrop_surface {
             let wl = surface.wl_surface();
@@ -440,10 +440,11 @@ impl ControlCenter {
                 api::audio::set_mute(true);
             } else {
                 self.volume_slider.set_locked(false);
-                self.volume_slider.set_value(self.last_volume);
+                self.volume_slider.set_value(0.0);
                 api::audio::set_mute(false);
-                api::audio::set_volume(self.last_volume);
+                api::audio::set_volume(0.0);
             }
+
         } else if self.media_player.contains(x, y) {
             redraw |= self.media_player.on_pointer_release();
         }
@@ -886,7 +887,8 @@ fn main() {
     brightness_btn.set_icon_colors("#7A5020", "#D97706");
     brightness_btn.set_icon_from_file(Some(format!("{}/blue-filter.svg", assets)));
 
-    let mut brightness_slider = VerticalSlider::new(1.0);
+    let init_brightness = api::brightness::get_brightness();
+    let mut brightness_slider = VerticalSlider::new(init_brightness);
     let (x, y, w, h) = grid::calc_rect((1, 1), (5, 1));
     brightness_slider.set_rect(x, y, w, h);
     brightness_slider.set_icon_generator({
@@ -904,11 +906,15 @@ fn main() {
     let mut volume_btn = IconButton::new();
     let (x, y, w, h) = grid::calc_rect((0, 2), (0, 2));
     volume_btn.set_rect(x, y, w, h);
-    volume_btn.set_active(false);
+    let (init_vol, init_muted) = api::audio::get_volume();
+    volume_btn.set_active(init_muted);
     volume_btn.set_icon_colors("#7A5020", "#B02010");
     volume_btn.set_icon_from_file(Some(format!("{}/volume-0.svg", assets)));
 
-    let mut volume_slider = VerticalSlider::new(0.0);
+    let mut volume_slider = VerticalSlider::new(if init_muted { 0.0 } else { init_vol });
+    if init_muted {
+        volume_slider.set_locked(true);
+    }
     let (x, y, w, h) = grid::calc_rect((1, 2), (5, 2));
     volume_slider.set_rect(x, y, w, h);
     volume_slider.set_icon_generator({
@@ -926,6 +932,7 @@ fn main() {
             api::audio::set_mute(false);
         }
     });
+
 
     // Media player
     let mut media_player = MediaPlayer::new();

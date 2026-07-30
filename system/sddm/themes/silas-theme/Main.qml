@@ -1,7 +1,7 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtGraphicalEffects 1.15
 
 Rectangle {
     id: container
@@ -233,7 +233,6 @@ Rectangle {
 
                 // Navigation
                 activeFocusOnTab: true
-                focus: true
                 KeyNavigation.left: sessionSelector
                 KeyNavigation.right: shutdownBtn
                 KeyNavigation.tab: shutdownBtn
@@ -253,7 +252,7 @@ Rectangle {
                 Image {
                     anchors.fill: parent
                     anchors.margins: 8
-                    source: "standby.svg"
+                    source: "standby.png"
                     sourceSize: Qt.size(width, height)
                     opacity: parent.activeFocus ? 1.0 : 0.7
                     fillMode: Image.PreserveAspectFit
@@ -296,7 +295,7 @@ Rectangle {
                 Image {
                     anchors.fill: parent
                     anchors.margins: 8
-                    source: "shutdown.svg"
+                    source: "shutdown.png"
                     sourceSize: Qt.size(width, height)
                     opacity: parent.activeFocus ? 1.0 : 0.7
                     fillMode: Image.PreserveAspectFit
@@ -338,7 +337,7 @@ Rectangle {
                 Image {
                     anchors.fill: parent
                     anchors.margins: 10
-                    source: "reboot.svg"
+                    source: "reboot.png"
                     sourceSize: Qt.size(width, height)
                     opacity: parent.activeFocus ? 1.0 : 0.7
                     fillMode: Image.PreserveAspectFit
