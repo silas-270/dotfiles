@@ -75,7 +75,7 @@ window#waybar {
 #network {
     margin-left: 2px;
     margin-right: 2px;
-    color: @accent;
+    color: @fg-muted;
 }
 #network.disconnected,
 #network.disabled {
@@ -128,7 +128,7 @@ window#waybar {
 
 #clock {
     margin-left: 4px;
-    color: @fg-muted;
+    color: @accent;
 }
 
 #custom-controlcenter {
