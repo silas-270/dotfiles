@@ -32,7 +32,7 @@ window#waybar {
 #clock,
 #custom-controlcenter {
     background: transparent;
-    color: @accent;
+    color: @fg-primary;
     border: 2px solid @border;
     border-radius: 0px;
     padding: 2px 6px;
@@ -75,16 +75,27 @@ window#waybar {
 #network {
     margin-left: 2px;
     margin-right: 2px;
+    color: @accent;
+}
+#network.disconnected,
+#network.disabled {
+    color: @fg-muted;
 }
 
 #bluetooth {
     margin-left: 2px;
+    color: @accent;
+}
+#bluetooth.disabled,
+#bluetooth.off {
+    color: @fg-muted;
 }
 
 /* ── Center Section ── */
 #cpu,
 #custom-memory {
     min-width: 115px;
+    color: @fg-primary;
 }
 
 #cpu {
@@ -100,17 +111,29 @@ window#waybar {
 }
 
 /* ── Right Section Rectangles ── */
-#pulseaudio,
-#battery,
-#clock,
-#custom-controlcenter {
+#pulseaudio {
     margin-left: 4px;
+    color: @fg-primary;
 }
 
+#battery {
+    margin-left: 4px;
+    color: @fg-primary;
+}
 #battery.warning { color: @warning; }
 #battery.critical {
     color: @danger;
     animation: blink 1s linear infinite;
+}
+
+#clock {
+    margin-left: 4px;
+    color: @fg-primary;
+}
+
+#custom-controlcenter {
+    margin-left: 4px;
+    color: @accent;
 }
 
 @keyframes blink {
