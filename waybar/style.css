@@ -9,7 +9,7 @@
 window#waybar {
     background: @bg-base;
     border-bottom: 1px solid @border;
-    color: @fg-primary;
+    color: @fg-muted;
     font-size: 16px;
     border-radius: 0px;
 }
@@ -32,7 +32,7 @@ window#waybar {
 #clock,
 #custom-controlcenter {
     background: transparent;
-    color: @fg-primary;
+    color: @fg-muted;
     border: 2px solid @border;
     border-radius: 0px;
     padding: 2px 6px;
@@ -95,7 +95,7 @@ window#waybar {
 #cpu,
 #custom-memory {
     min-width: 115px;
-    color: @fg-primary;
+    color: @fg-muted;
 }
 
 #cpu {
@@ -113,12 +113,12 @@ window#waybar {
 /* ── Right Section Rectangles ── */
 #pulseaudio {
     margin-left: 4px;
-    color: @fg-primary;
+    color: @fg-muted;
 }
 
 #battery {
     margin-left: 4px;
-    color: @fg-primary;
+    color: @fg-muted;
 }
 #battery.warning { color: @warning; }
 #battery.critical {
@@ -128,7 +128,7 @@ window#waybar {
 
 #clock {
     margin-left: 4px;
-    color: @fg-primary;
+    color: @fg-muted;
 }
 
 #custom-controlcenter {
