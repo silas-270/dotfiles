@@ -84,14 +84,22 @@ enum SyncMessage {
 // Main application state
 // ---------------------------------------------------------------------------
 
+#[derive(PartialEq)]
+pub enum DragState {
+    None,
+    Brightness,
+    Volume,
+}
+
 struct ControlCenter {
-    // SCTK protocol state
     registry_state: RegistryState,
     seat_state: SeatState,
     output_state: OutputState,
     compositor_state: CompositorState,
-    layer_shell: LayerShell,
     shm: Shm,
+    layer_shell: LayerShell,
+    
+    seat: Option<wl_seat::WlSeat>,
 
     // Buffer pool
     pool: SlotPool,
@@ -124,6 +132,9 @@ struct ControlCenter {
     blue_light_active: bool,
     volume: f64,
     volume_muted: bool,
+
+    // Interaction state
+    drag_state: DragState,
 
     // Font cache
     font_cache: FontCache,
@@ -521,8 +532,56 @@ impl ControlCenter {
 
     // ── Pointer event dispatch (stub — no widgets yet) ─────────────────
 
-    fn handle_pointer_motion(&mut self, _x: f64, _y: f64) {
-        // Will be filled in as we add widgets
+    fn handle_pointer_motion(&mut self, x: f64, y: f64) {
+        if self.drag_state == DragState::None {
+            return;
+        }
+
+        let x = x as f32;
+        let outer_pad = 10.0;
+        let rect_x = outer_pad;
+        
+        let font_size = 21.0;
+        let bracket_w = self.font_cache.measure_text("[", font_size, false);
+        let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+        let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+        let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+        let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
+
+        let process_slider = |val: &mut f64, x: f32, icon_w: f32, font_cache: &mut FontCache| -> Option<f64> {
+            let pad = (bt_inner_w - icon_w) / 2.0;
+            let total_icon_box_w = bracket_w + pad + icon_w + pad + right_bracket_w;
+            let space_w = font_cache.measure_text(" ", font_size, false);
+            let slider_start_x = rect_x + 6.0 + total_icon_box_w + space_w;
+            let slider_str = "[####################]";
+            let slider_w = font_cache.measure_text(slider_str, font_size, false);
+            
+            let inner_start_x = slider_start_x + bracket_w;
+            let inner_w = slider_w - bracket_w * 2.0;
+            
+            let pct = (x - inner_start_x) / inner_w;
+            Some(pct.clamp(0.0, 1.0) as f64)
+        };
+
+        if self.drag_state == DragState::Brightness {
+            let bright_icon_str = if self.blue_light_active { "󰃟" } else { "󰃠" };
+            let bright_icon_w = self.font_cache.measure_text(bright_icon_str, font_size, false);
+            if let Some(val) = process_slider(&mut self.brightness, x, bright_icon_w, &mut self.font_cache) {
+                api::brightness::set_brightness(val);
+                self.brightness = val;
+                self.needs_draw = true;
+                self.immediate_sync();
+            }
+        } else if self.drag_state == DragState::Volume {
+            let vol_icon_str = if self.volume_muted { "󰖁" } else { "󰕾" };
+            let vol_icon_w = self.font_cache.measure_text(vol_icon_str, font_size, false);
+            if let Some(val) = process_slider(&mut self.volume, x, vol_icon_w, &mut self.font_cache) {
+                api::audio::set_volume(val);
+                self.volume = val;
+                self.needs_draw = true;
+                self.immediate_sync();
+            }
+        }
     }
 
     fn handle_pointer_press(&mut self, x: f64, y: f64) {
@@ -634,7 +693,7 @@ impl ControlCenter {
                 let slider_w = self.font_cache.measure_text(slider_str, font_size, false);
                 
                 if x >= slider_start_x && x <= slider_start_x + slider_w {
-                    // Provide some padding so they don't have to click exactly on the edges for 0/100
+                    self.drag_state = DragState::Brightness;
                     let inner_start_x = slider_start_x + bracket_w;
                     let inner_w = slider_w - bracket_w * 2.0;
                     
@@ -679,6 +738,7 @@ impl ControlCenter {
                 let slider_w = self.font_cache.measure_text(slider_str, font_size, false);
                 
                 if x >= slider_start_x && x <= slider_start_x + slider_w {
+                    self.drag_state = DragState::Volume;
                     let inner_start_x = slider_start_x + bracket_w;
                     let inner_w = slider_w - bracket_w * 2.0;
                     
@@ -694,7 +754,7 @@ impl ControlCenter {
     }
 
     fn handle_pointer_release(&mut self, _x: f64, _y: f64) {
-        // Will be filled in as we add widgets
+        self.drag_state = DragState::None;
     }
 
     // ── Background sync ────────────────────────────────────────────────
@@ -1033,6 +1093,8 @@ fn main() {
         blue_light_active: false,
         volume: 0.0,
         volume_muted: false,
+        drag_state: DragState::None,
+        seat: None,
         font_cache,
         qh: qh.clone(),
     };
