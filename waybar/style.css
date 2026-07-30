@@ -24,8 +24,9 @@ window#waybar {
 #custom-logo {
     background: transparent;
     color: @accent;
-    padding: 2px 8px;
-    font-size: 15px;
+    padding: 2px 6px;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 14px;
     font-weight: 700;
 }
 

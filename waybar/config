@@ -23,7 +23,7 @@
   ],
 
   "custom/logo": {
-    "format": "[ 󰣇 ]",
+    "format": "[ ARCH ]",
     "tooltip": false
   },
 
