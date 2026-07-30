@@ -49,9 +49,9 @@ fi
 # Format output string
 if [[ -n "$title" ]]; then
     if [ "$is_muted" = true ]; then
-        output="[ ${title} | ${icon} ]"
+        output="[ ${title} | ${icon} ]"
     else
-        output="[ ${title} | ${icon} ${vol_text} ]"
+        output="[ ${title} | ${icon} ${vol_text} ]"
     fi
 else
     if [ "$is_muted" = true ]; then
