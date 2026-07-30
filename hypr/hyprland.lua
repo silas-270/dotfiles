@@ -102,7 +102,6 @@ hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-
 
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-waybar-keyboard.sh"))
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("rofi -show drun"))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/power-menu.sh"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
