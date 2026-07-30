@@ -10,44 +10,47 @@ window#waybar {
     background: @bg-base;
     border-bottom: 1px solid @border;
     color: @fg-primary;
-    font-size: 12px;
+    font-size: 16px;
     border-radius: 0px;
 }
 
-.modules-left {
-    margin: 2px 4px;
-    padding: 2px;
-}
+.modules-left,
 .modules-center,
 .modules-right {
-    margin: 1px 6px;
+    margin: 4px 6px;
 }
 
-/* ── Logo ── */
-#custom-logo {
+/* ── Common Box Base ── */
+#custom-logo,
+#workspaces,
+#clock,
+#custom-controlcenter {
     background: transparent;
     color: @accent;
     border: 2px solid @border;
     border-radius: 0px;
-    padding: 0px 4px;
+    padding: 2px 6px;
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
     font-size: 16px;
     font-weight: 400;
 }
 
+/* ── Logo ── */
+#custom-logo {
+    margin-right: 2px;
+}
+
 /* ── Workspaces ── */
 #workspaces {
-    margin-left: 6px;
-    border: 2px solid @border;
-    border-radius: 0px;
     padding: 0px 2px;
+    margin-left: 4px;
 }
 #workspaces button {
     background: transparent;
     color: @fg-muted;
-    padding: 0px 4px;
+    padding: 2px 4px;
     border-radius: 0px;
-    min-width: 28px;
+    min-width: 24px;
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
     font-size: 16px;
     font-weight: 400;
@@ -71,88 +74,18 @@ window#waybar {
 /* ── Center ── */
 #cpu,
 #memory,
-#custom-memory {
-    color: @fg-dark;
-    padding: 2px 8px;
-}
-
+#custom-memory,
 #network,
 #custom-network {
-    color: @accent-hover;
-    padding: 2px 8px;
+    color: @fg-dark;
+    padding: 2px 6px;
 }
 
-/* ── Rechts ── */
-#custom-keyd {
-    color: @accent-hover;
-    padding: 2px 8px;
-}
-
-#pulseaudio {
-    color: @fg-muted;
-    padding: 2px 8px;
-}
-
-#battery {
-    color: @fg-primary;
-    padding: 2px 8px;
-}
-
-#battery.warning { color: @warning; }
-#battery.critical {
-    color: @danger;
-    animation: blink 1s linear infinite;
-}
-
-@keyframes blink {
-    to { opacity: 0.4; }
-}
-
-/* ── Uhr ── */
+/* ── Right Modules ── */
 #clock {
-    background: transparent;
-    color: @accent;
-    border: 2px solid @border;
-    border-radius: 0px;
-    padding: 0px 4px;
-    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 16px;
-    font-weight: 400;
-    margin-left: 6px;
+    margin-right: 4px;
 }
 
-/* ── Control Center ── */
 #custom-controlcenter {
-    background: transparent;
-    color: @accent;
-    border: 2px solid @border;
-    border-radius: 0px;
-    padding: 0px 4px;
-    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 16px;
-    font-weight: 400;
-    margin-left: 6px;
-}
-
-/* ── Trennlinien ── */
-#memory,
-#custom-memory,
-#network,
-#custom-network,
-#pulseaudio,
-#battery {
-    border-left: 1px solid @border;
     margin-left: 2px;
-    padding-left: 10px;
-}
-
-#cpu,
-#memory,
-#custom-memory,
-#network,
-#custom-network,
-#custom-keyd,
-#pulseaudio,
-#battery {
-    padding: 2px 8px;
 }
