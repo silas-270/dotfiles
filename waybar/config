@@ -50,10 +50,9 @@
   },
 
   "battery": {
-    "format": "[ {icon} ]",
-    "format-alt": "[ {icon} {capacity}% ]",
-    "format-charging": "󰂄",
-    "format-full": "󰁹",
+    "format": "[ {icon} {capacity}% ]",
+    "format-charging": "[ 󰂄 {capacity}% ]",
+    "format-full": "[ 󰁹 {capacity}% ]",
     "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
     "states": {
       "warning": 30,
