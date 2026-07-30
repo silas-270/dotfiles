@@ -6,37 +6,25 @@
   "margin-right": 10,
 
   "modules-left": [
-    "custom/logo",
     "hyprland/workspaces",
     "network",
     "bluetooth"
   ],
   "modules-center": [
-    "hyprland/window"
+    "custom/centerpiece"
   ],
   "modules-right": [
-    "custom/sound",
+    "pulseaudio",
     "battery",
     "clock",
     "custom/controlcenter"
   ],
-
-  "custom/logo": {
-    "format": "[ arch ]",
-    "tooltip": false
-  },
 
   "hyprland/workspaces": {
     "format": "[ {id} ]",
     "on-click": "activate",
     "sort-by-number": true,
     "active-only": false,
-    "tooltip": false
-  },
-
-  "hyprland/window": {
-    "format": "[ {title} ]",
-    "separate-outputs": true,
     "tooltip": false
   },
 
@@ -58,13 +46,20 @@
     "tooltip": false
   },
 
-  "custom/sound": {
-    "exec": "~/.config/hypr/scripts/waybar-sound.sh",
+  "custom/centerpiece": {
+    "exec": "~/.config/hypr/scripts/waybar-centerpiece.sh",
     "interval": 1,
+    "on-click": "playerctl play-pause",
+    "tooltip": false
+  },
+
+  "pulseaudio": {
+    "format": "[ {icon} {volume}% ]",
+    "format-muted": "[ 󰝟 ]",
+    "format-icons": {
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
     "on-click": "pavucontrol",
-    "on-click-right": "playerctl play-pause",
-    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+ && ~/.config/hypr/scripts/waybar-sound.sh",
-    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && ~/.config/hypr/scripts/waybar-sound.sh",
     "tooltip": false
   },
 
