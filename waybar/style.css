@@ -10,51 +10,51 @@ window#waybar {
     background: @bg-base;
     border-bottom: 1px solid @border;
     color: @fg-primary;
-    font-size: 12px;
+    font-size: 14px;
     border-radius: 0px;
 }
 
 .modules-left,
 .modules-center,
 .modules-right {
-    margin: 4px 4px;
+    margin: 4px 6px;
 }
 
-/* ── Logo (Links, im Kasten) ── */
+/* ── Logo ── */
 #custom-logo {
-    background: @bg-box;
+    background: transparent;
     color: @accent;
-    padding: 4px 14px 2px 14px;
-    border-radius: 0px;
+    padding: 2px 8px;
+    font-size: 15px;
     font-weight: 700;
-    letter-spacing: 0.06em;
 }
 
 /* ── Workspaces ── */
 #workspaces {
-    margin-left: 6px;
+    margin-left: 4px;
 }
 #workspaces button {
     background: transparent;
     color: @fg-muted;
-    padding: 4px 7px 2px 7px;
+    padding: 2px 6px;
     border-radius: 0px;
-    min-width: 26px;
+    min-width: 28px;
     font-family: "JetBrains Mono", monospace;
-    font-size: 12px;
+    font-size: 14px;
     transition: all 0.15s ease;
 }
 #workspaces button.active {
-    background: @accent-bg;
+    background: transparent;
     color: @accent;
     font-weight: 700;
 }
 #workspaces button.urgent {
-    background: @accent-bg;
+    background: transparent;
     color: @danger;
+    font-weight: 700;
 }
 #workspaces button:hover {
-    background: @bg-box;
+    background: transparent;
     color: @accent-hover;
 }
 
@@ -63,29 +63,29 @@ window#waybar {
 #memory,
 #custom-memory {
     color: @fg-dark;
-    padding: 3px 10px;
+    padding: 2px 8px;
 }
 
 #network,
 #custom-network {
     color: @accent-hover;
-    padding: 3px 10px;
+    padding: 2px 8px;
 }
 
 /* ── Rechts ── */
 #custom-keyd {
     color: @accent-hover;
-    padding: 4px 10px 2px 10px;
+    padding: 2px 8px;
 }
 
 #pulseaudio {
     color: @fg-muted;
-    padding: 3px 10px;
+    padding: 2px 8px;
 }
 
 #battery {
     color: @fg-primary;
-    padding: 3px 10px;
+    padding: 2px 8px;
 }
 
 #battery.warning { color: @warning; }
@@ -98,25 +98,22 @@ window#waybar {
     to { opacity: 0.4; }
 }
 
-/* ── Uhr (Rechts, im Kasten) ── */
+/* ── Uhr ── */
 #clock {
-    background: @bg-box;
+    background: transparent;
     color: @accent;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    padding: 4px 14px 2px 14px;
-    border-radius: 0px;
-    margin-left: 6px;
+    padding: 2px 8px;
+    margin-left: 4px;
 }
 
-/* ── Control Center (Rechts, auch im Kasten) ── */
+/* ── Control Center ── */
 #custom-controlcenter {
-    background: @bg-box;
+    background: transparent;
     color: @accent;
     font-weight: 700;
-    padding: 4px 14px 2px 14px;
-    border-radius: 0px;
-    margin-left: 6px;
+    padding: 2px 8px;
+    margin-left: 4px;
 }
 
 /* ── Trennlinien ── */
@@ -128,7 +125,7 @@ window#waybar {
 #battery {
     border-left: 1px solid @border;
     margin-left: 2px;
-    padding-left: 12px;
+    padding-left: 10px;
 }
 
 #cpu,
@@ -139,5 +136,5 @@ window#waybar {
 #custom-keyd,
 #pulseaudio,
 #battery {
-    padding: 4px 10px 2px 10px;
+    padding: 2px 8px;
 }
