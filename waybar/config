@@ -6,11 +6,14 @@
   "margin-right": 10,
 
   "modules-left": [
-  "custom/logo",
-  "hyprland/workspaces"
-],
+    "custom/logo",
+    "hyprland/workspaces"
+  ],
   "modules-center": [],
   "modules-right": [
+    "network",
+    "bluetooth",
+    "battery",
     "clock",
     "custom/controlcenter"
   ],
@@ -28,42 +31,30 @@
     "tooltip": false
   },
 
-  "cpu": {
-  "format": "CPU {usage}%",
-  "interval": 2,
+  "network": {
+    "format-wifi": "[ 󰖩 ]",
+    "format-ethernet": "[ 󰈀 ]",
+    "format-disconnected": "[ 󰖪 ]",
+    "format-disabled": "[ 󰖪 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh",
     "tooltip": false
   },
 
-  "custom/memory": {
-    "exec": "~/.config/hypr/scripts/waybar-ram.sh",
-    "interval": 2,
-    "tooltip": false
-  },
-
-  "custom/network": {
-    "exec": "~/.config/hypr/scripts/waybar-network.sh",
-    "return-type": "json",
-    "on-click": "~/.config/hypr/scripts/rofi-wifi-menu.sh"
-  },
-
-  "custom/keyd": {
-    "exec": "~/.config/hypr/scripts/waybar-keyd.sh",
-    "return-type": "json",
-    "signal": 8,
-    "tooltip": false
-  },
-
-  "pulseaudio": {
-    "format": "󰕾 {volume}%",
-    "format-muted": "󰝟 muted",
-    "on-click": "pavucontrol",
+  "bluetooth": {
+    "format": "[  ]",
+    "format-disabled": "[ 󰂲 ]",
+    "format-connected": "[ 󰂱 ]",
+    "format-connected-battery": "[ 󰂱 ]",
+    "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
     "tooltip": false
   },
 
   "battery": {
-    "format": "󰁹 {capacity}%",
-    "format-charging": "󰂄 {capacity}%",
-    "format-full": "󰁹 full",
+    "format": "[ {icon} ]",
+    "format-alt": "[ {icon} {capacity}% ]",
+    "format-charging": "󰂄",
+    "format-full": "󰁹",
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
     "states": {
       "warning": 30,
       "critical": 15
