@@ -382,6 +382,38 @@ impl ControlCenter {
             text_color,
         );
 
+        // ── Bluetooth Row ──
+        let bt_rect_y = rect_y + rect_h + 10.0;
+        render::draw_rect_outline(
+            &mut pixmap.as_mut(),
+            rect_x, bt_rect_y,
+            rect_w, rect_h,
+            2.0,
+            box_border,
+        );
+
+        let bt_text_y = bt_rect_y + (rect_h - font_size) / 2.0 - 1.0;
+        let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+        let bt_name_str = if self.bt_active { "On" } else { "Disabled" };
+        
+        // Bluetooth uses U+2004 on both sides in Waybar
+        let bt_pad = font_size / 3.0;
+
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, bt_text_y, font_size, false, text_color);
+        
+        let bt_icon_pos_x = icon_x + bracket_w + bt_pad; 
+        self.font_cache.draw_text(&mut pixmap.as_mut(), bt_icon_str, bt_icon_pos_x, bt_text_y, font_size, false, text_color);
+        let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+
+        let bt_right_bracket_x = bt_icon_pos_x + bt_icon_w + bt_pad;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "]", bt_right_bracket_x, bt_text_y, font_size, false, text_color);
+        let bt_right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+
+        let bt_total_icon_box_w = (bt_right_bracket_x + bt_right_bracket_w) - icon_x;
+        
+        let bt_name_x = icon_x + bt_total_icon_box_w + space_w;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), bt_name_str, bt_name_x, bt_text_y, font_size, false, text_color);
+
 
         // Copy RGBA → BGRA
 
@@ -478,6 +510,34 @@ impl ControlCenter {
             } else {
                 // Clicked the name
                 api::network::open_wifi_menu();
+                self.hide_panel();
+            }
+        }
+
+        // Check if inside the Bluetooth row
+        let bt_rect_y = rect_y + rect_h + 10.0;
+        if y >= bt_rect_y && y <= bt_rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
+            let font_size = 21.0;
+            let bracket_w = self.font_cache.measure_text("[", font_size, false);
+            let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+            let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+            let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+            
+            // Bluetooth uses U+2004 (1/3 em) on both sides
+            let bt_pad = font_size / 3.0; 
+            
+            let bt_total_icon_box_w = bracket_w + bt_pad + bt_icon_w + bt_pad + right_bracket_w;
+            
+            if x <= rect_x + 6.0 + bt_total_icon_box_w {
+                // Clicked the icon
+                let new_state = !self.bt_active;
+                api::bluetooth::set_bluetooth_enabled(new_state);
+                self.bt_active = new_state; // Optimistic update
+                self.needs_draw = true;
+                self.immediate_sync();
+            } else {
+                // Clicked the name
+                api::bluetooth::open_bluetooth_menu();
                 self.hide_panel();
             }
         }
