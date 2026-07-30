@@ -302,11 +302,11 @@ impl ControlCenter {
         let rect_w = w as f32 - 2.0 * outer_pad;
         let rect_h = 32.0;
 
-        // 2px solid @accent (#D97736) - orange border
+        // 2px solid @border (#7A523D) - brownish-orange
         let box_border = tiny_skia::Color::from_rgba(
-            217.0 / 255.0,  // R (#D97736)
-            119.0 / 255.0,  // G
-            54.0 / 255.0,   // B
+            122.0 / 255.0,  // R (#7A523D)
+            82.0 / 255.0,   // G
+            61.0 / 255.0,   // B
             1.0,
         ).unwrap();
 
@@ -327,18 +327,18 @@ impl ControlCenter {
             1.0,
         ).unwrap();
 
-        // Use bold and size 18.0 for a stronger match with GTK rendering
-        let text_w = self.font_cache.measure_text(placeholder_text, 18.0, true);
+        // Increased size to 21.0 to match GTK DPI scaling/rendering
+        let text_w = self.font_cache.measure_text(placeholder_text, 21.0, false);
         let text_x = rect_x + (rect_w - text_w) / 2.0;
-        let text_y = rect_y + (rect_h - 18.0) / 2.0 - 1.0;
+        let text_y = rect_y + (rect_h - 21.0) / 2.0 - 1.0;
 
         self.font_cache.draw_text(
             &mut pixmap.as_mut(),
             placeholder_text,
             text_x,
             text_y,
-            18.0,
-            true, // bold
+            21.0,
+            false, // not bold
             text_color,
         );
 
