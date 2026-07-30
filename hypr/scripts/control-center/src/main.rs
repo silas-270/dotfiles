@@ -351,13 +351,20 @@ impl ControlCenter {
         let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
         let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
 
-        // Mathematical alignment: use Bluetooth inner width minus WiFi icon width to find total available padding.
-        // We still want it shifted left by 1.5px.
+        // Mathematical alignment:
         let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
         let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+        
+        let base_left = font_size / 3.0; 
+        let base_right = self.font_cache.measure_text(" ", font_size, false);
+        
         let available_pad = bt_inner_w - icon_w;
-        let left_pad = (available_pad / 2.0) - 1.5;
-        let right_pad = (available_pad / 2.0) + 1.5;
+        let excess_pad = (base_left + base_right) - available_pad;
+        
+        // Subtract half the excess from both sides so the total width matches BT
+        // Then apply the 1.5px left shift
+        let left_pad = base_left - (excess_pad / 2.0) - 1.5;
+        let right_pad = base_right - (excess_pad / 2.0) + 1.5;
 
         // 2. Draw Icon with exact calculated left padding
         let icon_pos_x = icon_x + bracket_w + left_pad; 
@@ -501,9 +508,15 @@ impl ControlCenter {
             // 2. Calculate WiFi padding to match BT width, keeping the 1.5px left shift
             let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
             let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+            
+            let base_left = font_size / 3.0; 
+            let base_right = self.font_cache.measure_text(" ", font_size, false);
+            
             let available_pad = bt_inner_w - icon_w;
-            let left_pad = (available_pad / 2.0) - 1.5;
-            let right_pad = (available_pad / 2.0) + 1.5;
+            let excess_pad = (base_left + base_right) - available_pad;
+            
+            let left_pad = base_left - (excess_pad / 2.0) - 1.5;
+            let right_pad = base_right - (excess_pad / 2.0) + 1.5;
 
             let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
             let total_icon_box_w = bracket_w + left_pad + icon_w + right_pad + right_bracket_w;
