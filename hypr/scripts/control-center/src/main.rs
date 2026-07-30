@@ -300,13 +300,13 @@ impl ControlCenter {
         let rect_x = outer_pad;
         let rect_y = outer_pad;
         let rect_w = w as f32 - 2.0 * outer_pad;
-        let rect_h = 28.0;
+        let rect_h = 32.0;
 
-        // 2px solid @border (#7A523D) matching Waybar box elements
+        // 2px solid @accent (#D97736) - orange border
         let box_border = tiny_skia::Color::from_rgba(
-            122.0 / 255.0,  // R (#7A523D)
-            82.0 / 255.0,   // G
-            61.0 / 255.0,   // B
+            217.0 / 255.0,  // R (#D97736)
+            119.0 / 255.0,  // G
+            54.0 / 255.0,   // B
             1.0,
         ).unwrap();
 
@@ -318,8 +318,8 @@ impl ControlCenter {
             box_border,
         );
 
-        // Text inside rectangle (Waybar white tone #F2E3D5, JetBrainsMono 16px)
-        let placeholder_text = "[ CONTROL CENTER ]";
+        // Text inside rectangle
+        let placeholder_text = "[ CONTROL CENTER ]";
         let text_color = tiny_skia::Color::from_rgba(
             242.0 / 255.0,  // R (#F2E3D5)
             227.0 / 255.0,  // G
@@ -327,17 +327,18 @@ impl ControlCenter {
             1.0,
         ).unwrap();
 
-        let text_w = self.font_cache.measure_text(placeholder_text, 16.0, false);
+        // Use bold and size 18.0 for a stronger match with GTK rendering
+        let text_w = self.font_cache.measure_text(placeholder_text, 18.0, true);
         let text_x = rect_x + (rect_w - text_w) / 2.0;
-        let text_y = rect_y + (rect_h - 16.0) / 2.0 - 1.0;
+        let text_y = rect_y + (rect_h - 18.0) / 2.0 - 1.0;
 
         self.font_cache.draw_text(
             &mut pixmap.as_mut(),
             placeholder_text,
             text_x,
             text_y,
-            16.0,
-            false,
+            18.0,
+            true, // bold
             text_color,
         );
 
