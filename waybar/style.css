@@ -74,7 +74,7 @@ window#waybar {
     color: @accent-hover;
 }
 
-/* ── Network & Bluetooth Rectangle ── */
+/* ── Network, Bluetooth & Battery Merged Rectangle ── */
 #network {
     border-right: none;
     padding-right: 2px;
@@ -82,14 +82,16 @@ window#waybar {
 }
 #bluetooth {
     border-left: none;
+    border-right: none;
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+#battery {
+    border-left: none;
     padding-left: 2px;
     margin-left: 0px;
-    margin-right: 6px;
-}
-
-/* ── Battery Rectangle ── */
-#battery {
-    margin-left: 2px;
     margin-right: 6px;
 }
 
