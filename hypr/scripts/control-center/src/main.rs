@@ -346,14 +346,14 @@ impl ControlCenter {
         self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, text_y, font_size, false, text_color);
         let bracket_w = self.font_cache.measure_text("[", font_size, false);
 
-        // 2. Draw Icon with custom left padding (equivalent to U+2004)
+        // 2. Draw Icon with custom left padding
         let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
-        let icon_pos_x = icon_x + bracket_w + 7.0; // 7px padding
+        let icon_pos_x = icon_x + bracket_w + 2.0; // 2px padding (pulls icon left)
         self.font_cache.draw_text(&mut pixmap.as_mut(), icon_str, icon_pos_x, text_y, font_size, false, text_color);
         let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
 
-        // 3. Draw "]" with custom right padding (equivalent to U+0020)
-        let right_bracket_x = icon_pos_x + icon_w + 5.0; // 5px padding
+        // 3. Draw "]" with custom right padding
+        let right_bracket_x = icon_pos_x + icon_w + 12.0; // 12px padding (pushes right bracket away)
         self.font_cache.draw_text(&mut pixmap.as_mut(), "]", right_bracket_x, text_y, font_size, false, text_color);
         let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
 
@@ -452,7 +452,7 @@ impl ControlCenter {
             let icon_w = self.font_cache.measure_text(icon_str, 21.0, false);
             let right_bracket_w = self.font_cache.measure_text("]", 21.0, false);
             
-            let total_icon_box_w = bracket_w + 7.0 + icon_w + 5.0 + right_bracket_w;
+            let total_icon_box_w = bracket_w + 2.0 + icon_w + 12.0 + right_bracket_w;
             
             if x <= rect_x + 6.0 + total_icon_box_w {
                 // Clicked the icon
