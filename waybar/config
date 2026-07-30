@@ -23,12 +23,12 @@
   ],
 
   "custom/logo": {
-    "format": "HYPR",
+    "format": "[ 󰣇 ]",
     "tooltip": false
   },
 
   "hyprland/workspaces": {
-  "format": "{id}",
+  "format": "[ {id} ]",
   "on-click": "activate",
   "sort-by-number": true,
   "active-only": false,
