@@ -6,9 +6,9 @@ configuration {
     drun-display-format: "{name}";
     disable-history:    false;
     hide-scrollbar:     true;
-    display-drun:       "  Apps";
-    display-run:        "  Run";
-    display-window:     "󱂬  Window";
+    display-drun:       "[ apps ]";
+    display-run:        "[ run ]";
+    display-window:     "[ windows ]";
     sidebar-mode:       true;
     
     /* Navigation bindings */
@@ -34,40 +34,42 @@ configuration {
 
 window {
     background-color: @bg-base;
-    border:           0px; /* Keine Rahmen! */
-    border-radius:    16px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     width:            750px;
     padding:          20px;
 }
 
 mainbox {
-    spacing:          18px;
+    spacing:          16px;
     children:         [ inputbar, message, listview, mode-switcher ];
 }
 
 inputbar {
     spacing:          12px;
-    padding:          14px 18px;
+    padding:          10px 14px;
     background-color: @bg-input;
-    border:           0px;
-    border-radius:    12px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     children:         [ prompt, entry ];
 }
 
 prompt {
     background-color: transparent;
     text-color:       @accent;
-    font:             "JetBrainsMono Nerd Font Bold 14";
+    font:             "JetBrainsMono Nerd Font Bold 13";
     vertical-align:   0.5;
 }
 
 entry {
-    placeholder:      "Suche...";
+    placeholder:      "Suchen...";
     placeholder-color:@fg-muted;
     vertical-align:   0.5;
     text-color:       @fg-primary;
     background-color: transparent;
-    font:             "JetBrainsMono Nerd Font 14";
+    font:             "JetBrainsMono Nerd Font 13";
     cursor:           text;
 }
 
@@ -75,15 +77,15 @@ listview {
     fixed-height:     true;
     columns:          2;
     lines:            7; 
-    spacing:          10px;
+    spacing:          8px;
     scrollbar:        false;
     padding:          4px 0px 0px 0px;
 }
 
 element {
-    padding:          10px 14px;
-    border-radius:    12px;
-    spacing:          14px;
+    padding:          8px 12px;
+    border-radius:    0px;
+    spacing:          12px;
     background-color: transparent;
     cursor:           pointer;
     border:           0px;
@@ -100,9 +102,9 @@ element alternate.normal {
 }
 
 element selected.normal {
-    background-color: @accent-bg;
-    text-color:       @accent-hover;
-    border:           0px; /* Kein Rahmen beim Auswählen */
+    background-color: @accent;
+    text-color:       @bg-base;
+    border-radius:    0px;
 }
 
 element-text {
@@ -113,31 +115,35 @@ element-text {
 }
 
 element-icon {
-    size:             2.2em;
+    size:             2.0em;
     vertical-align:   0.5;
     cursor:           inherit;
 }
 
 mode-switcher {
-    spacing:          15px;
-    padding:          12px 0px 0px 0px;
+    spacing:          12px;
+    padding:          8px 0px 0px 0px;
     border:           0px;
 }
 
 button {
-    padding:          10px 16px;
-    background-color: @bg-input;
+    padding:          8px 14px;
+    background-color: transparent;
     text-color:       @fg-muted;
-    border-radius:    10px;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
     vertical-align:   0.5;
     horizontal-align: 0.5;
     cursor:           pointer;
-    border:           0px;
+    font:             "JetBrainsMono Nerd Font 12";
 }
 
 button selected {
-    background-color: @accent-bg;
-    text-color:       @accent-hover;
-    border:           0px;
+    background-color: @accent;
+    text-color:       @bg-base;
+    border:           2px;
+    border-color:     @accent;
+    border-radius:    0px;
     font:             "JetBrainsMono Nerd Font Bold 12";
 }
