@@ -84,7 +84,7 @@ window#waybar {
 /* ── Center Section ── */
 #cpu,
 #custom-memory {
-    min-width: 98px;
+    min-width: 115px;
 }
 
 #cpu {
