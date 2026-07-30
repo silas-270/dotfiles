@@ -2,18 +2,18 @@
 * {
     bg-base: #1A1210;
     bg-input: #291D19;
-    bg-box: rgba(255, 140, 0, 0.1);
+    bg-box: rgba(217, 119, 54, 0.1);
     bg-box-solid: #291D19;
     fg-primary: #E6D4C2;
     fg-muted: #A38B77;
     fg-dark: #D1BEAA;
-    accent: #FF8C00;
-    accent-hover: #FFA500;
-    accent-bg: rgba(255, 140, 0, 0.2);
-    border: #FF8C00;
-    border-subtle: rgba(255, 140, 0, 0.3);
-    warning: #E67E22;
-    danger: #E74C3C;
+    accent: #D97736;
+    accent-hover: #E58544;
+    accent-bg: rgba(217, 119, 54, 0.2);
+    border: #D97736;
+    border-subtle: rgba(217, 119, 54, 0.3);
+    warning: #D97736;
+    danger: #C0392B;
     term-bg: #140E0C;
     term-fg: #E6D4C2;
 }
