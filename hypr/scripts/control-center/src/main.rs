@@ -346,10 +346,9 @@ impl ControlCenter {
         self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, text_y, font_size, false, text_color);
         let bracket_w = self.font_cache.measure_text("[", font_size, false);
 
-        // Mathematical replication of Waybar's custom space padding:
-        // Waybar format: `[U+2004 󰖩 U+0020]`
-        let left_pad = font_size / 3.0; // U+2004 is 1/3 em
-        let right_pad = self.font_cache.measure_text(" ", font_size, false); // U+0020 is standard space width
+        // Mathematical replication of Waybar's custom space padding, shifted slightly left
+        let left_pad = (font_size / 3.0) - 1.5;
+        let right_pad = self.font_cache.measure_text(" ", font_size, false) + 1.5;
 
         // 2. Draw Icon with exact calculated left padding
         let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
@@ -458,11 +457,9 @@ impl ControlCenter {
             let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
             let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
             
-            // Mathematical replication of Waybar's space characters:
-            // U+2004 (Three-per-em space) = 1/3 of em size
-            let left_pad = font_size / 3.0; 
-            // U+0020 (Standard space)
-            let right_pad = self.font_cache.measure_text(" ", font_size, false);
+            // Mathematical replication of Waybar's space characters, shifted slightly left
+            let left_pad = (font_size / 3.0) - 1.5; 
+            let right_pad = self.font_cache.measure_text(" ", font_size, false) + 1.5;
             
             let total_icon_box_w = bracket_w + left_pad + icon_w + right_pad + right_bracket_w;
             
