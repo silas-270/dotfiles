@@ -10,49 +10,58 @@ window#waybar {
     background: @bg-base;
     border-bottom: 1px solid @border;
     color: @fg-primary;
-    font-size: 14px;
+    font-size: 12px;
     border-radius: 0px;
 }
 
-.modules-left,
+.modules-left {
+    margin: 2px 4px;
+    padding: 2px;
+}
 .modules-center,
 .modules-right {
-    margin: 4px 6px;
+    margin: 1px 6px;
 }
 
 /* ── Logo ── */
 #custom-logo {
     background: transparent;
     color: @accent;
-    padding: 2px 6px;
+    border: 2px solid @accent;
+    border-radius: 0px;
+    padding: 0px 4px;
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 400;
 }
 
 /* ── Workspaces ── */
 #workspaces {
-    margin-left: 4px;
+    margin-left: 6px;
+    border: 2px solid @accent;
+    border-radius: 0px;
+    padding: 0px 2px;
 }
 #workspaces button {
     background: transparent;
     color: @fg-muted;
-    padding: 2px 6px;
+    padding: 0px 4px;
     border-radius: 0px;
     min-width: 28px;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 14px;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 400;
     transition: all 0.15s ease;
 }
 #workspaces button.active {
     background: transparent;
     color: @accent;
-    font-weight: 700;
+    font-weight: 400;
 }
 #workspaces button.urgent {
     background: transparent;
     color: @danger;
-    font-weight: 700;
+    font-weight: 400;
 }
 #workspaces button:hover {
     background: transparent;

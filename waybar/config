@@ -9,31 +9,21 @@
   "custom/logo",
   "hyprland/workspaces"
 ],
-  "modules-center": [
-    "cpu",
-    "custom/memory",
-    "custom/network"
-  ],
-  "modules-right": [
-    "custom/keyd",
-    "pulseaudio",
-    "battery",
-    "clock",
-    "custom/controlcenter"
-  ],
+  "modules-center": [],
+  "modules-right": [],
 
   "custom/logo": {
-    "format": "[ ARCH ]",
+    "format": "[ arch ]",
     "tooltip": false
   },
 
   "hyprland/workspaces": {
-  "format": "[ {id} ]",
-  "on-click": "activate",
-  "sort-by-number": true,
-  "active-only": false,
-  "tooltip": false
-},
+    "format": "[ {id} ]",
+    "on-click": "activate",
+    "sort-by-number": true,
+    "active-only": false,
+    "tooltip": false
+  },
 
   "cpu": {
   "format": "CPU {usage}%",
