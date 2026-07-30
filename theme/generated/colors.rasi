@@ -14,4 +14,6 @@
     border-subtle: rgba(196, 122, 16, 0.15);
     warning: #B06010;
     danger: #B02010;
+    term-bg: #111111;
+    term-fg: #eeeeee;
 }

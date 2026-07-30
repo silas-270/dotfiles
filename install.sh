@@ -24,6 +24,7 @@ link_config() {
     ln -s "$src" "$dest"
 }
 
+link_config ~/dotfiles/theme ~/.config/theme
 link_config ~/dotfiles/hypr ~/.config/hypr
 link_config ~/dotfiles/waybar ~/.config/waybar
 link_config ~/dotfiles/fastfetch ~/.config/fastfetch

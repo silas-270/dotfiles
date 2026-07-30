@@ -16,4 +16,6 @@ return {
     danger = "#B02010",
     hypr_active_border = "0xffffffaa",
     hypr_inactive_border = "0x00000000",
+    term_bg = "#111111",
+    term_fg = "#eeeeee",
 }

@@ -13,3 +13,5 @@
 @define-color border-subtle rgba(196, 122, 16, 0.15);
 @define-color warning #B06010;
 @define-color danger #B02010;
+@define-color term-bg #111111;
+@define-color term-fg #eeeeee;
