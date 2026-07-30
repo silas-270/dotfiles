@@ -9,8 +9,8 @@
 @define-color accent #D97736;
 @define-color accent-hover #E58544;
 @define-color accent-bg rgba(217, 119, 54, 0.2);
-@define-color border #D97736;
-@define-color border-subtle rgba(217, 119, 54, 0.3);
+@define-color border #3E2B23;
+@define-color border-subtle #3E2B23;
 @define-color warning #D97736;
 @define-color danger #C0392B;
 @define-color term-bg #140E0C;

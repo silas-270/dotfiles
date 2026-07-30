@@ -26,8 +26,8 @@ window#waybar {
 /* ── Logo ── */
 #custom-logo {
     background: transparent;
-    color: @accent;
-    border: 2px solid @accent;
+    color: @fg-primary;
+    border: 2px solid @border;
     border-radius: 0px;
     padding: 0px 4px;
     font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
@@ -38,7 +38,7 @@ window#waybar {
 /* ── Workspaces ── */
 #workspaces {
     margin-left: 6px;
-    border: 2px solid @accent;
+    border: 2px solid @border;
     border-radius: 0px;
     padding: 0px 2px;
 }
