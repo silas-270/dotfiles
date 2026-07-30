@@ -24,7 +24,9 @@ window#waybar {
 #workspaces,
 #network,
 #bluetooth,
+#cpu,
 #custom-centerpiece,
+#custom-memory,
 #pulseaudio,
 #battery,
 #clock,
@@ -80,8 +82,16 @@ window#waybar {
 }
 
 /* ── Center Section ── */
+#cpu {
+    margin-right: 2px;
+}
+
 #custom-centerpiece {
     color: @accent;
+}
+
+#custom-memory {
+    margin-left: 2px;
 }
 
 /* ── Right Section Rectangles ── */

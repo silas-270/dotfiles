@@ -11,7 +11,9 @@
     "bluetooth"
   ],
   "modules-center": [
-    "custom/centerpiece"
+    "cpu",
+    "custom/centerpiece",
+    "custom/memory"
   ],
   "modules-right": [
     "pulseaudio",
@@ -19,6 +21,18 @@
     "clock",
     "custom/controlcenter"
   ],
+
+  "cpu": {
+    "format": "[ CPU {usage}% ]",
+    "interval": 2,
+    "tooltip": false
+  },
+
+  "custom/memory": {
+    "exec": "~/.config/hypr/scripts/waybar-ram.sh",
+    "interval": 2,
+    "tooltip": false
+  },
 
   "hyprland/workspaces": {
     "format": "[ {id} ]",
