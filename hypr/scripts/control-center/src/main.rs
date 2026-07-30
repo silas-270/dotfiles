@@ -318,8 +318,18 @@ impl ControlCenter {
             box_border,
         );
 
-        // Text inside rectangle
-        let placeholder_text = "[ CONTROL CENTER ]";
+        // Network state
+        let (icon_str, name_str) = if self.wifi_active {
+            if self.wifi_status == "On" {
+                ("[ 󰖪 ]", "Disconnected")
+            } else {
+                ("[ 󰖩 ]", self.wifi_status.as_str())
+            }
+        } else {
+            ("[ 󰖪 ]", "Disabled")
+        };
+
+        // Text color (@fg-primary)
         let text_color = tiny_skia::Color::from_rgba(
             242.0 / 255.0,  // R (#F2E3D5)
             227.0 / 255.0,  // G
@@ -327,18 +337,33 @@ impl ControlCenter {
             1.0,
         ).unwrap();
 
-        // Increased size to 21.0 to match GTK DPI scaling/rendering
-        let text_w = self.font_cache.measure_text(placeholder_text, 21.0, false);
-        let text_x = rect_x + (rect_w - text_w) / 2.0;
-        let text_y = rect_y + (rect_h - 21.0) / 2.0 - 1.0;
+        let font_size = 21.0;
+        let text_y = rect_y + (rect_h - font_size) / 2.0 - 1.0;
 
+        // Draw icon
+        let icon_x = rect_x + 6.0; // Left padding inside box
         self.font_cache.draw_text(
             &mut pixmap.as_mut(),
-            placeholder_text,
-            text_x,
+            icon_str,
+            icon_x,
             text_y,
-            21.0,
-            false, // not bold
+            font_size,
+            false,
+            text_color,
+        );
+
+        // Draw name
+        let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+        let space_w = self.font_cache.measure_text(" ", font_size, false);
+        let name_x = icon_x + icon_w + space_w;
+        
+        self.font_cache.draw_text(
+            &mut pixmap.as_mut(),
+            name_str,
+            name_x,
+            text_y,
+            font_size,
+            false,
             text_color,
         );
 
@@ -399,8 +424,39 @@ impl ControlCenter {
         // Will be filled in as we add widgets
     }
 
-    fn handle_pointer_press(&mut self, _x: f64, _y: f64) {
-        // Will be filled in as we add widgets
+    fn handle_pointer_press(&mut self, x: f64, y: f64) {
+        let x = x as f32;
+        let y = y as f32;
+
+        let outer_pad = 10.0;
+        let rect_x = outer_pad;
+        let rect_y = outer_pad;
+        let rect_w = self.panel_width as f32 - 2.0 * outer_pad;
+        let rect_h = 32.0;
+
+        // Check if inside the WiFi row
+        if y >= rect_y && y <= rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
+            let icon_str = if self.wifi_active { "[ 󰖩 ]" } else { "[ 󰖪 ]" };
+            let icon_w = self.font_cache.measure_text(icon_str, 21.0, false);
+            
+            if x <= rect_x + 6.0 + icon_w {
+                // Clicked the icon
+                let new_state = !self.wifi_active;
+                api::network::set_wifi_enabled(new_state);
+                self.wifi_active = new_state; // Optimistic update
+                if !new_state {
+                    self.wifi_status = "Off".to_string();
+                } else {
+                    self.wifi_status = "On".to_string();
+                }
+                self.needs_draw = true;
+                self.immediate_sync();
+            } else {
+                // Clicked the name
+                api::network::open_wifi_menu();
+                self.hide_panel();
+            }
+        }
     }
 
     fn handle_pointer_release(&mut self, _x: f64, _y: f64) {
