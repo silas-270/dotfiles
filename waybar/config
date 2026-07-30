@@ -52,7 +52,14 @@
   "battery": {
     "format": "[ {icon} ]",
     "format-alt": "[ {icon} {capacity}% ]",
-    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+    "format-icons": {
+      "charging": [
+        "󰂄"
+      ],
+      "default": [
+        "󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"
+      ]
+    },
     "states": {
       "warning": 30,
       "critical": 15
