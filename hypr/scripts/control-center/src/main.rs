@@ -340,22 +340,33 @@ impl ControlCenter {
         let font_size = 21.0;
         let text_y = rect_y + (rect_h - font_size) / 2.0 - 1.0;
 
-        // Draw icon
         let icon_x = rect_x + 6.0; // Left padding inside box
-        self.font_cache.draw_text(
-            &mut pixmap.as_mut(),
-            icon_str,
-            icon_x,
-            text_y,
-            font_size,
-            false,
-            text_color,
-        );
 
-        // Draw name
+        // 1. Draw "["
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, text_y, font_size, false, text_color);
+        let bracket_w = self.font_cache.measure_text("[", font_size, false);
+
+        // 2. Draw Icon with custom left padding (equivalent to U+2004)
+        let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
+        let icon_pos_x = icon_x + bracket_w + 7.0; // 7px padding
+        self.font_cache.draw_text(&mut pixmap.as_mut(), icon_str, icon_pos_x, text_y, font_size, false, text_color);
         let icon_w = self.font_cache.measure_text(icon_str, font_size, false);
+
+        // 3. Draw "]" with custom right padding (equivalent to U+0020)
+        let right_bracket_x = icon_pos_x + icon_w + 5.0; // 5px padding
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "]", right_bracket_x, text_y, font_size, false, text_color);
+        let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+
+        let total_icon_box_w = (right_bracket_x + right_bracket_w) - icon_x;
+
+        // 4. Draw Name
+        let name_str = if self.wifi_active {
+            if self.wifi_status == "On" { "Disconnected" } else { self.wifi_status.as_str() }
+        } else {
+            "Disabled"
+        };
         let space_w = self.font_cache.measure_text(" ", font_size, false);
-        let name_x = icon_x + icon_w + space_w;
+        let name_x = icon_x + total_icon_box_w + space_w;
         
         self.font_cache.draw_text(
             &mut pixmap.as_mut(),
@@ -436,10 +447,14 @@ impl ControlCenter {
 
         // Check if inside the WiFi row
         if y >= rect_y && y <= rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
-            let icon_str = if self.wifi_active { "[ 󰖩 ]" } else { "[ 󰖪 ]" };
+            let bracket_w = self.font_cache.measure_text("[", 21.0, false);
+            let icon_str = if self.wifi_active { "󰖩" } else { "󰖪" };
             let icon_w = self.font_cache.measure_text(icon_str, 21.0, false);
+            let right_bracket_w = self.font_cache.measure_text("]", 21.0, false);
             
-            if x <= rect_x + 6.0 + icon_w {
+            let total_icon_box_w = bracket_w + 7.0 + icon_w + 5.0 + right_bracket_w;
+            
+            if x <= rect_x + 6.0 + total_icon_box_w {
                 // Clicked the icon
                 let new_state = !self.wifi_active;
                 api::network::set_wifi_enabled(new_state);
