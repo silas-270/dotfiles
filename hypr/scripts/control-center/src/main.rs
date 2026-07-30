@@ -410,23 +410,63 @@ impl ControlCenter {
         let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
         let bt_name_str = if self.bt_active { "On" } else { "Disabled" };
         
-        // Bluetooth uses U+2004 on both sides in Waybar
         let bt_pad = font_size / 3.0;
-
         self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, bt_text_y, font_size, false, text_color);
-        
         let bt_icon_pos_x = icon_x + bracket_w + bt_pad; 
         self.font_cache.draw_text(&mut pixmap.as_mut(), bt_icon_str, bt_icon_pos_x, bt_text_y, font_size, false, text_color);
         let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
-
         let bt_right_bracket_x = bt_icon_pos_x + bt_icon_w + bt_pad;
         self.font_cache.draw_text(&mut pixmap.as_mut(), "]", bt_right_bracket_x, bt_text_y, font_size, false, text_color);
         let bt_right_bracket_w = self.font_cache.measure_text("]", font_size, false);
-
         let bt_total_icon_box_w = (bt_right_bracket_x + bt_right_bracket_w) - icon_x;
         
         let bt_name_x = icon_x + bt_total_icon_box_w + space_w;
         self.font_cache.draw_text(&mut pixmap.as_mut(), bt_name_str, bt_name_x, bt_text_y, font_size, false, text_color);
+
+        // ── Brightness Row ──
+        let bright_rect_y = bt_rect_y + rect_h + 10.0;
+        render::draw_rect_outline(&mut pixmap.as_mut(), rect_x, bright_rect_y, rect_w, rect_h, 2.0, box_border);
+        let bright_text_y = bright_rect_y + (rect_h - font_size) / 2.0 - 1.0;
+        let bright_icon_str = if self.blue_light_active { "󰃟" } else { "󰃠" };
+        
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, bright_text_y, font_size, false, text_color);
+        let bright_icon_w = self.font_cache.measure_text(bright_icon_str, font_size, false);
+        let bright_pad = (bt_inner_w - bright_icon_w) / 2.0; // Perfect alignment without offset
+        
+        let bright_icon_pos_x = icon_x + bracket_w + bright_pad;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), bright_icon_str, bright_icon_pos_x, bright_text_y, font_size, false, text_color);
+        let bright_right_bracket_x = bright_icon_pos_x + bright_icon_w + bright_pad;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "]", bright_right_bracket_x, bright_text_y, font_size, false, text_color);
+        let bright_total_icon_box_w = (bright_right_bracket_x + right_bracket_w) - icon_x;
+        
+        let bright_slider_x = icon_x + bright_total_icon_box_w + space_w;
+        let slider_len: usize = 20;
+        let bright_filled = (self.brightness * slider_len as f64).round() as usize;
+        let bright_empty = slider_len.saturating_sub(bright_filled);
+        let bright_slider_str = format!("[{}{}]", "#".repeat(bright_filled), "-".repeat(bright_empty));
+        self.font_cache.draw_text(&mut pixmap.as_mut(), &bright_slider_str, bright_slider_x, bright_text_y, font_size, false, text_color);
+
+        // ── Volume Row ──
+        let vol_rect_y = bright_rect_y + rect_h + 10.0;
+        render::draw_rect_outline(&mut pixmap.as_mut(), rect_x, vol_rect_y, rect_w, rect_h, 2.0, box_border);
+        let vol_text_y = vol_rect_y + (rect_h - font_size) / 2.0 - 1.0;
+        let vol_icon_str = if self.volume_muted { "󰖁" } else { "󰕾" };
+        
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "[", icon_x, vol_text_y, font_size, false, text_color);
+        let vol_icon_w = self.font_cache.measure_text(vol_icon_str, font_size, false);
+        let vol_pad = (bt_inner_w - vol_icon_w) / 2.0;
+        
+        let vol_icon_pos_x = icon_x + bracket_w + vol_pad;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), vol_icon_str, vol_icon_pos_x, vol_text_y, font_size, false, text_color);
+        let vol_right_bracket_x = vol_icon_pos_x + vol_icon_w + vol_pad;
+        self.font_cache.draw_text(&mut pixmap.as_mut(), "]", vol_right_bracket_x, vol_text_y, font_size, false, text_color);
+        let vol_total_icon_box_w = (vol_right_bracket_x + right_bracket_w) - icon_x;
+        
+        let vol_slider_x = icon_x + vol_total_icon_box_w + space_w;
+        let vol_filled = (self.volume * slider_len as f64).round() as usize;
+        let vol_empty = slider_len.saturating_sub(vol_filled);
+        let vol_slider_str = format!("[{}{}]", "#".repeat(vol_filled), "-".repeat(vol_empty));
+        self.font_cache.draw_text(&mut pixmap.as_mut(), &vol_slider_str, vol_slider_x, vol_text_y, font_size, false, text_color);
 
 
         // Copy RGBA → BGRA
@@ -548,23 +588,107 @@ impl ControlCenter {
             let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
             let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
             let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
-            
-            // Bluetooth uses U+2004 (1/3 em) on both sides
             let bt_pad = font_size / 3.0; 
-            
             let bt_total_icon_box_w = bracket_w + bt_pad + bt_icon_w + bt_pad + right_bracket_w;
             
             if x <= rect_x + 6.0 + bt_total_icon_box_w {
-                // Clicked the icon
                 let new_state = !self.bt_active;
                 api::bluetooth::set_bluetooth_enabled(new_state);
-                self.bt_active = new_state; // Optimistic update
+                self.bt_active = new_state;
                 self.needs_draw = true;
                 self.immediate_sync();
             } else {
-                // Clicked the name
                 api::bluetooth::open_bluetooth_menu();
                 self.hide_panel();
+            }
+        }
+
+        // Check if inside the Brightness row
+        let bright_rect_y = bt_rect_y + rect_h + 10.0;
+        if y >= bright_rect_y && y <= bright_rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
+            let font_size = 21.0;
+            let bracket_w = self.font_cache.measure_text("[", font_size, false);
+            let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+            let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+            let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+            let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
+
+            let bright_icon_str = if self.blue_light_active { "󰃟" } else { "󰃠" };
+            let bright_icon_w = self.font_cache.measure_text(bright_icon_str, font_size, false);
+            let bright_pad = (bt_inner_w - bright_icon_w) / 2.0;
+            
+            let bright_total_icon_box_w = bracket_w + bright_pad + bright_icon_w + bright_pad + right_bracket_w;
+            
+            if x <= rect_x + 6.0 + bright_total_icon_box_w {
+                // Clicked the icon -> toggle blue light
+                let new_state = !self.blue_light_active;
+                api::compositor::set_blue_light_enabled(new_state);
+                self.blue_light_active = new_state;
+                self.needs_draw = true;
+                self.immediate_sync();
+            } else {
+                // Clicked the slider
+                let space_w = self.font_cache.measure_text(" ", font_size, false);
+                let slider_start_x = rect_x + 6.0 + bright_total_icon_box_w + space_w;
+                let slider_str = "[####################]";
+                let slider_w = self.font_cache.measure_text(slider_str, font_size, false);
+                
+                if x >= slider_start_x && x <= slider_start_x + slider_w {
+                    // Provide some padding so they don't have to click exactly on the edges for 0/100
+                    let inner_start_x = slider_start_x + bracket_w;
+                    let inner_w = slider_w - bracket_w * 2.0;
+                    
+                    let pct = (x - inner_start_x) / inner_w;
+                    let val = pct.clamp(0.0, 1.0) as f64;
+                    api::brightness::set_brightness(val);
+                    self.brightness = val;
+                    self.needs_draw = true;
+                    self.immediate_sync();
+                }
+            }
+        }
+
+        // Check if inside the Volume row
+        let vol_rect_y = bright_rect_y + rect_h + 10.0;
+        if y >= vol_rect_y && y <= vol_rect_y + rect_h && x >= rect_x && x <= rect_x + rect_w {
+            let font_size = 21.0;
+            let bracket_w = self.font_cache.measure_text("[", font_size, false);
+            let bt_icon_str = if self.bt_active { "" } else { "󰂲" };
+            let bt_icon_w = self.font_cache.measure_text(bt_icon_str, font_size, false);
+            let right_bracket_w = self.font_cache.measure_text("]", font_size, false);
+            let bt_inner_w = (font_size / 3.0) * 2.0 + bt_icon_w;
+
+            let vol_icon_str = if self.volume_muted { "󰖁" } else { "󰕾" };
+            let vol_icon_w = self.font_cache.measure_text(vol_icon_str, font_size, false);
+            let vol_pad = (bt_inner_w - vol_icon_w) / 2.0;
+            
+            let vol_total_icon_box_w = bracket_w + vol_pad + vol_icon_w + vol_pad + right_bracket_w;
+            
+            if x <= rect_x + 6.0 + vol_total_icon_box_w {
+                // Clicked the icon -> toggle mute
+                let new_state = !self.volume_muted;
+                api::audio::set_mute(new_state);
+                self.volume_muted = new_state;
+                self.needs_draw = true;
+                self.immediate_sync();
+            } else {
+                // Clicked the slider
+                let space_w = self.font_cache.measure_text(" ", font_size, false);
+                let slider_start_x = rect_x + 6.0 + vol_total_icon_box_w + space_w;
+                let slider_str = "[####################]";
+                let slider_w = self.font_cache.measure_text(slider_str, font_size, false);
+                
+                if x >= slider_start_x && x <= slider_start_x + slider_w {
+                    let inner_start_x = slider_start_x + bracket_w;
+                    let inner_w = slider_w - bracket_w * 2.0;
+                    
+                    let pct = (x - inner_start_x) / inner_w;
+                    let val = pct.clamp(0.0, 1.0) as f64;
+                    api::audio::set_volume(val);
+                    self.volume = val;
+                    self.needs_draw = true;
+                    self.immediate_sync();
+                }
             }
         }
     }
