@@ -23,7 +23,7 @@
   ],
 
   "cpu": {
-    "format": "[ CPU  {usage:02}% ]",
+    "format": "[ CPU {usage}% ]",
     "interval": 2,
     "tooltip": false
   },
