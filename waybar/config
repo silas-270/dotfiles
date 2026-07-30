@@ -10,7 +10,10 @@
   "hyprland/workspaces"
 ],
   "modules-center": [],
-  "modules-right": [],
+  "modules-right": [
+    "clock",
+    "custom/controlcenter"
+  ],
 
   "custom/logo": {
     "format": "[ arch ]",
@@ -69,13 +72,13 @@
   },
 
   "clock": {
-    "format": "{:%H:%M}",
-    "format-alt": "{:%a %d.%m.%Y}",
+    "format": "[ 󰥔 {:%H:%M} ]",
+    "format-alt": "[ 󰥔 {:%a %d.%m.%Y} ]",
     "tooltip-format": "<tt>{calendar}</tt>"
   },
 
   "custom/controlcenter": {
-    "format": "",
+    "format": "[  ]",
     "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
     "tooltip": false
   }

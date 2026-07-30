@@ -112,18 +112,26 @@ window#waybar {
 #clock {
     background: transparent;
     color: @accent;
-    font-weight: 700;
-    padding: 2px 8px;
-    margin-left: 4px;
+    border: 2px solid @border;
+    border-radius: 0px;
+    padding: 0px 4px;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 400;
+    margin-left: 6px;
 }
 
 /* ── Control Center ── */
 #custom-controlcenter {
     background: transparent;
     color: @accent;
-    font-weight: 700;
-    padding: 2px 8px;
-    margin-left: 4px;
+    border: 2px solid @border;
+    border-radius: 0px;
+    padding: 0px 4px;
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+    font-size: 16px;
+    font-weight: 400;
+    margin-left: 6px;
 }
 
 /* ── Trennlinien ── */
