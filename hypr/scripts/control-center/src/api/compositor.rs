@@ -21,10 +21,8 @@ pub fn set_blue_light_enabled(active: bool) {
     } else {
         "[[EMPTY]]".to_string()
     };
-    std::thread::spawn(move || {
-        let _ = std::process::Command::new("hyprctl")
-            .args(&["keyword", "decoration:screen_shader", &shader])
-            .status();
-    });
+    let eval_str = format!("hl.config({{ decoration = {{ screen_shader = '{}' }} }})", shader);
+    let _ = std::process::Command::new("hyprctl")
+        .args(&["eval", &eval_str])
+        .status();
 }
-

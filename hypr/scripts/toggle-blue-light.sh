@@ -1,9 +1,9 @@
 #!/bin/bash
 SHADER_PATH="/home/silas270/.config/hypr/shaders/blue-light.frag"
-CURRENT_SHADER=$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')
+CURRENT_SHADER=$(hyprctl getoption decoration:screen_shader -j | grep -oP '"str": "\K[^"]+')
 
-if [ "$CURRENT_SHADER" = "[[EMPTY]]" ] || [ -z "$CURRENT_SHADER" ]; then
-    hyprctl keyword decoration:screen_shader "$SHADER_PATH"
+if [ "$CURRENT_SHADER" = "[[EMPTY]]" ] || [ -z "$CURRENT_SHADER" ] || [ "$CURRENT_SHADER" = "null" ]; then
+    hyprctl eval "hl.config({ decoration = { screen_shader = '$SHADER_PATH' } })"
 else
-    hyprctl keyword decoration:screen_shader "[[EMPTY]]"
+    hyprctl eval "hl.config({ decoration = { screen_shader = '[[EMPTY]]' } })"
 fi

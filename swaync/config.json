@@ -63,7 +63,7 @@
           "label": "󰃟",
           "type": "toggle",
           "command": "/home/silas270/.config/hypr/scripts/toggle-blue-light.sh",
-          "update-command": "if [ \"$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')\" = '[[EMPTY]]' ] || [ -z \"$(hyprctl getoption decoration:screen_shader -j | jq -r '.str')\" ]; then echo false; else echo true; fi"
+          "update-command": "if [ \"$(hyprctl getoption decoration:screen_shader -j | grep -oP '\"str\": \"\\K[^\"]+')\" = '[[EMPTY]]' ] || [ -z \"$(hyprctl getoption decoration:screen_shader -j | grep -oP '\"str\": \"\\K[^\"]+')\" ]; then echo false; else echo true; fi"
         }
       ]
     },

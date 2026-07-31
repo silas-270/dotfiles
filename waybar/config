@@ -76,6 +76,9 @@
 
   "battery": {
     "format": "[ {icon} ]",
+    "format-charging": "[ 󰂄 ]",
+    "format-plugged": "[ 󰂄 ]",
+    "format-full": "[ 󰂄 ]",
     "format-alt": "[ {icon} {capacity}% ]",
     "format-icons": {
       "charging": [
