@@ -26,3 +26,9 @@ pub fn set_blue_light_enabled(active: bool) {
         .args(&["eval", &eval_str])
         .status();
 }
+
+pub fn toggle_blue_light() -> bool {
+    let new_state = !is_blue_light_active();
+    set_blue_light_enabled(new_state);
+    new_state
+}

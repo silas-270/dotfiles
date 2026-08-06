@@ -14,6 +14,10 @@ pub fn is_wifi_active() -> bool {
     false
 }
 
+pub fn is_wifi_enabled() -> bool {
+    is_wifi_active()
+}
+
 pub fn get_wifi_ssid() -> String {
     if let Ok(output) = std::process::Command::new("nmcli")
         .args(&["-t", "-f", "active,ssid", "dev", "wifi"])
@@ -54,17 +58,8 @@ pub fn get_wifi_ssid() -> String {
     "Connected".to_string()
 }
 
-pub fn get_wifi_status() -> String {
-    if is_wifi_active() {
-        let ssid = get_wifi_ssid();
-        if ssid == "Connected" || ssid.is_empty() {
-            "On".to_string()
-        } else {
-            ssid
-        }
-    } else {
-        "Off".to_string()
-    }
+pub fn get_connected_ssid() -> String {
+    get_wifi_ssid()
 }
 
 pub fn set_wifi_enabled(active: bool) {
@@ -83,3 +78,6 @@ pub fn open_wifi_menu() {
         .status();
 }
 
+pub fn open_network_menu() {
+    open_wifi_menu();
+}

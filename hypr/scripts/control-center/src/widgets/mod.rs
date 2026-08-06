@@ -1,4 +1,17 @@
-pub mod svg_utils;
-pub mod text;
+pub mod fieldset;
+pub mod connections;
+pub mod controls;
+pub mod media;
+pub mod session;
 
-pub use text::FontCache;
+pub use connections::ConnectionsSection;
+pub use controls::{ControlsSection, DragTarget};
+pub use media::MediaSection;
+pub use session::SessionSection;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum ActionResult {
+    None,
+    NeedsDraw,
+    HidePanel,
+}

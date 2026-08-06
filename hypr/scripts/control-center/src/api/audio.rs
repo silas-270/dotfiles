@@ -1,6 +1,14 @@
 //! Audio API module (WirePlumber / PulseAudio / ALSA)
 
-pub fn get_volume() -> (f64, bool) {
+pub fn get_volume() -> f64 {
+    get_volume_and_mute().0
+}
+
+pub fn is_muted() -> bool {
+    get_volume_and_mute().1
+}
+
+pub fn get_volume_and_mute() -> (f64, bool) {
     if let Ok(output) = std::process::Command::new("wpctl")
         .args(&["get-volume", "@DEFAULT_AUDIO_SINK@"])
         .output()
@@ -107,3 +115,8 @@ pub fn set_mute(muted: bool) {
     });
 }
 
+pub fn toggle_mute() -> bool {
+    let new_state = !is_muted();
+    set_mute(new_state);
+    new_state
+}

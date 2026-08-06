@@ -1,7 +1,6 @@
 //! Bluetooth API module (bluetoothctl / rfkill)
 
 pub fn is_bluetooth_active() -> bool {
-    // 1. Try bluetoothctl show
     if let Ok(output) = std::process::Command::new("bluetoothctl")
         .arg("show")
         .output()
@@ -13,7 +12,6 @@ pub fn is_bluetooth_active() -> bool {
         }
     }
 
-    // 2. Fallback to rfkill
     if let Ok(output) = std::process::Command::new("rfkill")
         .args(&["list", "bluetooth"])
         .output()
@@ -31,6 +29,10 @@ pub fn is_bluetooth_active() -> bool {
     }
 
     false
+}
+
+pub fn is_bluetooth_enabled() -> bool {
+    is_bluetooth_active()
 }
 
 pub fn set_bluetooth_enabled(active: bool) {
@@ -59,4 +61,3 @@ pub fn open_bluetooth_menu() {
         .arg("~/.config/hypr/scripts/rofi-bluetooth-menu.sh &")
         .status();
 }
-

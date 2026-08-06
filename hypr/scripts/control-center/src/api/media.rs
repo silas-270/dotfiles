@@ -204,8 +204,14 @@ pub fn get_media_state() -> MediaState {
     let status = get_status();
     if status == PlaybackStatus::None {
         return MediaState {
-            status,
-            metadata: MediaMetadata::default(),
+            status: PlaybackStatus::None,
+            metadata: MediaMetadata {
+                title: "No Media Playing".to_string(),
+                artist: "None".to_string(),
+                album: String::new(),
+                art_url: String::new(),
+                length_secs: 0.0,
+            },
             position_secs: 0.0,
         };
     }
