@@ -34,4 +34,4 @@ if [[ "$player_status" == "Playing" || "$player_status" == "Paused" ]]; then
 fi
 
 # Fallback when no media is playing
-echo "[ arch ]"
+echo "[ I use Arch btw ]"

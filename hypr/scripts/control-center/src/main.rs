@@ -247,10 +247,13 @@ impl ControlCenter {
     // ── Drawing ─────────────────────────────────────────────────────────
 
     fn draw_panel(&mut self) {
+        if !self.visible || !self.panel_configured {
+            return;
+        }
         let has_media = self.media_state.status == api::media::PlaybackStatus::Playing 
                      || self.media_state.status == api::media::PlaybackStatus::Paused;
 
-        let target_h = if has_media { 462 } else { 362 };
+        let target_h = if has_media { 622 } else { 485 };
         if self.panel_height != target_h as u32 {
             self.panel_height = target_h as u32;
             if let Some(ref surface) = self.panel_surface {
@@ -302,7 +305,7 @@ impl ControlCenter {
         let sec_border = tiny_skia::Color::from_rgba(122.0 / 255.0, 82.0 / 255.0, 61.0 / 255.0, 0.6).unwrap();
 
         // 1. CONNECTIONS
-        let sec1_y = outer_pad + 10.0;
+        let sec1_y = 0.0;
         ConnectionsSection::draw(
             &mut pixmap.as_mut(),
             &mut self.font_cache,
@@ -312,7 +315,7 @@ impl ControlCenter {
         );
 
         // 2. CONTROLS
-        let sec2_y = sec1_y + ConnectionsSection::HEIGHT + 18.0;
+        let sec2_y = sec1_y + ConnectionsSection::HEIGHT;
         ControlsSection::draw(
             &mut pixmap.as_mut(),
             &mut self.font_cache,
@@ -322,7 +325,7 @@ impl ControlCenter {
         );
 
         // 3. MEDIA (conditional)
-        let sec3_y = sec2_y + ControlsSection::HEIGHT + 18.0;
+        let sec3_y = sec2_y + ControlsSection::HEIGHT;
         if has_media {
             MediaSection::draw(
                 &mut pixmap.as_mut(),
@@ -335,9 +338,9 @@ impl ControlCenter {
 
         // 4. SESSION
         let sec4_y = if has_media {
-            sec3_y + MediaSection::HEIGHT + 18.0
+            sec3_y + MediaSection::HEIGHT
         } else {
-            sec2_y + ControlsSection::HEIGHT + 18.0
+            sec2_y + ControlsSection::HEIGHT
         };
         SessionSection::draw(
             &mut pixmap.as_mut(),
@@ -358,6 +361,9 @@ impl ControlCenter {
     }
 
     fn draw_backdrop(&mut self) {
+        if !self.visible || !self.backdrop_configured {
+            return;
+        }
         let w = self.backdrop_width;
         let h = self.backdrop_height;
         if w == 0 || h == 0 {
@@ -396,7 +402,7 @@ impl ControlCenter {
         let sec_w = (self.panel_width as f32 - 2.0 * outer_pad) as f64;
         let font_size = 21.0;
 
-        let sec1_y = (outer_pad + 10.0) as f64;
+        let sec1_y = 0.0;
 
         match ConnectionsSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec1_y, sec_w, font_size,
@@ -413,19 +419,19 @@ impl ControlCenter {
             widgets::ActionResult::None => {}
         }
 
-        let sec2_y = sec1_y + ConnectionsSection::HEIGHT as f64 + 18.0;
+        let sec2_y = sec1_y + ConnectionsSection::HEIGHT as f64;
         match ControlsSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec2_y, sec_w, font_size,
             &mut self.brightness, &mut self.blue_light_active, &mut self.volume, &mut self.volume_muted,
         ) {
             DragTarget::Brightness => {
                 self.drag_state = DragState::Brightness;
-                self.needs_draw = true;
+                self.handle_pointer_motion(x, y);
                 return;
             }
             DragTarget::Volume => {
                 self.drag_state = DragState::Volume;
-                self.needs_draw = true;
+                self.handle_pointer_motion(x, y);
                 return;
             }
             DragTarget::None => {}
@@ -433,7 +439,7 @@ impl ControlCenter {
 
         let has_media = self.media_state.status == api::media::PlaybackStatus::Playing 
                      || self.media_state.status == api::media::PlaybackStatus::Paused;
-        let sec3_y = sec2_y + ControlsSection::HEIGHT as f64 + 18.0;
+        let sec3_y = sec2_y + ControlsSection::HEIGHT as f64;
 
         if has_media && MediaSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec3_y, sec_w, font_size,
@@ -444,9 +450,9 @@ impl ControlCenter {
         }
 
         let sec4_y = if has_media {
-            sec3_y + MediaSection::HEIGHT as f64 + 18.0
+            sec3_y + MediaSection::HEIGHT as f64
         } else {
-            sec2_y + ControlsSection::HEIGHT as f64 + 18.0
+            sec2_y + ControlsSection::HEIGHT as f64
         };
         match SessionSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec4_y, sec_w, font_size,
@@ -466,11 +472,14 @@ impl ControlCenter {
 
         let char_w = self.font_cache.measure_text("#", font_size, false) as f64;
         let bracket_w = self.font_cache.measure_text("[", font_size, false) as f64;
-        let available_inner_w = (sec_w - 24.0) - bracket_w * 2.0;
+        let box_x = sec_x + 8.0;
+        let box_w = sec_w - 16.0;
+        let icon_x = box_x + 8.0;
+        let available_slider_w = box_w - 16.0;
+        let available_inner_w = available_slider_w - bracket_w * 2.0;
         let slider_len = (available_inner_w / char_w).floor();
         let slider_w = bracket_w * 2.0 + slider_len * char_w;
-        let slider_start_x = sec_x + 12.0;
-        let inner_start_x = slider_start_x + bracket_w;
+        let inner_start_x = icon_x + bracket_w;
         let inner_w = slider_w - bracket_w * 2.0;
 
         let process_slider = |val: &mut f64| {
@@ -701,12 +710,14 @@ impl PointerHandler for ControlCenter {
                     }
                 }
                 PointerEventKind::Release { button, .. } => {
-                    if button == 0x110 && is_panel {
-                        self.handle_pointer_release(event.position.0, event.position.1);
+                    if button == 0x110 {
+                        if self.drag_state != DragState::None {
+                            self.handle_pointer_release(event.position.0, event.position.1);
+                        }
                     }
                 }
                 PointerEventKind::Motion { .. } => {
-                    if is_panel && self.drag_state != DragState::None {
+                    if self.drag_state != DragState::None {
                         self.handle_pointer_motion(event.position.0, event.position.1);
                     }
                 }
@@ -832,7 +843,10 @@ fn main() {
         qh,
     };
 
-    app.show_panel();
+    let start_daemon_only = std::env::args().any(|a| a == "--daemon");
+    if !start_daemon_only {
+        app.show_panel();
+    }
 
     let mut event_loop: calloop::EventLoop<ControlCenter> =
         calloop::EventLoop::try_new().expect("Failed to create calloop EventLoop");
@@ -925,5 +939,9 @@ fn main() {
         event_loop
             .dispatch(Duration::from_millis(16), &mut app)
             .expect("Error during EventLoop dispatch");
+
+        if app.visible && app.needs_draw {
+            app.draw_panel();
+        }
     }
 }

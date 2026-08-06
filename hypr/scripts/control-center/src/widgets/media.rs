@@ -1,7 +1,7 @@
 use tiny_skia::{Color, PixmapMut};
 use crate::render::FontCache;
 use crate::api;
-use super::fieldset::draw_fieldset_outline;
+use super::fieldset::draw_section_header;
 
 pub struct MediaSection;
 
@@ -13,7 +13,7 @@ fn format_time(secs: f64) -> String {
 }
 
 impl MediaSection {
-    pub const HEIGHT: f32 = 108.0;
+    pub const HEIGHT: f32 = 137.0;
 
     pub fn draw(
         pixmap: &mut PixmapMut,
@@ -27,24 +27,18 @@ impl MediaSection {
         sec_border: Color,
         media_state: &api::media::MediaState,
     ) {
-        let sec3_title = "MEDIA";
-        let sec3_title_w = font_cache.measure_text(sec3_title, font_size, false);
-        let sec3_gap_x = sec_x + 12.0;
-        let sec3_gap_w = sec3_title_w + 8.0;
-
-        draw_fieldset_outline(
-            pixmap,
-            sec_x, sec_y, sec_w, Self::HEIGHT,
-            2.0, sec_border,
-            sec3_gap_x, sec3_gap_w,
+        draw_section_header(
+            pixmap, font_cache, "MEDIA",
+            sec_x, sec_y, sec_w, font_size,
+            accent_color, sec_border,
         );
-        font_cache.draw_text(pixmap, sec3_title, sec3_gap_x + 4.0, sec_y - 10.0, font_size, false, accent_color);
 
-        let media_x = sec_x + 12.0;
-        let media_line1_y = sec_y + 14.0;
-        let media_line2_y = sec_y + 36.0;
-        let media_line3_y = sec_y + 58.0;
-        let media_line4_y = sec_y + 80.0;
+        let media_x = sec_x;
+        let media_w = sec_w;
+        let media_line1_y = sec_y + 49.0;
+        let media_line2_y = sec_y + 71.0;
+        let media_line3_y = sec_y + 93.0;
+        let media_line4_y = sec_y + 115.0;
 
         // Line 1: TITLE
         let title_lbl = "TITLE  : ";
@@ -71,7 +65,6 @@ impl MediaSection {
         let right_lbl_w = font_cache.measure_text(&right_lbl, font_size, false);
 
         let rail_start_x = media_x + left_lbl_w;
-        let media_w = sec_w - 24.0;
         let right_lbl_x = media_x + media_w - right_lbl_w;
         font_cache.draw_text(pixmap, &right_lbl, right_lbl_x, media_line3_y, font_size, false, text_color);
 
@@ -119,8 +112,8 @@ impl MediaSection {
             return false;
         }
 
-        let media_x = sec_x + 12.0;
-        let media_w = sec_w - 24.0;
+        let media_x = sec_x;
+        let media_w = sec_w;
 
         let btn1_str = "[ 󰒮 PREV ]";
         let btn2_str = if media_state.status == api::media::PlaybackStatus::Playing { "[ 󰏤 PAUSE ]" } else { "[ 󰐊 PLAY ]" };
@@ -134,7 +127,7 @@ impl MediaSection {
         let btn3_x = media_x + media_w - btn3_w;
         let btn2_x = media_x + (media_w - btn2_w) / 2.0;
 
-        if y >= sec_y + 74.0 {
+        if y >= sec_y + 86.0 {
             if x >= btn1_x && x <= btn1_x + btn1_w {
                 api::media::previous();
                 media_state.position_secs = 0.0;
@@ -154,7 +147,7 @@ impl MediaSection {
             } else {
                 false
             }
-        } else if y >= sec_y + 50.0 && y < sec_y + 74.0 {
+        } else if y >= sec_y + 64.0 && y < sec_y + 86.0 {
             let elapsed_str = format_time(media_state.position_secs);
             let dur_str = format_time(media_state.metadata.length_secs);
             let left_lbl = format!("{} [", elapsed_str);

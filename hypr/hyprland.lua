@@ -17,7 +17,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY")
     hl.exec_cmd("killall swaybg; swaybg -i /home/silas270/Bilder/Wallpaper/wallpaper-home.jpg -m fill")
     hl.exec_cmd("waybar")
-    hl.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center")
+    hl.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center --daemon")
 end)
 
 -- env

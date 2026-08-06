@@ -1,7 +1,7 @@
 use tiny_skia::{Color, PixmapMut};
 use crate::render::FontCache;
 use crate::api;
-use super::fieldset::draw_fieldset_outline;
+use super::fieldset::{draw_section_header, draw_inner_box};
 
 pub enum DragTarget {
     None,
@@ -12,7 +12,7 @@ pub enum DragTarget {
 pub struct ControlsSection;
 
 impl ControlsSection {
-    pub const HEIGHT: f32 = 124.0;
+    pub const HEIGHT: f32 = 195.0;
 
     pub fn draw(
         pixmap: &mut PixmapMut,
@@ -29,24 +29,25 @@ impl ControlsSection {
         volume: f64,
         volume_muted: bool,
     ) {
-        let sec2_title = "CONTROLS";
-        let sec2_title_w = font_cache.measure_text(sec2_title, font_size, false);
-        let sec2_gap_x = sec_x + 12.0;
-        let sec2_gap_w = sec2_title_w + 8.0;
-
-        draw_fieldset_outline(
-            pixmap,
-            sec_x, sec_y, sec_w, Self::HEIGHT,
-            2.0, sec_border,
-            sec2_gap_x, sec2_gap_w,
+        draw_section_header(
+            pixmap, font_cache, "CONTROLS",
+            sec_x, sec_y, sec_w, font_size,
+            accent_color, sec_border,
         );
-        font_cache.draw_text(pixmap, sec2_title, sec2_gap_x + 4.0, sec_y - 10.0, font_size, false, accent_color);
 
-        let icon_x = sec_x + 12.0;
+        let inner_border = Color::from_rgba(103.0 / 255.0, 69.0 / 255.0, 52.0 / 255.0, 0.75).unwrap();
 
-        // Brightness (uses calibrated bracket tag offset)
-        let bright_line1_y = sec_y + 14.0;
-        let bright_line2_y = sec_y + 36.0;
+        // --- Brightness Box ---
+        let bright_box_x = sec_x;
+        let bright_box_y = sec_y + 49.0;
+        let bright_box_w = sec_w;
+        let bright_box_h = 66.0;
+
+        draw_inner_box(pixmap, bright_box_x, bright_box_y, bright_box_w, bright_box_h, None, inner_border, 1.5);
+
+        let icon_x = bright_box_x + 8.0;
+        let bright_line1_y = bright_box_y + 8.0;
+        let bright_line2_y = bright_box_y + 37.0;
 
         let b_icon = if blue_light_active { "󰈈" } else { "󰃠" };
         let tag_w1 = font_cache.draw_calibrated_bracket_tag(pixmap, b_icon, icon_x, bright_line1_y, font_size, accent_color);
@@ -54,7 +55,8 @@ impl ControlsSection {
 
         let char_w = font_cache.measure_text("#", font_size, false);
         let bracket_w = font_cache.measure_text("[", font_size, false);
-        let available_inner_w = (sec_w - 24.0) - bracket_w * 2.0;
+        let available_slider_w = bright_box_w - 16.0;
+        let available_inner_w = available_slider_w - bracket_w * 2.0;
         let slider_len = (available_inner_w / char_w).floor() as usize;
 
         let b_filled = (brightness.clamp(0.0, 1.0) * slider_len as f64).round() as usize;
@@ -62,9 +64,16 @@ impl ControlsSection {
         let bright_slider_str = format!("[{}{}]", "#".repeat(b_filled), "-".repeat(b_empty));
         font_cache.draw_text(pixmap, &bright_slider_str, icon_x, bright_line2_y, font_size, false, text_color);
 
-        // Volume (uses standard space padding)
-        let vol_line1_y = sec_y + 74.0;
-        let vol_line2_y = sec_y + 96.0;
+        // --- Volume Box ---
+        let vol_box_x = sec_x;
+        let vol_box_y = sec_y + 129.0;
+        let vol_box_w = sec_w;
+        let vol_box_h = 66.0;
+
+        draw_inner_box(pixmap, vol_box_x, vol_box_y, vol_box_w, vol_box_h, None, inner_border, 1.5);
+
+        let vol_line1_y = vol_box_y + 8.0;
+        let vol_line2_y = vol_box_y + 37.0;
 
         let v_icon = if volume_muted || volume == 0.0 { "󰖁" } else { "󰕾" };
         let vol_header = format!("[ {} ] VOLUME", v_icon);
@@ -94,33 +103,34 @@ impl ControlsSection {
             return DragTarget::None;
         }
 
-        let icon_x = sec_x + 12.0;
+        let bright_box_y = sec_y + 49.0;
+        let bright_box_h = 66.0;
+        let vol_box_y = sec_y + 129.0;
+        let vol_box_h = 66.0;
 
-        if y >= sec_y + 10.0 && y < sec_y + 36.0 {
+        let icon_x = sec_x + 8.0;
+
+        if y >= bright_box_y && y <= bright_box_y + bright_box_h {
             let b_icon = if *blue_light_active { "󰈈" } else { "󰃠" };
             let tag_w = font_cache.measure_calibrated_bracket_tag(b_icon, font_size) as f64;
-            if x >= icon_x && x <= icon_x + tag_w {
+            if y <= bright_box_y + 35.0 && x >= icon_x && x <= icon_x + tag_w {
                 let new_state = api::compositor::toggle_blue_light();
                 *blue_light_active = new_state;
                 DragTarget::None
             } else {
-                DragTarget::None
+                DragTarget::Brightness
             }
-        } else if y >= sec_y + 36.0 && y < sec_y + 64.0 {
-            DragTarget::Brightness
-        } else if y >= sec_y + 70.0 && y < sec_y + 96.0 {
+        } else if y >= vol_box_y && y <= vol_box_y + vol_box_h {
             let v_icon = if *volume_muted { "󰖁" } else { "󰕾" };
             let vol_tag = format!("[ {} ]", v_icon);
             let tag_w = font_cache.measure_text(&vol_tag, font_size, false) as f64;
-            if x >= icon_x && x <= icon_x + tag_w {
+            if y <= vol_box_y + 35.0 && x >= icon_x && x <= icon_x + tag_w {
                 let new_state = api::audio::toggle_mute();
                 *volume_muted = new_state;
                 DragTarget::None
             } else {
-                DragTarget::None
+                DragTarget::Volume
             }
-        } else if y >= sec_y + 96.0 && y < sec_y + 130.0 {
-            DragTarget::Volume
         } else {
             DragTarget::None
         }
