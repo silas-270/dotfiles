@@ -32,7 +32,7 @@ impl SessionSection {
         let box_y = sec_y + 49.0;
         let box_h = 32.0;
 
-        let icons = ["[ 󰌾 ]", "[ 󰤄 ]", "[ 󰜉 ]", "[ 󰐥 ]"];
+        let icons = ["( 󰌾 )", "( 󰤄 )", "( 󰜉 )", "( 󰐥 )"];
         let num_btns = 4.0;
         let gap = 6.0;
         let btn_w = (sess_w - (num_btns - 1.0) * gap) / num_btns;

@@ -125,12 +125,12 @@ impl FontCache {
         x
     }
 
-    /// Measure a calibrated bracket tag to match exact standard bracket tag width (e.g. [  ]).
+    /// Measure a calibrated bracket tag to match exact standard bracket tag width (e.g. (  )).
     pub fn measure_calibrated_bracket_tag(&mut self, _icon: &str, font_size: f32) -> f32 {
-        self.measure_text("[  ]", font_size, false)
+        self.measure_text("(  )", font_size, false)
     }
 
-    /// Draw a calibrated bracket tag [ icon ] with icon position at the visual sweet spot (75% towards center).
+    /// Draw a calibrated bracket tag ( icon ) with icon position at the visual sweet spot (75% towards center).
     pub fn draw_calibrated_bracket_tag(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -141,11 +141,11 @@ impl FontCache {
         color: Color,
     ) -> f32 {
         let target_w = self.measure_calibrated_bracket_tag(icon, font_size);
-        let bracket_w = self.measure_text("[", font_size, false);
+        let bracket_w = self.measure_text("(", font_size, false);
         let icon_w = self.measure_text(icon, font_size, false);
 
-        // 1. Draw "["
-        self.draw_text(pixmap, "[", start_x, top_y, font_size, false, color);
+        // 1. Draw "("
+        self.draw_text(pixmap, "(", start_x, top_y, font_size, false, color);
 
         // 2. Draw Icon at the visual sweet spot (halfway between mid_offset and center_offset)
         let inner_w = target_w - 2.0 * bracket_w;
@@ -155,9 +155,9 @@ impl FontCache {
         let icon_x = start_x + bracket_w + sweet_spot_offset;
         self.draw_text(pixmap, icon, icon_x, top_y, font_size, false, color);
 
-        // 3. Draw "]" at exact target_w end position to preserve vertical alignment
+        // 3. Draw ")" at exact target_w end position to preserve vertical alignment
         let right_bracket_x = start_x + target_w - bracket_w;
-        self.draw_text(pixmap, "]", right_bracket_x, top_y, font_size, false, color);
+        self.draw_text(pixmap, ")", right_bracket_x, top_y, font_size, false, color);
 
         target_w
     }

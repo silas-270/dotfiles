@@ -100,6 +100,10 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center"))
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
 
+-- Temporary wallpaper keybinds (cycle wallpapers)
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/change_wallpaper.sh next"))
+hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/change_wallpaper.sh prev"))
+
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("rofi -show drun"))
@@ -107,8 +111,9 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/power-menu.sh
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock || loginctl lock-session"))
+
 hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
 

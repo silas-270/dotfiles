@@ -6,7 +6,7 @@ pub mod session;
 
 pub use connections::ConnectionsSection;
 pub use controls::{ControlsSection, DragTarget};
-pub use media::MediaSection;
+pub use media::{MediaSection, MediaClickResult};
 pub use session::SessionSection;
 
 #[derive(Debug, PartialEq, Eq)]

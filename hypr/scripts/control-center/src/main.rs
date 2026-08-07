@@ -25,7 +25,7 @@
 //! ============================================================================
 
 use smithay_client_toolkit::{
-    compositor::{CompositorHandler, CompositorState},
+    compositor::{CompositorHandler, CompositorState, Region},
     delegate_compositor, delegate_keyboard, delegate_layer, delegate_output,
     delegate_pointer, delegate_registry, delegate_seat, delegate_shm,
     output::{OutputHandler, OutputState},
@@ -33,7 +33,7 @@ use smithay_client_toolkit::{
     registry_handlers,
     seat::{
         keyboard::{KeyboardData, KeyEvent, KeyboardHandler, Keysym, Modifiers},
-        pointer::{PointerData, PointerEvent, PointerEventKind, PointerHandler},
+        pointer::{PointerData, PointerEvent, PointerEventKind, PointerHandler, CursorIcon, ThemeSpec, ThemedPointer},
         Capability, SeatHandler, SeatState,
     },
     shell::{
@@ -148,6 +148,7 @@ struct ControlCenter {
     // Visibility
     visible: bool,
     needs_draw: bool,
+    backdrop_pressed: bool,
 
     // Sync state
     sync_sender: calloop::channel::Sender<SyncMessage>,
@@ -167,6 +168,7 @@ struct ControlCenter {
 
     // Interaction state
     drag_state: DragState,
+    themed_pointer: Option<ThemedPointer>,
 
     // Font cache
     font_cache: FontCache,
@@ -197,6 +199,17 @@ impl ControlCenter {
         backdrop_layer.set_anchor(Anchor::TOP | Anchor::BOTTOM | Anchor::LEFT | Anchor::RIGHT);
         backdrop_layer.set_exclusive_zone(-1);
         backdrop_layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
+
+        // Exclude the top 50px (Waybar zone) from the backdrop's input region.
+        // The backdrop still renders full-screen, but clicks in the Waybar area
+        // pass through to Waybar so its on-click toggle works without needing
+        // the compositor to refocus the pointer.
+        let waybar_h: i32 = 50;
+        if let Ok(region) = Region::new(&self.compositor_state) {
+            region.add(0, waybar_h, 1920, 1080 - waybar_h);
+            backdrop_layer.wl_surface().set_input_region(Some(region.wl_region()));
+        }
+
         backdrop_layer.commit();
         self.backdrop_surface = Some(backdrop_layer);
         self.backdrop_configured = false;
@@ -222,12 +235,22 @@ impl ControlCenter {
         self.immediate_sync();
     }
 
+    fn refresh_backdrop(&mut self) {
+        if self.visible && self.backdrop_configured {
+            self.draw_backdrop();
+            if let Some(ref backdrop) = self.backdrop_surface {
+                backdrop.commit();
+            }
+        }
+    }
+
     fn hide_panel(&mut self) {
         if !self.visible {
             return;
         }
         eprintln!("[CC] Hiding panel surface!");
         self.visible = false;
+        self.backdrop_pressed = false;
 
         self.panel_surface = None;
         self.backdrop_surface = None;
@@ -253,7 +276,7 @@ impl ControlCenter {
         let has_media = self.media_state.status == api::media::PlaybackStatus::Playing 
                      || self.media_state.status == api::media::PlaybackStatus::Paused;
 
-        let target_h = if has_media { 622 } else { 485 };
+        let target_h = if has_media { 629 } else { 485 };
         if self.panel_height != target_h as u32 {
             self.panel_height = target_h as u32;
             if let Some(ref surface) = self.panel_surface {
@@ -419,6 +442,7 @@ impl ControlCenter {
             widgets::ActionResult::None => {}
         }
 
+        let old_blue_active = self.blue_light_active;
         let sec2_y = sec1_y + ConnectionsSection::HEIGHT as f64;
         match ControlsSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec2_y, sec_w, font_size,
@@ -437,16 +461,31 @@ impl ControlCenter {
             DragTarget::None => {}
         }
 
+        if self.blue_light_active != old_blue_active {
+            self.refresh_backdrop();
+            self.needs_draw = true;
+        }
+
         let has_media = self.media_state.status == api::media::PlaybackStatus::Playing 
                      || self.media_state.status == api::media::PlaybackStatus::Paused;
         let sec3_y = sec2_y + ControlsSection::HEIGHT as f64;
 
-        if has_media && MediaSection::handle_click(
-            x, y, &mut self.font_cache, sec_x, sec3_y, sec_w, font_size,
-            &mut self.media_state,
-        ) {
-            self.needs_draw = true;
-            return;
+        if has_media {
+            match MediaSection::handle_click(
+                x, y, &mut self.font_cache, sec_x, sec3_y, sec_w, font_size,
+                &mut self.media_state,
+            ) {
+                widgets::MediaClickResult::Seek => {
+                    self.drag_state = DragState::MediaSeek;
+                    self.needs_draw = true;
+                    return;
+                }
+                widgets::MediaClickResult::Button => {
+                    self.needs_draw = true;
+                    return;
+                }
+                widgets::MediaClickResult::None => {}
+            }
         }
 
         let sec4_y = if has_media {
@@ -470,8 +509,8 @@ impl ControlCenter {
         let sec_w = (self.panel_width as f32 - 2.0 * outer_pad) as f64;
         let font_size = 21.0;
 
-        let char_w = self.font_cache.measure_text("#", font_size, false) as f64;
-        let bracket_w = self.font_cache.measure_text("[", font_size, false) as f64;
+        let char_w = self.font_cache.measure_text("=", font_size, false) as f64;
+        let bracket_w = self.font_cache.measure_text("(", font_size, false) as f64;
         let box_x = sec_x + 8.0;
         let box_w = sec_w - 16.0;
         let icon_x = box_x + 8.0;
@@ -482,57 +521,122 @@ impl ControlCenter {
         let inner_start_x = icon_x + bracket_w;
         let inner_w = slider_w - bracket_w * 2.0;
 
-        let process_slider = |val: &mut f64| {
-            let pct = (x - inner_start_x) / inner_w;
-            *val = pct.clamp(0.0, 1.0);
-        };
-
         match self.drag_state {
             DragState::Brightness => {
-                let old_pct = (self.brightness * 100.0).round() as i32;
-                process_slider(&mut self.brightness);
-                let new_pct = (self.brightness * 100.0).round() as i32;
+                let old_val = self.brightness;
+                let pct = ((x - inner_start_x) / inner_w).clamp(0.0, 1.0);
+                self.brightness = pct;
+                let old_pct = (old_val * slider_len).round() as usize;
+                let new_pct = (pct * slider_len).round() as usize;
                 if old_pct != new_pct {
                     api::brightness::set_brightness(self.brightness);
                 }
                 self.needs_draw = true;
             }
             DragState::Volume => {
-                let old_pct = (self.volume * 100.0).round() as i32;
-                process_slider(&mut self.volume);
-                let new_pct = (self.volume * 100.0).round() as i32;
+                let old_val = self.volume;
+                let pct = ((x - inner_start_x) / inner_w).clamp(0.0, 1.0);
+                self.volume = pct;
+                let old_pct = (old_val * slider_len).round() as usize;
+                let new_pct = (pct * slider_len).round() as usize;
                 if old_pct != new_pct {
                     api::audio::set_volume(self.volume);
                 }
                 self.needs_draw = true;
             }
             DragState::MediaSeek => {
-                let media_x = sec_x + 12.0;
-                let media_w = sec_w - 24.0;
+                let m_box_x = sec_x;
+                let m_box_w = sec_w;
+                let m_icon_x = m_box_x + 8.0;
+                let m_content_w = m_box_w - 16.0;
                 let elapsed_str = format!("{:02}:{:02}", (self.media_state.position_secs as u64) / 60, (self.media_state.position_secs as u64) % 60);
                 let dur_str = format!("{:02}:{:02}", (self.media_state.metadata.length_secs as u64) / 60, (self.media_state.metadata.length_secs as u64) % 60);
-                let left_lbl = format!("{} [", elapsed_str);
-                let right_lbl = format!("] {}", dur_str);
+                let left_lbl = format!("{} (", elapsed_str);
+                let right_lbl = format!(") {}", dur_str);
                 let left_lbl_w = self.font_cache.measure_text(&left_lbl, font_size, false) as f64;
                 let right_lbl_w = self.font_cache.measure_text(&right_lbl, font_size, false) as f64;
 
-                let rail_start_x = media_x + left_lbl_w;
-                let right_lbl_x = media_x + media_w - right_lbl_w;
+                let rail_start_x = m_icon_x + left_lbl_w;
+                let right_lbl_x = m_icon_x + m_content_w - right_lbl_w;
                 let rail_w = right_lbl_x - rail_start_x;
 
-                let pct = (x - rail_start_x) / rail_w;
-                let val = pct.clamp(0.0, 1.0);
-                let target_sec = val * self.media_state.metadata.length_secs;
-                self.media_state.position_secs = target_sec;
-                api::media::seek(target_sec);
-                self.needs_draw = true;
+                if rail_w > 0.0 {
+                    let pct = ((x - rail_start_x) / rail_w).clamp(0.0, 1.0);
+                    let target_sec = pct * self.media_state.metadata.length_secs;
+                    self.media_state.position_secs = target_sec;
+                    self.needs_draw = true;
+                }
             }
             DragState::None => {}
         }
     }
 
     fn handle_pointer_release(&mut self, _x: f64, _y: f64) {
+        if self.drag_state == DragState::MediaSeek {
+            api::media::seek(self.media_state.position_secs);
+        }
         self.drag_state = DragState::None;
+    }
+
+    fn is_hover_interactive(&self, x: f64, y: f64) -> bool {
+        let outer_pad = 10.0;
+        let sec_x = outer_pad as f64;
+        let sec_w = (self.panel_width as f32 - 2.0 * outer_pad) as f64;
+        if x < sec_x || x > sec_x + sec_w {
+            return false;
+        }
+
+        let sec1_y = 0.0;
+        let wifi_box_y = sec1_y + 49.0;
+        let wifi_box_h = 66.0;
+        if y >= wifi_box_y && y <= wifi_box_y + wifi_box_h {
+            return true;
+        }
+
+        let bt_box_y = sec1_y + 129.0;
+        let bt_box_h = 66.0;
+        if y >= bt_box_y && y <= bt_box_y + bt_box_h {
+            return true;
+        }
+
+        let sec2_y = sec1_y + ConnectionsSection::HEIGHT as f64;
+        let bright_box_y = sec2_y + 49.0;
+        let bright_box_h = 66.0;
+        if y >= bright_box_y && y <= bright_box_y + bright_box_h {
+            return true;
+        }
+
+        let vol_box_y = sec2_y + 129.0;
+        let vol_box_h = 66.0;
+        if y >= vol_box_y && y <= vol_box_y + vol_box_h {
+            return true;
+        }
+
+        let has_media = self.media_state.status == api::media::PlaybackStatus::Playing 
+                     || self.media_state.status == api::media::PlaybackStatus::Paused;
+        let sec3_y = sec2_y + ControlsSection::HEIGHT as f64;
+
+        if has_media {
+            let media_interactive_top = sec3_y + 49.0;
+            let media_interactive_bottom = sec3_y + 144.0;
+            if y >= media_interactive_top && y <= media_interactive_bottom {
+                return true;
+            }
+        }
+
+        let sec4_y = if has_media {
+            sec3_y + MediaSection::HEIGHT as f64
+        } else {
+            sec2_y + ControlsSection::HEIGHT as f64
+        };
+
+        let sess_box_y = sec4_y + 49.0;
+        let sess_box_h = 32.0;
+        if y >= sess_box_y && y <= sess_box_y + sess_box_h {
+            return true;
+        }
+
+        false
     }
 
     // ── Background Sync Loop ───────────────────────────────────────────
@@ -667,6 +771,34 @@ impl LayerShellHandler for ControlCenter {
                 if h > 0 { self.panel_height = h; }
                 self.panel_configured = true;
                 self.draw_panel();
+
+                // Force Hyprland to re-evaluate pointer focus after both
+                // surfaces are mapped. Without this, Hyprland sends
+                // wl_pointer::leave to Waybar when our surfaces map but
+                // never re-enters until the mouse physically moves.
+                // Jiggle 1px right then back (imperceptible) using the
+                // Hyprland 0.56+ Lua dispatch syntax.
+                std::thread::spawn(|| {
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    if let Ok(pos) = std::process::Command::new("hyprctl")
+                        .args(["cursorpos"])
+                        .output()
+                    {
+                        let pos_str = String::from_utf8_lossy(&pos.stdout);
+                        if let Some((x_str, y_str)) = pos_str.trim().split_once(", ") {
+                            if let (Ok(x), Ok(y)) = (x_str.parse::<i32>(), y_str.parse::<i32>()) {
+                                let cmd1 = format!("hl.dsp.cursor.move({{x={}, y={}}})", x + 1, y);
+                                let cmd2 = format!("hl.dsp.cursor.move({{x={}, y={}}})", x, y);
+                                let _ = std::process::Command::new("hyprctl")
+                                    .args(["dispatch", &cmd1])
+                                    .output();
+                                let _ = std::process::Command::new("hyprctl")
+                                    .args(["dispatch", &cmd2])
+                                    .output();
+                            }
+                        }
+                    }
+                });
             }
         }
     }
@@ -677,7 +809,12 @@ impl SeatHandler for ControlCenter {
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
     fn new_capability(&mut self, _: &Connection, qh: &QueueHandle<Self>, seat: wl_seat::WlSeat, capability: Capability) {
         if capability == Capability::Pointer {
-            seat.get_pointer(qh, PointerData::new(seat.clone()));
+            let surface = self.compositor_state.create_surface(qh);
+            if let Ok(themed) = self.seat_state.get_pointer_with_theme(qh, &seat, self.shm.wl_shm(), surface, ThemeSpec::System) {
+                self.themed_pointer = Some(themed);
+            } else {
+                seat.get_pointer(qh, PointerData::new(seat.clone()));
+            }
         }
         if capability == Capability::Keyboard {
             seat.get_keyboard(qh, KeyboardData::new(seat.clone()));
@@ -690,35 +827,52 @@ impl SeatHandler for ControlCenter {
 impl PointerHandler for ControlCenter {
     fn pointer_frame(
         &mut self,
-        _: &Connection,
+        conn: &Connection,
         _: &QueueHandle<Self>,
-        _: &wl_pointer::WlPointer,
+        _pointer: &wl_pointer::WlPointer,
         events: &[PointerEvent],
     ) {
         for event in events {
             let is_panel = self.panel_surface.as_ref().map_or(false, |p| p.wl_surface() == &event.surface);
             let is_backdrop = self.backdrop_surface.as_ref().map_or(false, |b| b.wl_surface() == &event.surface);
 
+            let (px, py) = event.position;
+            let is_interactive = is_panel && self.is_hover_interactive(px, py);
+
+            if let Some(ref mut themed) = self.themed_pointer {
+                if self.drag_state != DragState::None {
+                    let _ = themed.set_cursor(conn, CursorIcon::Grabbing);
+                } else if is_interactive {
+                    let _ = themed.set_cursor(conn, CursorIcon::Pointer);
+                } else {
+                    let _ = themed.set_cursor(conn, CursorIcon::Default);
+                }
+            }
+
             match event.kind {
                 PointerEventKind::Press { button, .. } => {
                     if button == 0x110 {
                         if is_backdrop {
-                            self.hide_panel();
+                            self.backdrop_pressed = true;
                         } else if is_panel {
-                            self.handle_pointer_press(event.position.0, event.position.1);
+                            self.handle_pointer_press(px, py);
                         }
                     }
                 }
                 PointerEventKind::Release { button, .. } => {
                     if button == 0x110 {
+                        if is_backdrop && self.backdrop_pressed {
+                            self.backdrop_pressed = false;
+                            self.hide_panel();
+                        }
                         if self.drag_state != DragState::None {
-                            self.handle_pointer_release(event.position.0, event.position.1);
+                            self.handle_pointer_release(px, py);
                         }
                     }
                 }
                 PointerEventKind::Motion { .. } => {
                     if self.drag_state != DragState::None {
-                        self.handle_pointer_motion(event.position.0, event.position.1);
+                        self.handle_pointer_motion(px, py);
                     }
                 }
                 _ => {}
@@ -822,6 +976,7 @@ fn main() {
         backdrop_configured: false,
         visible: false,
         needs_draw: true,
+        backdrop_pressed: false,
         sync_sender: sync_tx,
         wifi_toggle_time: None,
         bt_toggle_time: None,
@@ -839,6 +994,7 @@ fn main() {
             position_secs: 0.0,
         },
         drag_state: DragState::None,
+        themed_pointer: None,
         font_cache,
         qh,
     };
@@ -884,7 +1040,10 @@ fn main() {
                         if state.drag_state != DragState::Brightness {
                             state.brightness = brightness;
                         }
-                        state.blue_light_active = blue_active;
+                        if state.blue_light_active != blue_active {
+                            state.blue_light_active = blue_active;
+                            state.refresh_backdrop();
+                        }
                         state.needs_draw = true;
                     }
                     SyncMessage::Volume { volume, muted } => {
@@ -901,10 +1060,8 @@ fn main() {
                         state.needs_draw = true;
                     }
                     SyncMessage::RecreateBackdrop => {
-                        if state.visible {
-                            state.hide_panel();
-                            state.show_panel();
-                        }
+                        state.refresh_backdrop();
+                        state.needs_draw = true;
                     }
                 }
             }

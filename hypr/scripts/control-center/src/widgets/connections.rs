@@ -72,7 +72,7 @@ impl ConnectionsSection {
 
         // Bluetooth uses standard space padding
         let bt_icon = if bt_enabled { "" } else { "󰂲" };
-        let bt_header = format!("[ {} ] BLUETOOTH", bt_icon);
+        let bt_header = format!("( {} ) BLUETOOTH", bt_icon);
         font_cache.draw_text(pixmap, &bt_header, icon_x, bt_line1_y, font_size, false, accent_color);
 
         let bt_sub_text = if !bt_enabled {
@@ -124,7 +124,7 @@ impl ConnectionsSection {
             }
         } else if y >= bt_box_y && y <= bt_box_y + bt_box_h {
             let bt_icon = if *bt_enabled { "" } else { "󰂲" };
-            let bt_tag = format!("[ {} ]", bt_icon);
+            let bt_tag = format!("( {} )", bt_icon);
             let tag_w = font_cache.measure_text(&bt_tag, font_size, false) as f64;
             let icon_hitbox_end = icon_x + tag_w;
 
