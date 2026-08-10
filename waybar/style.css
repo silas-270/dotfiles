@@ -84,7 +84,7 @@ window#waybar {
 
 #bluetooth {
     margin-left: 2px;
-    color: @accent;
+    color: @fg-muted;
 }
 #bluetooth.disabled,
 #bluetooth.off {
