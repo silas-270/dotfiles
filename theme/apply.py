@@ -63,6 +63,10 @@ def main():
     # 5. Generate JSON
     (GEN_DIR / "colors.json").write_text(json.dumps(data, indent=2) + "\n")
 
+    # 6. Signal running desktop components to reload colors live
+    os.system("killall -SIGUSR2 waybar 2>/dev/null || true")
+    os.system("hyprctl reload 2>/dev/null || true")
+
     print("Theme applied successfully across all targets!")
 
 if __name__ == "__main__":
