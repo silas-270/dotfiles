@@ -1,11 +1,11 @@
 {
   "name": "Wallust Dynamic Theme",
-  "background": "#1E130D",
+  "background": "#54382B",
   "foreground": "#F2E3D5",
   "accent": "#FF8C00",
   "border": "#664839",
   "colors": {
-    "bg_base": "#1E130D",
+    "bg_base": "#54382B",
     "bg_input": "#664839",
     "bg_box": "#E74C3C",
     "fg_primary": "#F2E3D5",
