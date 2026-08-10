@@ -34,6 +34,8 @@ link_config ~/dotfiles/kitty ~/.config/kitty
 link_config ~/dotfiles/gtk/gtk-3.0 ~/.config/gtk-3.0
 link_config ~/dotfiles/gtk/gtk-4.0 ~/.config/gtk-4.0
 
+link_config ~/dotfiles/themes ~/.config/themes
+
 # Shell (Nicht komplett überschreiben, sondern nur einbinden!)
 if ! grep -q "source ~/dotfiles/shell/custom_bash.sh" ~/.bashrc; then
     echo "" >> ~/.bashrc
@@ -42,7 +44,7 @@ if ! grep -q "source ~/dotfiles/shell/custom_bash.sh" ~/.bashrc; then
 fi
 
 # Wallpaper
-rm -f ~/Bilder/Wallpaper/wallpaper-home.jpg && ln -s ~/dotfiles/wallpapers/wallpaper-home.jpg ~/Bilder/Wallpaper/wallpaper-home.jpg
+rm -f ~/Bilder/Wallpaper/wallpaper-home.jpg && ln -s ~/dotfiles/themes/savanna-dusk/wallpaper1.jpg ~/Bilder/Wallpaper/wallpaper-home.jpg
 
 echo "🦀 Kompiliere Custom Rust Control-Center..."
 if command -v cargo &> /dev/null; then

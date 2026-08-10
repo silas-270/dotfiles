@@ -1,27 +1,42 @@
 #!/bin/bash
+# Wallpaper Cycling Script for Hyprland (Theme-Aware)
 
-# Configuration
-WALLPAPER_DIR="$HOME/dotfiles/wallpapers"
-TARGET_LINK="$WALLPAPER_DIR/wallpaper-home.jpg"
+THEMES_DIR="$HOME/dotfiles/themes"
+ACTIVE_THEME_FILE="$HOME/.config/active_theme"
 SWAYBG_LINK="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
 
-# Ensure wallpaper1.jpg exists if it hasn't been backed up yet
-if [ -f "$TARGET_LINK" ] && [ ! -L "$TARGET_LINK" ]; then
-    mv "$TARGET_LINK" "$WALLPAPER_DIR/wallpaper1.jpg"
-    ln -sf "$WALLPAPER_DIR/wallpaper1.jpg" "$TARGET_LINK"
+mkdir -p "$HOME/Bilder/Wallpaper"
+
+# Determine current active theme folder
+if [ -f "$ACTIVE_THEME_FILE" ]; then
+    ACTIVE_THEME=$(cat "$ACTIVE_THEME_FILE" | tr -d '\n\r')
+else
+    ACTIVE_THEME="savanna-dusk"
 fi
 
-# Get available wallpapers in a sorted array
-IFS=$'\n' read -r -d '' -a WPS < <(find "$WALLPAPER_DIR" -type f \( -name "*.jpg" -o -name "*.png" \) ! -name "wallpaper-home.jpg" | sort && printf '\0')
+THEME_DIR="$THEMES_DIR/$ACTIVE_THEME"
+
+if [ ! -d "$THEME_DIR" ]; then
+    THEME_DIR="$THEMES_DIR/savanna-dusk"
+fi
+
+# Get available wallpapers in current theme folder
+IFS=$'\n' read -r -d '' -a WPS < <(find "$THEME_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) | sort && printf '\0')
+
+# Show usage / status if no wallpapers exist
+if [ ${#WPS[@]} -eq 0 ]; then
+    echo "No wallpapers found in theme folder: $THEME_DIR. Applying solid black screen."
+    killall swaybg 2>/dev/null
+    nohup swaybg -c "#000000" >/dev/null 2>&1 &
+    notify-send "Wallpaper" "No wallpapers in theme '${ACTIVE_THEME}'. Using solid black screen." 2>/dev/null || true
+    exit 0
+fi
 
 # Show usage if no argument
 if [ -z "$1" ]; then
-    echo "Usage: $0 <number|name|next|prev>"
-    echo "Examples: $0 2     (to set wallpaper2.jpg)"
-    echo "          $0 next  (to go to the next wallpaper)"
-    echo "          $0 prev  (to go to the previous wallpaper)"
-    echo ""
-    echo "Available wallpapers:"
+    echo "Usage: $0 <next|prev|number>"
+    echo "Theme: $ACTIVE_THEME"
+    echo "Available wallpapers (${#WPS[@]}):"
     for wp in "${WPS[@]}"; do
         basename "$wp"
     done
@@ -32,10 +47,8 @@ INPUT="$1"
 
 # Handle cycling (next/prev)
 if [ "$INPUT" = "next" ] || [ "$INPUT" = "prev" ]; then
-    # Get the current resolved wallpaper path
-    CURRENT_TARGET=$(readlink -f "$TARGET_LINK")
+    CURRENT_TARGET=$(readlink -f "$SWAYBG_LINK" 2>/dev/null)
     
-    # Find current index
     CURRENT_INDEX=-1
     for i in "${!WPS[@]}"; do
         if [ "${WPS[$i]}" = "$CURRENT_TARGET" ]; then
@@ -44,7 +57,6 @@ if [ "$INPUT" = "next" ] || [ "$INPUT" = "prev" ]; then
         fi
     done
     
-    # Calculate new index
     NUM_WPS=${#WPS[@]}
     if [ "$INPUT" = "next" ]; then
         NEW_INDEX=$(( (CURRENT_INDEX + 1) % NUM_WPS ))
@@ -54,33 +66,26 @@ if [ "$INPUT" = "next" ] || [ "$INPUT" = "prev" ]; then
     
     FULL_PATH="${WPS[$NEW_INDEX]}"
 else
-    # Handle direct wallpaper selection (by number or name)
+    # Handle direct selection by index (1-based)
     if [[ "$INPUT" =~ ^[0-9]+$ ]]; then
-        WP_FILE="wallpaper${INPUT}.jpg"
-    else
-        WP_FILE="$INPUT"
-    fi
-
-    FULL_PATH="$WALLPAPER_DIR/$WP_FILE"
-
-    # Verify file exists, or try fallback extensions/prefixes
-    if [ ! -f "$FULL_PATH" ]; then
-        if [ -f "$WALLPAPER_DIR/${INPUT}.png" ]; then
-            FULL_PATH="$WALLPAPER_DIR/${INPUT}.png"
-        elif [ -f "$WALLPAPER_DIR/wallpaper${INPUT}.png" ]; then
-            FULL_PATH="$WALLPAPER_DIR/wallpaper${INPUT}.png"
+        IDX=$((INPUT - 1))
+        if [ $IDX -ge 0 ] && [ $IDX -lt ${#WPS[@]} ]; then
+            FULL_PATH="${WPS[$IDX]}"
         else
-            echo "Error: Wallpaper '$WP_FILE' not found in $WALLPAPER_DIR"
-            exit 1
+            FULL_PATH="${WPS[0]}"
         fi
+    else
+        FULL_PATH="$THEME_DIR/$INPUT"
     fi
 fi
 
-# Update the symlink
-ln -sf "$FULL_PATH" "$TARGET_LINK"
-
-# Restart swaybg to apply the change immediately
-killall swaybg 2>/dev/null
-nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
-
-echo "Wallpaper successfully changed to $(basename "$FULL_PATH")!"
+if [ -f "$FULL_PATH" ]; then
+    ln -sf "$FULL_PATH" "$SWAYBG_LINK"
+    killall swaybg 2>/dev/null
+    nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
+    echo "Wallpaper set to: $(basename "$FULL_PATH")"
+    notify-send "Wallpaper Changed" "$(basename "$FULL_PATH")" 2>/dev/null || true
+else
+    echo "Error: Wallpaper '$FULL_PATH' not found."
+    exit 1
+fi

@@ -1,67 +1,81 @@
 #!/bin/bash
 # Theme Switcher Script for Hyprland / Rofi / Wallust
 
-PRESETS_DIR="$HOME/dotfiles/wallust/presets"
-APPLY_SCRIPT="$HOME/dotfiles/theme/apply.py"
-WALLPAPER_PATH="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
+THEMES_DIR="$HOME/dotfiles/themes"
+ACTIVE_THEME_FILE="$HOME/.config/active_theme"
+SWAYBG_LINK="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
 
-declare -A THEMES
+mkdir -p "$HOME/.config" "$HOME/Bilder/Wallpaper"
 
-# Populate themes map from JSON files in PRESETS_DIR
-if [ -d "$PRESETS_DIR" ]; then
-    for json_file in "$PRESETS_DIR"/*.json; do
-        [ -e "$json_file" ] || continue
-        filename=$(basename "$json_file")
-        display_name=$(python3 -c "import json; print(json.load(open('$json_file')).get('name', '${filename%.json}'))" 2>/dev/null)
-        if [ -z "$display_name" ]; then
-            display_name="${filename%.json}"
+declare -A THEME_PATHS
+declare -A THEME_NAMES
+
+if [ -d "$THEMES_DIR" ]; then
+    for theme_dir in "$THEMES_DIR"/*/; do
+        [ -d "$theme_dir" ] || continue
+        folder_name=$(basename "$theme_dir")
+        json_file="$theme_dir/theme.json"
+        
+        if [ -f "$json_file" ]; then
+            display_name=$(python3 -c "import json; print(json.load(open('$json_file')).get('name', '$folder_name'))" 2>/dev/null)
+        else
+            display_name="$folder_name"
         fi
-        THEMES["󰏘 $display_name"]="$json_file"
+        
+        [ -z "$display_name" ] && display_name="$folder_name"
+        
+        menu_key="🎨 $display_name"
+        THEME_PATHS["$menu_key"]="$folder_name"
+        THEME_NAMES["$menu_key"]="$display_name"
     done
 fi
 
-# Additional Wallpaper Option
-THEMES["🖼️ Auto-Generate from Wallpaper"]="WALLPAPER"
-
 # Build menu list for Rofi
 MENU_OPTIONS=""
-for key in "${!THEMES[@]}"; do
+for key in "${!THEME_PATHS[@]}"; do
     MENU_OPTIONS+="${key}\n"
 done
 
 # Show Rofi Menu
-SELECTION=$(echo -e "$MENU_OPTIONS" | sort | rofi -dmenu -p "🎨 Select Theme" -i)
+SELECTION=$(echo -e "$MENU_OPTIONS" | sort | rofi -dmenu -p "Select Theme" -i)
 
 [ -z "$SELECTION" ] && exit 0
 
-TARGET="${THEMES[$SELECTION]}"
+FOLDER_NAME="${THEME_PATHS[$SELECTION]}"
+DISPLAY_NAME="${THEME_NAMES[$SELECTION]}"
+THEME_DIR="$THEMES_DIR/$FOLDER_NAME"
+JSON_FILE="$THEME_DIR/theme.json"
 
-if [ "$TARGET" = "WALLPAPER" ]; then
-    # Wallpaper mode
-    if command -v wallust &>/dev/null; then
-        wallust run "$WALLPAPER_PATH" 2>/dev/null || true
-    fi
-    THEME_NAME="Wallpaper Palette"
-elif [ -n "$TARGET" ] && [ -f "$TARGET" ]; then
-    # Apply theme colors via apply.py
-    if [ -f "$APPLY_SCRIPT" ]; then
-        python3 "$APPLY_SCRIPT" "$TARGET"
-    fi
-    
-    # Run wallust if available
-    if command -v wallust &>/dev/null; then
-        wallust cs "$TARGET" 2>/dev/null || wallust run "$TARGET" 2>/dev/null || true
-    fi
-    
-    THEME_NAME=$(python3 -c "import json; print(json.load(open('$TARGET')).get('name', 'Preset'))" 2>/dev/null)
-else
-    echo "Unknown selection or file not found: $SELECTION"
+if [ -z "$FOLDER_NAME" ] || [ ! -d "$THEME_DIR" ]; then
+    echo "Error: Selected theme '$SELECTION' not found."
     exit 1
 fi
 
-# Reload Waybar & Hyprland
+# Save active theme name
+echo "$FOLDER_NAME" > "$ACTIVE_THEME_FILE"
+
+# 1. Apply Wallust / Color palette
+if command -v wallust &>/dev/null && [ -f "$JSON_FILE" ]; then
+    wallust cs "$JSON_FILE" 2>/dev/null || wallust run "$JSON_FILE" 2>/dev/null || true
+fi
+
+# 2. Set Wallpaper (or solid black fallback if no wallpapers exist)
+IFS=$'\n' read -r -d '' -a WPS < <(find "$THEME_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) | sort && printf '\0')
+
+killall swaybg 2>/dev/null
+
+if [ ${#WPS[@]} -gt 0 ]; then
+    FIRST_WP="${WPS[0]}"
+    ln -sf "$FIRST_WP" "$SWAYBG_LINK"
+    nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
+else
+    # Solid black screen fallback
+    nohup swaybg -c "#000000" >/dev/null 2>&1 &
+fi
+
+# 3. Reload Waybar & Hyprland
 killall -SIGUSR2 waybar 2>/dev/null || true
 hyprctl reload 2>/dev/null || true
 
-# Desktop Notification
-notify-send "Theme Changed" "Switched to ${THEME_NAME}" -i preferences-desktop-theme 2>/dev/null || true
+# 4. Desktop Notification
+notify-send "Theme Changed" "Switched to ${DISPLAY_NAME}" -i preferences-desktop-theme 2>/dev/null || true
