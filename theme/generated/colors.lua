@@ -34,5 +34,5 @@ return {
     color12 = "#8BB0C1",
     color13 = "#C98299",
     color14 = "#7BB5A7",
-    color15 = "#F2E3D5",
+    color15 = "#F2E3D5"
 }

@@ -1,5 +1,10 @@
 {
-  "name": "Savanna Dusk Warm Dark",
+  "name": "Savanna Dusk",
+  "special": {
+    "background": "#1E130D",
+    "foreground": "#F2E3D5",
+    "cursor": "#D97736"
+  },
   "colors": {
     "bg_base": "#54382B",
     "bg_input": "#664839",

@@ -25,6 +25,7 @@ link_config() {
 }
 
 link_config ~/dotfiles/theme ~/.config/theme
+link_config ~/dotfiles/wallust ~/.config/wallust
 link_config ~/dotfiles/hypr ~/.config/hypr
 link_config ~/dotfiles/waybar ~/.config/waybar
 link_config ~/dotfiles/fastfetch ~/.config/fastfetch

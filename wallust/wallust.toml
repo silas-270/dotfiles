@@ -1,0 +1,17 @@
+# Wallust Configuration File
+# Generates theme color files in ~/dotfiles/theme/generated/
+
+new_engine = true
+
+[templates]
+colors_css = { template = "colors.css.wallust", target = "~/dotfiles/theme/generated/colors.css" }
+colors_rasi = { template = "colors.rasi.wallust", target = "~/dotfiles/theme/generated/colors.rasi" }
+colors_lua = { template = "colors.lua.wallust", target = "~/dotfiles/theme/generated/colors.lua" }
+colors_conf = { template = "colors.conf.wallust", target = "~/dotfiles/theme/generated/colors.conf" }
+colors_json = { template = "colors.json.wallust", target = "~/dotfiles/theme/generated/colors.json" }
+
+[post_exec]
+commands = [
+    "killall -SIGUSR2 waybar 2>/dev/null || true",
+    "hyprctl reload 2>/dev/null || true"
+]
