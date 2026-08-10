@@ -4,12 +4,12 @@
 @define-color bg-box #C0392B;
 @define-color fg-primary #F2E3D5;
 @define-color fg-muted #C2AA95;
-@define-color accent #6B8E9B;
-@define-color accent-hover #8BB0C1;
-@define-color border #D97736;
+@define-color accent #D97736;
+@define-color accent-hover #E58544;
+@define-color border #664839;
 @define-color border-subtle #664839;
 @define-color danger #C0392B;
-@define-color warning #D97736;
+@define-color warning #E58544;
 
 @define-color color0 #1E130D;
 @define-color color1 #C0392B;

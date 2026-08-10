@@ -5,9 +5,9 @@
     bg-box: {{color1}};
     fg-primary: {{foreground}};
     fg-muted: {{color7}};
-    accent: {{color4}};
-    border: {{color3}};
-    border-color: {{color3}};
+    accent: {{color3}};
+    border: {{color8}};
+    border-color: {{color8}};
 
     color0: {{color0}};
     color1: {{color1}};

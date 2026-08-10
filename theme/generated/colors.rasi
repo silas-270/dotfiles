@@ -5,9 +5,9 @@
     bg-box: #C0392B;
     fg-primary: #F2E3D5;
     fg-muted: #C2AA95;
-    accent: #6B8E9B;
-    border: #D97736;
-    border-color: #D97736;
+    accent: #D97736;
+    border: #664839;
+    border-color: #664839;
 
     color0: #1E130D;
     color1: #C0392B;

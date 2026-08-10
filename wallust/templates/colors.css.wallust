@@ -4,12 +4,12 @@
 @define-color bg-box {{color1}};
 @define-color fg-primary {{foreground}};
 @define-color fg-muted {{color7}};
-@define-color accent {{color4}};
-@define-color accent-hover {{color12}};
-@define-color border {{color3}};
+@define-color accent {{color3}};
+@define-color accent-hover {{color11}};
+@define-color border {{color8}};
 @define-color border-subtle {{color8}};
 @define-color danger {{color1}};
-@define-color warning {{color3}};
+@define-color warning {{color11}};
 
 @define-color color0 {{color0}};
 @define-color color1 {{color1}};
