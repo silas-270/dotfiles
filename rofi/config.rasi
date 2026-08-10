@@ -111,7 +111,7 @@ element-text {
     font:             "JetBrainsMono Nerd Font 12";
     text-color:       inherit;
     vertical-align:   0.5;
-    highlight:        bold #C47A10; 
+    highlight:        bold @accent; 
     cursor:           inherit;
 }
 

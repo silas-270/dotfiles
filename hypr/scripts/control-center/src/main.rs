@@ -61,9 +61,11 @@ use std::time::Duration;
 mod api;
 mod grid;
 mod render;
+mod theme;
 mod widgets;
 
 use render::FontCache;
+use theme::ThemeConfig;
 use widgets::{ConnectionsSection, ControlsSection, DragTarget, MediaSection, SessionSection};
 
 /// Socket path unique per user so multiple sessions don't collide.
@@ -173,6 +175,9 @@ struct ControlCenter {
     // Font cache
     font_cache: FontCache,
 
+    // Theme configuration
+    theme: ThemeConfig,
+
     qh: QueueHandle<Self>,
 }
 
@@ -181,6 +186,7 @@ impl ControlCenter {
         if self.visible {
             return;
         }
+        self.theme = ThemeConfig::load();
         eprintln!("[CC] Showing panel surface!");
         self.visible = true;
         self.needs_draw = true;
@@ -312,20 +318,13 @@ impl ControlCenter {
         pixmap.fill(tiny_skia::Color::TRANSPARENT);
 
         // Background & border
-        let bg = tiny_skia::Color::from_rgba(84.0 / 255.0, 56.0 / 255.0, 43.0 / 255.0, 1.0).unwrap();
-        render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, bg);
-
-        let border_color = tiny_skia::Color::from_rgba(122.0 / 255.0, 82.0 / 255.0, 61.0 / 255.0, 1.0).unwrap();
-        render::fill_rect(&mut pixmap.as_mut(), 0.0, h as f32 - 1.0, w as f32, 1.0, border_color);
+        render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, self.theme.bg_base);
+        render::fill_rect(&mut pixmap.as_mut(), 0.0, h as f32 - 1.0, w as f32, 1.0, self.theme.border);
 
         let outer_pad = 10.0;
         let sec_x = outer_pad;
         let sec_w = w as f32 - 2.0 * outer_pad;
         let font_size = 21.0;
-
-        let text_color = tiny_skia::Color::from_rgba(194.0 / 255.0, 170.0 / 255.0, 149.0 / 255.0, 1.0).unwrap();
-        let accent_color = tiny_skia::Color::from_rgba(217.0 / 255.0, 119.0 / 255.0, 54.0 / 255.0, 1.0).unwrap();
-        let sec_border = tiny_skia::Color::from_rgba(122.0 / 255.0, 82.0 / 255.0, 61.0 / 255.0, 0.6).unwrap();
 
         // 1. CONNECTIONS
         let sec1_y = 0.0;
@@ -333,7 +332,7 @@ impl ControlCenter {
             &mut pixmap.as_mut(),
             &mut self.font_cache,
             sec_x, sec1_y, sec_w,
-            font_size, accent_color, text_color, sec_border,
+            font_size, &self.theme,
             self.wifi_active, &self.wifi_status, self.bt_active, &self.bt_status,
         );
 
@@ -343,7 +342,7 @@ impl ControlCenter {
             &mut pixmap.as_mut(),
             &mut self.font_cache,
             sec_x, sec2_y, sec_w,
-            font_size, accent_color, text_color, sec_border,
+            font_size, &self.theme,
             self.brightness, self.blue_light_active, self.volume, self.volume_muted,
         );
 
@@ -354,7 +353,7 @@ impl ControlCenter {
                 &mut pixmap.as_mut(),
                 &mut self.font_cache,
                 sec_x, sec3_y, sec_w,
-                font_size, accent_color, text_color, sec_border,
+                font_size, &self.theme,
                 &self.media_state,
             );
         }
@@ -369,7 +368,7 @@ impl ControlCenter {
             &mut pixmap.as_mut(),
             &mut self.font_cache,
             sec_x, sec4_y, sec_w,
-            font_size, accent_color, sec_border,
+            font_size, &self.theme,
         );
 
         // Submit to Wayland surface
@@ -996,6 +995,7 @@ fn main() {
         drag_state: DragState::None,
         themed_pointer: None,
         font_cache,
+        theme: ThemeConfig::load(),
         qh,
     };
 

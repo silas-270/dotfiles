@@ -1,5 +1,6 @@
-use tiny_skia::{Color, PixmapMut};
+use tiny_skia::PixmapMut;
 use crate::render::FontCache;
+use crate::theme::ThemeConfig;
 use crate::api;
 use super::fieldset::{draw_section_header, draw_inner_box};
 
@@ -29,18 +30,19 @@ impl MediaSection {
         sec_y: f32,
         sec_w: f32,
         font_size: f32,
-        accent_color: Color,
-        text_color: Color,
-        sec_border: Color,
+        theme: &ThemeConfig,
         media_state: &api::media::MediaState,
     ) {
+        let accent_color = theme.accent_color;
+        let text_color = theme.text_color;
+        let sec_border = theme.sec_border;
+        let inner_border = theme.inner_border;
+
         draw_section_header(
             pixmap, font_cache, "MEDIA",
             sec_x, sec_y, sec_w, font_size,
             accent_color, sec_border,
         );
-
-        let inner_border = Color::from_rgba(103.0 / 255.0, 69.0 / 255.0, 52.0 / 255.0, 0.75).unwrap();
 
         let box_x = sec_x;
         let box_y = sec_y + 49.0;

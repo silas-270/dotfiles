@@ -12,8 +12,25 @@
     accent-bg: rgba(217, 119, 54, 0.25);
     border: #7A523D;
     border-subtle: #7A523D;
+    inner-border: rgba(103, 69, 52, 0.75);
     warning: #D97736;
     danger: #C0392B;
     term-bg: #1E130D;
     term-fg: #F2E3D5;
+    color0: #1E130D;
+    color1: #C0392B;
+    color2: #8F9E5B;
+    color3: #D97736;
+    color4: #6B8E9B;
+    color5: #B36A81;
+    color6: #5E9B8D;
+    color7: #C2AA95;
+    color8: #664839;
+    color9: #E55039;
+    color10: #A3B765;
+    color11: #E58544;
+    color12: #8BB0C1;
+    color13: #C98299;
+    color14: #7BB5A7;
+    color15: #F2E3D5;
 }

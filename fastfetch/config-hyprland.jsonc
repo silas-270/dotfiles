@@ -4,13 +4,13 @@
     "source": "/home/silas270/.config/fastfetch/bashlogo-hyprland.txt",
     "type": "auto",
     "color": {
-      "1": "#FF8C00"
+      "1": "#D97736"
     }
   },
   "display": {
     "color": {
-      "keys": "#FF8C00",
-      "title": "#FFA500"
+      "keys": "#D97736",
+      "title": "#D97736"
     }
   },
   "modules": [
