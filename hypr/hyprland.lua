@@ -11,6 +11,7 @@ hl.monitor({
     scale    = "1",
 })
 
+
 -- autostart
 hl.on("hyprland.start", function ()
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
@@ -97,8 +98,15 @@ hl.window_rule({ match = { class = "^control-center$" }, float = true })
 -- keybinds
 local mainMod = "SUPER"
 
+-- Toggle laptop screen on/off
+hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-laptop-screen.sh"))
+
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center"))
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
+
+
+
+
 
 -- Temporary wallpaper keybinds (cycle wallpapers)
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("~/.config/hypr/scripts/change_wallpaper.sh next"))

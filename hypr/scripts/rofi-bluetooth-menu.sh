@@ -33,7 +33,7 @@ get_devices() {
     local connected_macs=""
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
-            echo "connected:$mac:$name"
+            echo "connected|$mac|$name"
             connected_macs="${connected_macs}${mac}\n"
         fi
     done < <(bluetoothctl devices Connected 2>/dev/null)
@@ -42,7 +42,7 @@ get_devices() {
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
             if ! echo -e "$connected_macs" | grep -Fq "$mac"; then
-                echo "paired:$mac:$name"
+                echo "paired|$mac|$name"
             fi
             paired_macs="${paired_macs}${mac}\n"
         fi
@@ -51,10 +51,15 @@ get_devices() {
     while read -r _ mac name; do
         if [[ -n "$mac" ]]; then
             if ! echo -e "$connected_macs" | grep -Fq "$mac" && ! echo -e "$paired_macs" | grep -Fq "$mac"; then
-                echo "discovered:$mac:$name"
+                echo "discovered|$mac|$name"
             fi
         fi
-    done < <(bluetoothctl devices 2>/dev/null)
+    done < <(
+        {
+            bluetoothctl devices 2>/dev/null
+            bluetoothctl --timeout 3 scan on 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep 'Device' | awk '/\[NEW\]/ {mac=$3; $1=$2=$3=""; sub(/^[ \t]+/, ""); print "Device " mac " " $0}'
+        } | sort -u -k2,2
+    )
 }
 
 build_menu() {
@@ -66,7 +71,7 @@ build_menu() {
     printf "%s\x00info\x1f%s\n" "${ICON_DISABLE_BT}" "__disable_bt__"
     printf "%s\x00info\x1f%s\n" "${ICON_RESCAN}" "__rescan__"
 
-    while IFS=: read -r state mac name; do
+    while IFS='|' read -r state mac name; do
         [[ -z "$mac" ]] && continue
         local icon="$ICON_DISCOVERED"
         local suffix=""
@@ -80,7 +85,7 @@ build_menu() {
         fi
         
         local display="${icon}  ${name:-$mac}${suffix}"
-        printf "%s\x00info\x1f%s\n" "$display" "${state}:${mac}:${name}"
+        printf "%s\x00info\x1f%s\n" "$display" "${state}|${mac}|${name}"
     done < <(get_devices)
 }
 
@@ -121,18 +126,20 @@ case "$action" in
             exit 0
         fi
         
-        IFS=: read -r state mac name <<< "$action"
+        IFS='|' read -r state mac name <<< "$action"
         
         (
+            exec >/dev/null 2>&1
             if [[ "$state" == "connected" ]]; then
-                bluetoothctl disconnect "$mac" \
-                    && notify "Bluetooth" "Disconnected from ${name:-$mac}" \
-                    || notify "Bluetooth" "Failed to disconnect ${name:-$mac}"
+                if bluetoothctl disconnect "$mac"; then
+                    notify "Bluetooth" "Disconnected from ${name:-$mac}"
+                else
+                    notify "Bluetooth" "Failed to disconnect ${name:-$mac}"
+                fi
             else
                 notify "Bluetooth" "Connecting to ${name:-$mac}..."
-                bluetoothctl pair "$mac" 2>/dev/null || true
-                bluetoothctl trust "$mac" 2>/dev/null || true
-                
+                bluetoothctl trust "$mac"
+                bluetoothctl pair "$mac"
                 if bluetoothctl connect "$mac"; then
                     notify "Bluetooth" "Connected to ${name:-$mac}"
                 else

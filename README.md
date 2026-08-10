@@ -7,7 +7,7 @@ Dieses Repository enthält mein komplettes Hyprland-Setup (inklusive UI, Statusl
 Bevor du dieses Repo installierst, musst du die Kern-Programme über deinen Paketmanager (`dnf` bei Fedora, `pacman` bei Arch) installieren:
 
 ### 📦 Benötigte Pakete:
-- **Basis:** `hyprland`, `waybar`, `kitty`, `rofi` (bzw. `rofi-wayland`), `swaync`, `swaybg`, `fastfetch`
+- **Basis:** `hyprland`, `waybar`, `kitty`, `rofi` (bzw. `rofi-wayland`), `swaybg`, `fastfetch`
 - **System:** `sddm` (Login Manager), `keyd` (Tastatur-Remapping)
 - **Theming:** `papirus-icon-theme` (wird nicht im Repo gespeichert!)
 - **Entwicklung:** `rust` & `cargo` (um das Control-Center zu kompilieren)

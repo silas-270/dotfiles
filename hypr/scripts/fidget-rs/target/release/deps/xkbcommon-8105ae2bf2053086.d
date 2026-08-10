@@ -1,0 +1,11 @@
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/xkbcommon-8105ae2bf2053086.d: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/mod.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/compose.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/ffi.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/keysyms.rs
+
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/libxkbcommon-8105ae2bf2053086.rlib: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/mod.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/compose.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/ffi.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/keysyms.rs
+
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/libxkbcommon-8105ae2bf2053086.rmeta: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/mod.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/compose.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/ffi.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/keysyms.rs
+
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/lib.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/mod.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/compose.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/ffi.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/xkbcommon-0.7.0/src/xkb/keysyms.rs:

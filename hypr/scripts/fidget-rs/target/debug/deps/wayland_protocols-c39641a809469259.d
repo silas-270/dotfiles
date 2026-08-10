@@ -1,0 +1,10 @@
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/debug/deps/wayland_protocols-c39641a809469259.d: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/protocol_macro.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/ext.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/wp.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xdg.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xwayland.rs
+
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/debug/deps/libwayland_protocols-c39641a809469259.rmeta: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/protocol_macro.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/ext.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/wp.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xdg.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xwayland.rs
+
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/lib.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/protocol_macro.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/ext.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/wp.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xdg.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-protocols-0.32.13/src/xwayland.rs:

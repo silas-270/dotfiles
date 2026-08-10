@@ -29,7 +29,6 @@ link_config ~/dotfiles/hypr ~/.config/hypr
 link_config ~/dotfiles/waybar ~/.config/waybar
 link_config ~/dotfiles/fastfetch ~/.config/fastfetch
 link_config ~/dotfiles/rofi ~/.config/rofi
-link_config ~/dotfiles/swaync ~/.config/swaync
 link_config ~/dotfiles/kitty ~/.config/kitty
 link_config ~/dotfiles/gtk/gtk-3.0 ~/.config/gtk-3.0
 link_config ~/dotfiles/gtk/gtk-4.0 ~/.config/gtk-4.0

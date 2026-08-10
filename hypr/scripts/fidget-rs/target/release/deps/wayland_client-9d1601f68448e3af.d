@@ -1,0 +1,10 @@
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/wayland_client-9d1601f68448e3af.d: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/conn.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/event_queue.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/globals.rs
+
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/libwayland_client-9d1601f68448e3af.rlib: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/conn.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/event_queue.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/globals.rs
+
+/home/silas270/dotfiles/hypr/scripts/fidget-rs/target/release/deps/libwayland_client-9d1601f68448e3af.rmeta: /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/lib.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/conn.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/event_queue.rs /home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/globals.rs
+
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/lib.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/conn.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/event_queue.rs:
+/home/silas270/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-client-0.31.15/src/globals.rs:
