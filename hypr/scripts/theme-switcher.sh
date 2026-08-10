@@ -1,6 +1,8 @@
 #!/bin/bash
 # Theme Switcher Script for Hyprland / Rofi / Wallust
 
+export PATH="$HOME/.cargo/bin:$PATH"
+
 THEMES_DIR="$HOME/dotfiles/themes"
 ACTIVE_THEME_FILE="$HOME/.config/active_theme"
 SWAYBG_LINK="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
@@ -54,9 +56,10 @@ fi
 # Save active theme name
 echo "$FOLDER_NAME" > "$ACTIVE_THEME_FILE"
 
-# 1. Apply Wallust / Color palette
-if command -v wallust &>/dev/null && [ -f "$JSON_FILE" ]; then
-    wallust cs "$JSON_FILE" 2>/dev/null || wallust run "$JSON_FILE" 2>/dev/null || true
+# 1. Apply Wallust Color Palette
+WALLUST_BIN=$(command -v wallust || echo "$HOME/.cargo/bin/wallust")
+if [ -f "$WALLUST_BIN" ] && [ -f "$JSON_FILE" ]; then
+    "$WALLUST_BIN" cs "$JSON_FILE"
 fi
 
 # 2. Set Wallpaper (or solid black fallback if no wallpapers exist)
