@@ -4,17 +4,17 @@
 @define-color bg-box #E74C3C;
 @define-color fg-primary #F2E3D5;
 @define-color fg-muted #F2E3D5;
-@define-color accent #D97736;
-@define-color accent-hover #FFD740;
+@define-color accent #FF8C00;
+@define-color accent-hover #FFA022;
 @define-color border #664839;
 @define-color border-subtle #664839;
 @define-color danger #E74C3C;
-@define-color warning #FFD740;
+@define-color warning #FFA022;
 
 @define-color color0 #1E130D;
 @define-color color1 #E74C3C;
 @define-color color2 #2ECC71;
-@define-color color3 #D97736;
+@define-color color3 #FF8C00;
 @define-color color4 #3498DB;
 @define-color color5 #9B59B6;
 @define-color color6 #1ABC9C;
@@ -22,7 +22,7 @@
 @define-color color8 #664839;
 @define-color color9 #FF5252;
 @define-color color10 #69F0AE;
-@define-color color11 #FFD740;
+@define-color color11 #FFA022;
 @define-color color12 #448AFF;
 @define-color color13 #E040FB;
 @define-color color14 #18FFFF;

@@ -5,14 +5,14 @@
     bg-box: #E74C3C;
     fg-primary: #F2E3D5;
     fg-muted: #F2E3D5;
-    accent: #D97736;
+    accent: #FF8C00;
     border: #664839;
     border-color: #664839;
 
     color0: #1E130D;
     color1: #E74C3C;
     color2: #2ECC71;
-    color3: #D97736;
+    color3: #FF8C00;
     color4: #3498DB;
     color5: #9B59B6;
     color6: #1ABC9C;
@@ -20,7 +20,7 @@
     color8: #664839;
     color9: #FF5252;
     color10: #69F0AE;
-    color11: #FFD740;
+    color11: #FFA022;
     color12: #448AFF;
     color13: #E040FB;
     color14: #18FFFF;
