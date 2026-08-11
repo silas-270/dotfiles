@@ -1,0 +1,10 @@
+pub mod battery;
+pub mod bluetooth;
+pub mod centerpiece;
+pub mod clock;
+pub mod controlcenter;
+pub mod cpu;
+pub mod network;
+pub mod ram;
+pub mod volume;
+pub mod workspaces;
