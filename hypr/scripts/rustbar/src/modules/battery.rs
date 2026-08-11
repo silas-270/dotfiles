@@ -26,6 +26,6 @@ pub fn render_battery(
         }
     };
 
-    let text = format!("{} {}%", icon, info.capacity);
-    font_cache.draw_bracket_tag(pixmap, &text, start_x, top_y, font_size, color)
+    let text = format!("[ {} {}% ]", icon, info.capacity);
+    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, color, theme.sec_border)
 }

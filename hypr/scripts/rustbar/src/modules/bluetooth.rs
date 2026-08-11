@@ -10,8 +10,7 @@ pub fn render_bluetooth(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    let icon = "";
-    font_cache.draw_bracket_tag(pixmap, icon, start_x, top_y, font_size, theme.text_color)
+    font_cache.draw_module_box(pixmap, "[  ]", start_x, top_y, font_size, theme.text_color, theme.sec_border)
 }
 
 pub fn handle_click() {

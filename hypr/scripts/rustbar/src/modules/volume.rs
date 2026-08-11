@@ -13,7 +13,7 @@ pub fn render_volume(
 ) -> f32 {
     let (vol, muted) = get_volume_and_mute();
     let text = if muted {
-        "󰝟".to_string()
+        "[ 󰝟 Mute ]".to_string()
     } else {
         let pct = (vol * 100.0).round() as u32;
         let icon = if pct == 0 {
@@ -23,10 +23,10 @@ pub fn render_volume(
         } else {
             "󰕾"
         };
-        format!("{} {}%", icon, pct)
+        format!("[ {} {}% ]", icon, pct)
     };
 
-    font_cache.draw_bracket_tag(pixmap, &text, start_x, top_y, font_size, theme.text_color)
+    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.text_color, theme.sec_border)
 }
 
 pub fn handle_click() {

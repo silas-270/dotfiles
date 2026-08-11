@@ -11,6 +11,7 @@ pub fn render_ram(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    let text = get_ram_display();
-    font_cache.draw_bracket_tag(pixmap, &text, start_x, top_y, font_size, theme.text_color)
+    let ram_str = get_ram_display();
+    let text = format!("[ {} ]", ram_str);
+    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.text_color, theme.sec_border)
 }

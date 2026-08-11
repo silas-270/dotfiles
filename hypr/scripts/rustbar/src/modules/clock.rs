@@ -15,13 +15,14 @@ pub fn render_clock(
     font_size: f32,
 ) -> f32 {
     let now = Local::now();
-    let text = if ALT_MODE.load(Ordering::Relaxed) {
+    let time_str = if ALT_MODE.load(Ordering::Relaxed) {
         now.format("%a %d.%m.%Y").to_string()
     } else {
         now.format("%H:%M").to_string()
     };
 
-    font_cache.draw_bracket_tag(pixmap, &text, start_x, top_y, font_size, theme.accent_color)
+    let text = format!("[ {} ]", time_str);
+    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.accent_color, theme.waybar_border)
 }
 
 pub fn handle_click() {

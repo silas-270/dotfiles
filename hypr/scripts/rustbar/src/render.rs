@@ -117,15 +117,8 @@ impl FontCache {
                                 let dest_x = (gx + px as f32) as i32;
                                 let dest_y = (gy + py as f32) as i32;
                                 if dest_x >= 0 && dest_x < pixmap.width() as i32 && dest_y >= 0 && dest_y < pixmap.height() as i32 {
-                                    let coverage = alpha as f32 / 255.0;
-                                    let px_alpha = coverage * color.alpha();
-                                    // Properly premultiply color components by pixel coverage for tiny-skia
-                                    if let Some(col) = Color::from_rgba(
-                                        color.red() * coverage,
-                                        color.green() * coverage,
-                                        color.blue() * coverage,
-                                        px_alpha,
-                                    ) {
+                                    let px_alpha = (alpha as f32 / 255.0) * color.alpha();
+                                    if let Some(col) = Color::from_rgba(color.red(), color.green(), color.blue(), px_alpha) {
                                         let mut paint = Paint::default();
                                         paint.set_color(col);
                                         if let Some(r) = Rect::from_xywh(dest_x as f32, dest_y as f32, 1.0, 1.0) {
@@ -146,23 +139,30 @@ impl FontCache {
         x
     }
 
-    /// Measure a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
-    pub fn measure_bracket_tag(&mut self, content: &str, font_size: f32) -> f32 {
-        let text = format!("[ {} ]", content);
-        self.measure_text(&text, font_size)
-    }
-
-    /// Draw a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
-    pub fn draw_bracket_tag(
+    /// Draws a module box tile with 2px border and centered text padding.
+    pub fn draw_module_box(
         &mut self,
         pixmap: &mut PixmapMut,
         content: &str,
-        start_x: f32,
-        top_y: f32,
+        x: f32,
+        y: f32,
         font_size: f32,
-        color: Color,
+        text_color: Color,
+        border_color: Color,
     ) -> f32 {
-        let text = format!("[ {} ]", content);
-        self.draw_text(pixmap, &text, start_x, top_y, font_size, color)
+        let padding_x = 8.0;
+        let text_w = self.measure_text(content, font_size);
+        let box_w = text_w + 2.0 * padding_x;
+        let box_h = font_size + 8.0; // e.g. 29px for 21px font
+
+        // 1. Draw outer 2px border rectangle
+        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
+
+        // 2. Draw text centered inside padding
+        let text_x = x + padding_x;
+        let text_y = y + 4.0;
+        self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
+
+        box_w
     }
 }

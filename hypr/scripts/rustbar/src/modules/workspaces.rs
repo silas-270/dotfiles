@@ -1,5 +1,5 @@
 use crate::api::hyprland::WorkspaceState;
-use crate::render::FontCache;
+use crate::render::{stroke_rect, FontCache};
 use crate::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 
@@ -23,23 +23,33 @@ pub fn render_workspaces(
 
     for &ws_id in &state.workspaces {
         let is_active = ws_id == state.active_id;
-        let color = if is_active {
+        let text_color = if is_active {
             theme.accent_color
         } else {
-            theme.text_color
+            theme.fg_muted
+        };
+        let border_color = if is_active {
+            theme.waybar_border
+        } else {
+            theme.sec_border
         };
 
-        let label = ws_id.to_string();
-        let width = font_cache.measure_bracket_tag(&label, font_size);
-        font_cache.draw_bracket_tag(pixmap, &label, x, top_y, font_size, color);
+        let label = format!("[ {} ]", ws_id);
+        let padding_x = 6.0;
+        let text_w = font_cache.measure_text(&label, font_size);
+        let box_w = text_w + 2.0 * padding_x;
+        let box_h = font_size + 8.0;
+
+        stroke_rect(pixmap, x, top_y, box_w, box_h, border_color, 2.0);
+        font_cache.draw_text(pixmap, &label, x + padding_x, top_y + 4.0, font_size, text_color);
 
         buttons.push(WorkspaceButton {
             id: ws_id,
             x,
-            width,
+            width: box_w,
         });
 
-        x += width + 4.0;
+        x += box_w + 6.0;
     }
 
     (x, buttons)
