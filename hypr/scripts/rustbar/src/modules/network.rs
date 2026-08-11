@@ -10,7 +10,8 @@ pub fn render_network(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    font_cache.draw_module_box(pixmap, "[ 󰖩 ]", start_x, top_y, font_size, theme.text_color, theme.sec_border)
+    let content = "[ 󰖩 ]";
+    font_cache.draw_module_box(pixmap, content, start_x, top_y, font_size, theme.text_color, theme.border)
 }
 
 pub fn handle_click() {

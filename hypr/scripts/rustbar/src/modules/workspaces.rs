@@ -21,26 +21,24 @@ pub fn render_workspaces(
     let mut x = start_x;
     let mut buttons = Vec::new();
 
+    let border_w = 2.0;
+    let box_h = font_size + 8.0; // 29px for 21px font
+
     for &ws_id in &state.workspaces {
         let is_active = ws_id == state.active_id;
         let text_color = if is_active {
             theme.accent_color
         } else {
-            theme.fg_muted
-        };
-        let border_color = if is_active {
-            theme.waybar_border
-        } else {
-            theme.sec_border
+            theme.text_color
         };
 
         let label = format!("[ {} ]", ws_id);
-        let padding_x = 6.0;
+        let padding_x = 8.0;
         let text_w = font_cache.measure_text(&label, font_size);
         let box_w = text_w + 2.0 * padding_x;
-        let box_h = font_size + 8.0;
 
-        stroke_rect(pixmap, x, top_y, box_w, box_h, border_color, 2.0);
+        // Draw single 2px border box matching Waybar #workspaces tile
+        stroke_rect(pixmap, x, top_y, box_w, box_h, theme.border, border_w);
         font_cache.draw_text(pixmap, &label, x + padding_x, top_y + 4.0, font_size, text_color);
 
         buttons.push(WorkspaceButton {
@@ -49,7 +47,7 @@ pub fn render_workspaces(
             width: box_w,
         });
 
-        x += box_w + 6.0;
+        x += box_w + 4.0;
     }
 
     (x, buttons)
