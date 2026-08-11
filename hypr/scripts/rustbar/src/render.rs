@@ -164,11 +164,11 @@ impl FontCache {
         let padding_x = 8.0;
         let text_w = self.measure_text(content, font_size);
         let box_w = text_w + 2.0 * padding_x;
-        let box_h = font_size + 8.0;
+        let box_h = font_size + 10.0; // 30px for 20px font
 
         stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
         let text_x = x + padding_x;
-        let text_y = y + 4.0;
+        let text_y = y + 3.0;
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 
         box_w
@@ -188,11 +188,11 @@ impl FontCache {
         let padding_x = 8.0;
         let text_w = self.measure_text(content, font_size);
         let box_w = (text_w + 2.0 * padding_x).max(min_width);
-        let box_h = font_size + 8.0;
+        let box_h = font_size + 10.0;
 
         stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
         let text_x = x + (box_w - text_w) / 2.0;
-        let text_y = y + 4.0;
+        let text_y = y + 3.0;
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 
         box_w
