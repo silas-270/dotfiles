@@ -25,6 +25,7 @@ use smithay_client_toolkit::{
         slot::SlotPool,
         Shm, ShmHandler,
     },
+    reexports::calloop_wayland_source::WaylandSource,
 };
 use wayland_client::{
     globals::registry_queue_init,
@@ -32,8 +33,8 @@ use wayland_client::{
     Connection, QueueHandle,
 };
 
-use calloop::{EventLoop, LoopHandle};
-use tiny_skia::{Pixmap, PixmapMut};
+use calloop::EventLoop;
+use tiny_skia::Pixmap;
 use std::time::Duration;
 
 mod api;
@@ -72,6 +73,7 @@ struct RustBar {
     compositor_state: CompositorState,
     shm: Shm,
     layer_shell: LayerShell,
+    qh: QueueHandle<Self>,
 
     _seat: Option<wl_seat::WlSeat>,
 
@@ -82,6 +84,7 @@ struct RustBar {
     width: u32,
     height: u32,
     configured: bool,
+    needs_draw: bool,
 
     // App state
     theme: ThemeConfig,
@@ -93,29 +96,25 @@ struct RustBar {
 }
 
 impl RustBar {
-    pub fn redraw(&mut self, _qh: &QueueHandle<Self>) {
-        if !self.configured || self.width == 0 || self.height == 0 {
-            return;
-        }
-
+    pub fn redraw(&mut self) {
         let layer_surface = match self.layer_surface.as_ref() {
             Some(s) => s,
             None => return,
         };
 
-        let width = self.width;
-        let height = self.height;
+        let width = if self.width > 10 { self.width } else { 1900 };
+        let height = if self.height > 0 { self.height } else { 36 };
         let stride = width * 4;
 
         let (buffer, canvas) = match self.pool.create_buffer(
             width as i32,
             height as i32,
             stride as i32,
-            wl_shm::Format::Bgra8888,
+            wl_shm::Format::Argb8888,
         ) {
             Ok(b) => b,
             Err(e) => {
-                eprintln!("[RustBar] Failed to create SHM buffer: {:?}", e);
+                eprintln!("[RustBar] Failed to create SHM buffer ({}x{}): {:?}", width, height, e);
                 return;
             }
         };
@@ -126,7 +125,7 @@ impl RustBar {
         };
         pixmap.fill(tiny_skia::Color::TRANSPARENT);
 
-        // 1. Clear background
+        // 1. Fill background box
         fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, width as f32, height as f32, self.theme.bg_base);
 
         // 2. Draw 1px border around bar
@@ -234,16 +233,15 @@ impl RustBar {
         // RAM (Right of centerpiece)
         let _ram_w = ram::render_ram(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_x_mid + 90.0, top_y, font_size);
 
-        // Convert RGBA to BGRA for Wayland SHM
-        let raw_pixels = pixmap.data();
-        let mut bgra_buf = vec![0u8; raw_pixels.len()];
-        rgba_to_bgra(raw_pixels, &mut bgra_buf);
-        canvas.copy_from_slice(&bgra_buf);
+        // Copy RGBA to BGRA buffer
+        rgba_to_bgra(pixmap.data(), canvas);
 
         let wl_surface = layer_surface.wl_surface();
+        wl_surface.attach(Some(buffer.wl_buffer()), 0, 0);
         wl_surface.damage_buffer(0, 0, width as i32, height as i32);
-        buffer.attach_to(wl_surface).expect("Failed to attach buffer");
         wl_surface.commit();
+        self.needs_draw = false;
+        eprintln!("[RustBar] Successfully redrew bar ({}x{})", width, height);
     }
 
     pub fn handle_pointer_click(&mut self) {
@@ -308,7 +306,7 @@ impl KeyboardHandler for RustBar {
 }
 
 impl PointerHandler for RustBar {
-    fn pointer_frame(&mut self, _: &Connection, qh: &QueueHandle<Self>, _: &wl_pointer::WlPointer, events: &[PointerEvent]) {
+    fn pointer_frame(&mut self, _: &Connection, _qh: &QueueHandle<Self>, _: &wl_pointer::WlPointer, events: &[PointerEvent]) {
         for event in events {
             match event.kind {
                 PointerEventKind::Motion { .. } => {
@@ -318,7 +316,7 @@ impl PointerHandler for RustBar {
                 PointerEventKind::Press { button, .. } => {
                     if button == 0x110 { // BTN_LEFT
                         self.handle_pointer_click();
-                        self.redraw(qh);
+                        self.needs_draw = true;
                     }
                 }
                 _ => {}
@@ -329,11 +327,19 @@ impl PointerHandler for RustBar {
 
 impl LayerShellHandler for RustBar {
     fn closed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &LayerSurface) {}
-    fn configure(&mut self, _: &Connection, qh: &QueueHandle<Self>, _layer_surface: &LayerSurface, configure: LayerSurfaceConfigure, _: u32) {
-        self.width = configure.new_size.0.max(1);
-        self.height = configure.new_size.1.max(34);
+    fn configure(&mut self, _: &Connection, _qh: &QueueHandle<Self>, _layer_surface: &LayerSurface, configure: LayerSurfaceConfigure, _: u32) {
+        let (mut w, mut h) = configure.new_size;
+        if w == 0 {
+            w = 1900;
+        }
+        if h == 0 {
+            h = 36;
+        }
+        self.width = w;
+        self.height = h;
         self.configured = true;
-        self.redraw(qh);
+        self.needs_draw = true;
+        eprintln!("[RustBar] Configured layer surface size: {}x{}", self.width, self.height);
     }
 }
 
@@ -353,30 +359,21 @@ impl ProvidesRegistryState for RustBar {
 
 fn main() {
     let conn = Connection::connect_to_env().expect("Failed to connect to Wayland display");
-    let (globals, mut event_queue) = registry_queue_init(&conn).expect("Failed to initialize Wayland registry");
+    let (globals, event_queue) = registry_queue_init(&conn).expect("Failed to initialize Wayland registry");
     let qh = event_queue.handle();
 
-    let compositor = CompositorState::bind(&globals, &qh).expect("wl_compositor unavaliable");
+    let mut event_loop: EventLoop<RustBar> = EventLoop::try_new().expect("Failed to create Calloop event loop");
+    let loop_handle = event_loop.handle();
+
+    WaylandSource::new(conn.clone(), event_queue)
+        .insert(loop_handle.clone())
+        .expect("Failed to insert WaylandSource into EventLoop");
+
+    let compositor = CompositorState::bind(&globals, &qh).expect("wl_compositor unavailable");
     let layer_shell = LayerShell::bind(&globals, &qh).expect("zwlr_layer_shell_v1 unavailable");
     let shm = Shm::bind(&globals, &qh).expect("wl_shm unavailable");
 
-    let pool = SlotPool::new(1920 * 40 * 4, &shm).expect("Failed to create SlotPool");
-
-    let surface = compositor.create_surface(&qh);
-    let layer_surface = layer_shell.create_layer_surface(
-        &qh,
-        surface,
-        Layer::Top,
-        Some("rustbar"),
-        None,
-    );
-
-    layer_surface.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
-    layer_surface.set_size(0, 36);
-    layer_surface.set_margin(10, 10, 0, 10);
-    layer_surface.set_exclusive_zone(36);
-    layer_surface.set_keyboard_interactivity(KeyboardInteractivity::None);
-    layer_surface.commit();
+    let pool = SlotPool::new(3840 * 100 * 4, &shm).expect("Failed to create SlotPool");
 
     let mut app = RustBar {
         registry_state: RegistryState::new(&globals),
@@ -385,12 +382,14 @@ fn main() {
         compositor_state: compositor,
         shm,
         layer_shell,
+        qh: qh.clone(),
         _seat: None,
         pool,
-        layer_surface: Some(layer_surface),
-        width: 0,
+        layer_surface: None,
+        width: 1900,
         height: 36,
-        configured: false,
+        configured: true,
+        needs_draw: true,
         theme: ThemeConfig::load(),
         font_cache: FontCache::new(),
         workspace_state: get_workspace_state(),
@@ -399,14 +398,29 @@ fn main() {
         mouse_y: 0.0,
     };
 
-    let mut event_loop: EventLoop<RustBar> = EventLoop::try_new().expect("Failed to create Calloop event loop");
-    let loop_handle = event_loop.handle();
+    // Create LayerSurface on app instance
+    let surface = app.compositor_state.create_surface(&qh);
+    let layer_surface = app.layer_shell.create_layer_surface(
+        &qh,
+        surface,
+        Layer::Top,
+        Some("rustbar"),
+        None,
+    );
+
+    layer_surface.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
+    layer_surface.set_size(1900, 36);
+    layer_surface.set_margin(10, 10, 0, 10);
+    layer_surface.set_exclusive_zone(36);
+    layer_surface.set_keyboard_interactivity(KeyboardInteractivity::None);
+
+    app.layer_surface = Some(layer_surface);
 
     let (tx, rx) = calloop::channel::channel::<()>();
     loop_handle.insert_source(rx, |_, _, state: &mut RustBar| {
         state.workspace_state = get_workspace_state();
-        // Dynamic theme reload check
         state.theme = ThemeConfig::load();
+        state.needs_draw = true;
     }).expect("Failed to insert channel source");
 
     let tx_clone = tx.clone();
@@ -417,13 +431,17 @@ fn main() {
     // 1-second interval timer for stat updates
     let timer = calloop::timer::Timer::from_duration(Duration::from_secs(1));
     loop_handle.insert_source(timer, move |_, _, state: &mut RustBar| {
-        state.redraw(&qh);
+        state.needs_draw = true;
         calloop::timer::TimeoutAction::ToDuration(Duration::from_secs(1))
     }).expect("Failed to insert timer source");
 
     loop {
-        event_queue.dispatch_pending(&mut app).unwrap();
-        event_loop.dispatch(Some(Duration::from_millis(50)), &mut app).unwrap();
-        event_queue.flush().unwrap();
+        event_loop
+            .dispatch(Duration::from_millis(16), &mut app)
+            .expect("Error during EventLoop dispatch");
+
+        if app.needs_draw {
+            app.redraw();
+        }
     }
 }

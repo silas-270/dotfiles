@@ -117,8 +117,15 @@ impl FontCache {
                                 let dest_x = (gx + px as f32) as i32;
                                 let dest_y = (gy + py as f32) as i32;
                                 if dest_x >= 0 && dest_x < pixmap.width() as i32 && dest_y >= 0 && dest_y < pixmap.height() as i32 {
-                                    let px_alpha = (alpha as f32 / 255.0) * color.alpha();
-                                    if let Some(col) = Color::from_rgba(color.red(), color.green(), color.blue(), px_alpha) {
+                                    let coverage = alpha as f32 / 255.0;
+                                    let px_alpha = coverage * color.alpha();
+                                    // Properly premultiply color components by pixel coverage for tiny-skia
+                                    if let Some(col) = Color::from_rgba(
+                                        color.red() * coverage,
+                                        color.green() * coverage,
+                                        color.blue() * coverage,
+                                        px_alpha,
+                                    ) {
                                         let mut paint = Paint::default();
                                         paint.set_color(col);
                                         if let Some(r) = Rect::from_xywh(dest_x as f32, dest_y as f32, 1.0, 1.0) {
