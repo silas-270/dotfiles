@@ -12,6 +12,6 @@ pub fn render_cpu(
     font_size: f32,
 ) -> f32 {
     let usage = get_cpu_usage();
-    let text = format!("[ CPU {}% ]", usage);
-    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.text_color, theme.sec_border)
+    let content = format!("[ CPU {}% ]", usage);
+    font_cache.draw_gtk_box(pixmap, &content, start_x, top_y, font_size, theme.fg_muted, theme.border, 115.0)
 }

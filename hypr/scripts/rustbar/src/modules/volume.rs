@@ -12,8 +12,8 @@ pub fn render_volume(
     font_size: f32,
 ) -> f32 {
     let (vol, muted) = get_volume_and_mute();
-    let text = if muted {
-        "[ 󰝟 Mute ]".to_string()
+    let content = if muted {
+        "[ 󰝟 ]".to_string()
     } else {
         let pct = (vol * 100.0).round() as u32;
         let icon = if pct == 0 {
@@ -26,7 +26,7 @@ pub fn render_volume(
         format!("[ {} {}% ]", icon, pct)
     };
 
-    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.text_color, theme.sec_border)
+    font_cache.draw_gtk_box(pixmap, &content, start_x, top_y, font_size, theme.fg_muted, theme.border, 0.0)
 }
 
 pub fn handle_click() {

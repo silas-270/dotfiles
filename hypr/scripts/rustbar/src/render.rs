@@ -43,7 +43,8 @@ pub fn rgba_to_bgra(src: &[u8], dst: &mut [u8]) {
 
 pub struct FontCache {
     font: Font<'static>,
-    glyph_cache: HashMap<(char, u32, bool), (u32, u32, Vec<u8>)>,
+    // Cached tuple: (width, height, min_x, min_y, alpha_data)
+    glyph_cache: HashMap<(char, u32, bool), (u32, u32, i32, i32, Vec<u8>)>,
 }
 
 impl FontCache {
@@ -68,6 +69,8 @@ impl FontCache {
         x
     }
 
+    /// Renders text with GTK baseline metric positioning.
+    /// `top_y` is the top edge of the text bounding box (or inner box padding top).
     pub fn draw_text(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -86,7 +89,7 @@ impl FontCache {
             let key = (c, font_size.to_bits(), false);
             let font = &self.font;
 
-            let (w, h, alpha_data) = self.glyph_cache.entry(key).or_insert_with(|| {
+            let (w, h, min_x, min_y, alpha_data) = self.glyph_cache.entry(key).or_insert_with(|| {
                 let g = font.glyph(c).scaled(scale).positioned(rusttype::point(0.0, 0.0));
                 if let Some(bb) = g.pixel_bounding_box() {
                     let gw = bb.width() as u32;
@@ -98,32 +101,29 @@ impl FontCache {
                             data[idx] = (v * 255.0) as u8;
                         }
                     });
-                    (gw, gh, data)
+                    (gw, gh, bb.min.x, bb.min.y, data)
                 } else {
-                    (0, 0, Vec::new())
+                    (0, 0, 0, 0, Vec::new())
                 }
             });
 
             if *w > 0 && *h > 0 {
-                let g = font.glyph(c).scaled(scale).positioned(rusttype::point(x, baseline_y));
-                if let Some(bb) = g.pixel_bounding_box() {
-                    let gx = bb.min.x as f32;
-                    let gy = bb.min.y as f32;
+                let base_x = (x + *min_x as f32).round() as i32;
+                let base_y = (baseline_y + *min_y as f32).round() as i32;
 
-                    for py in 0..*h {
-                        for px in 0..*w {
-                            let alpha = alpha_data[(py * *w + px) as usize];
-                            if alpha > 0 {
-                                let dest_x = (gx + px as f32) as i32;
-                                let dest_y = (gy + py as f32) as i32;
-                                if dest_x >= 0 && dest_x < pixmap.width() as i32 && dest_y >= 0 && dest_y < pixmap.height() as i32 {
-                                    let px_alpha = (alpha as f32 / 255.0) * color.alpha();
-                                    if let Some(col) = Color::from_rgba(color.red(), color.green(), color.blue(), px_alpha) {
-                                        let mut paint = Paint::default();
-                                        paint.set_color(col);
-                                        if let Some(r) = Rect::from_xywh(dest_x as f32, dest_y as f32, 1.0, 1.0) {
-                                            pixmap.fill_rect(r, &paint, Transform::identity(), None);
-                                        }
+                for py in 0..*h {
+                    for px in 0..*w {
+                        let alpha = alpha_data[(py * *w + px) as usize];
+                        if alpha > 0 {
+                            let dest_x = base_x + px as i32;
+                            let dest_y = base_y + py as i32;
+                            if dest_x >= 0 && dest_x < pixmap.width() as i32 && dest_y >= 0 && dest_y < pixmap.height() as i32 {
+                                let px_alpha = (alpha as f32 / 255.0) * color.alpha();
+                                if let Some(col) = Color::from_rgba(color.red(), color.green(), color.blue(), px_alpha) {
+                                    let mut paint = Paint::default();
+                                    paint.set_color(col);
+                                    if let Some(r) = Rect::from_xywh(dest_x as f32, dest_y as f32, 1.0, 1.0) {
+                                        pixmap.fill_rect(r, &paint, Transform::identity(), None);
                                     }
                                 }
                             }
@@ -139,8 +139,17 @@ impl FontCache {
         x
     }
 
-    /// Draws a module box tile with 2px border and centered text padding.
-    pub fn draw_module_box(
+    /// Measure a GTK module box matching `padding: 2px 6px; border: 2px solid`.
+    pub fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32) -> f32 {
+        let padding_x = 6.0; // GTK padding: 2px 6px
+        let border_w = 2.0;   // 2px solid border
+        let text_w = self.measure_text(content, font_size);
+        let calc_w = text_w + 2.0 * (padding_x + border_w);
+        calc_w.max(min_width)
+    }
+
+    /// Renders a GTK module box tile matching `padding: 2px 6px; border: 2px solid @border`.
+    pub fn draw_gtk_box(
         &mut self,
         pixmap: &mut PixmapMut,
         content: &str,
@@ -149,18 +158,21 @@ impl FontCache {
         font_size: f32,
         text_color: Color,
         border_color: Color,
+        min_width: f32,
     ) -> f32 {
-        let padding_x = 8.0;
+        let padding_x = 6.0; // GTK padding: 2px 6px
+        let border_w = 2.0;   // GTK border: 2px solid @border
         let text_w = self.measure_text(content, font_size);
-        let box_w = text_w + 2.0 * padding_x;
-        let box_h = font_size + 8.0; // e.g. 29px for 21px font
+        let box_w = (text_w + 2.0 * (padding_x + border_w)).max(min_width);
+        let box_h = font_size + 8.0; // 24px box height for 16px font
 
         // 1. Draw outer 2px border rectangle
-        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
+        stroke_rect(pixmap, x, y, box_w, box_h, border_color, border_w);
 
-        // 2. Draw text centered inside padding
-        let text_x = x + padding_x;
-        let text_y = y + 4.0;
+        // 2. Center text horizontally inside box
+        let content_w = text_w;
+        let text_x = x + (box_w - content_w) / 2.0;
+        let text_y = y + 2.0 + border_w / 2.0; // 2px top padding
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 
         box_w

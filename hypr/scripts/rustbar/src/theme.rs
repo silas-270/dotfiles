@@ -19,16 +19,16 @@ pub struct ThemeConfig {
 
 impl Default for ThemeConfig {
     fn default() -> Self {
-        // Fallback savanna-dusk palette
+        // Fallback Matrix Green palette
         Self {
-            bg_base: Color::from_rgba(84.0 / 255.0, 56.0 / 255.0, 43.0 / 255.0, 1.0).unwrap(),
-            border: Color::from_rgba(122.0 / 255.0, 82.0 / 255.0, 61.0 / 255.0, 1.0).unwrap(),
-            sec_border: Color::from_rgba(122.0 / 255.0, 82.0 / 255.0, 61.0 / 255.0, 0.6).unwrap(),
-            text_color: Color::from_rgba(194.0 / 255.0, 170.0 / 255.0, 149.0 / 255.0, 1.0).unwrap(),
-            fg_muted: Color::from_rgba(150.0 / 255.0, 130.0 / 255.0, 110.0 / 255.0, 1.0).unwrap(),
-            accent_color: Color::from_rgba(217.0 / 255.0, 119.0 / 255.0, 54.0 / 255.0, 1.0).unwrap(),
-            inner_border: Color::from_rgba(103.0 / 255.0, 69.0 / 255.0, 52.0 / 255.0, 0.75).unwrap(),
-            waybar_border: Color::from_rgba(217.0 / 255.0, 119.0 / 255.0, 54.0 / 255.0, 1.0).unwrap(),
+            bg_base: Color::from_rgba(0.0, 0.0, 0.0, 1.0).unwrap(),
+            border: Color::from_rgba(0.0, 85.0 / 255.0, 20.0 / 255.0, 1.0).unwrap(),
+            sec_border: Color::from_rgba(0.0, 59.0 / 255.0, 14.0 / 255.0, 1.0).unwrap(),
+            text_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(),
+            fg_muted: Color::from_rgba(0.0, 179.0 / 255.0, 45.0 / 255.0, 1.0).unwrap(),
+            accent_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(),
+            inner_border: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 0.2).unwrap(),
+            waybar_border: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(),
             warning: Color::from_rgba(255.0 / 255.0, 176.0 / 255.0, 0.0 / 255.0, 1.0).unwrap(),
             danger: Color::from_rgba(255.0 / 255.0, 51.0 / 255.0, 51.0 / 255.0, 1.0).unwrap(),
         }
@@ -43,13 +43,11 @@ impl ThemeConfig {
         let content = match fs::read_to_string(&colors_path) {
             Ok(c) => c,
             Err(_) => {
-                eprintln!("[RustBar Theme] Could not read colors file at {:?}, using fallback theme", colors_path);
                 return theme;
             }
         };
 
         theme.update_from_json(&content);
-        eprintln!("[RustBar Theme] Loaded theme colors from {:?}", colors_path);
         theme
     }
 
@@ -57,10 +55,7 @@ impl ThemeConfig {
     pub fn update_from_json(&mut self, json_str: &str) {
         let json_val: Value = match serde_json::from_str(json_str) {
             Ok(v) => v,
-            Err(e) => {
-                eprintln!("[RustBar Theme] Failed to parse JSON: {}", e);
-                return;
-            }
+            Err(_) => return,
         };
 
         let colors_map = if let Some(colors_obj) = json_val.get("colors").and_then(|v| v.as_object()) {
@@ -68,7 +63,6 @@ impl ThemeConfig {
         } else if let Some(flat_obj) = json_val.as_object() {
             flat_obj
         } else {
-            eprintln!("[RustBar Theme] Invalid JSON color map structure");
             return;
         };
 
@@ -81,7 +75,7 @@ impl ThemeConfig {
         if let Some(val) = colors_map.get("border_subtle").or_else(|| colors_map.get("sec_border")).and_then(|v| v.as_str()).and_then(parse_color) {
             self.sec_border = val;
         }
-        if let Some(val) = colors_map.get("text_color").and_then(|v| v.as_str()).and_then(parse_color) {
+        if let Some(val) = colors_map.get("fg_primary").or_else(|| colors_map.get("text_color")).and_then(|v| v.as_str()).and_then(parse_color) {
             self.text_color = val;
         }
         if let Some(val) = colors_map.get("fg_muted").and_then(|v| v.as_str()).and_then(parse_color) {

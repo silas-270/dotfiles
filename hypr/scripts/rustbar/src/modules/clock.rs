@@ -21,8 +21,8 @@ pub fn render_clock(
         now.format("%H:%M").to_string()
     };
 
-    let text = format!("[ {} ]", time_str);
-    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.accent_color, theme.waybar_border)
+    let content = format!("[ {} ]", time_str);
+    font_cache.draw_gtk_box(pixmap, &content, start_x, top_y, font_size, theme.accent_color, theme.border, 0.0)
 }
 
 pub fn handle_click() {
