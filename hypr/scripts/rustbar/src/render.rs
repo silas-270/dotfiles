@@ -137,24 +137,17 @@ impl FontCache {
         x
     }
 
-    /// Measure a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
-    pub fn measure_bracket_tag(&mut self, content: &str, font_size: f32) -> f32 {
-        let text = format!("[ {} ]", content);
-        self.measure_text(&text, font_size)
+    /// Measure a module box tile.
+    pub fn measure_module_box(&mut self, content: &str, font_size: f32) -> f32 {
+        let padding_x = 8.0;
+        let text_w = self.measure_text(content, font_size);
+        text_w + 2.0 * padding_x
     }
 
-    /// Draw a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
-    pub fn draw_bracket_tag(
-        &mut self,
-        pixmap: &mut PixmapMut,
-        content: &str,
-        start_x: f32,
-        top_y: f32,
-        font_size: f32,
-        color: Color,
-    ) -> f32 {
-        let text = format!("[ {} ]", content);
-        self.draw_text(pixmap, &text, start_x, top_y, font_size, color)
+    pub fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32) -> f32 {
+        let padding_x = 8.0;
+        let text_w = self.measure_text(content, font_size);
+        (text_w + 2.0 * padding_x).max(min_width)
     }
 
     /// Draws a module box tile with 2px border and centered text padding.
@@ -171,13 +164,34 @@ impl FontCache {
         let padding_x = 8.0;
         let text_w = self.measure_text(content, font_size);
         let box_w = text_w + 2.0 * padding_x;
-        let box_h = font_size + 8.0; // 29px for 21px font
+        let box_h = font_size + 8.0;
 
-        // 1. Draw outer 2px border rectangle
         stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
-
-        // 2. Draw text centered inside padding
         let text_x = x + padding_x;
+        let text_y = y + 4.0;
+        self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
+
+        box_w
+    }
+
+    pub fn draw_gtk_box(
+        &mut self,
+        pixmap: &mut PixmapMut,
+        content: &str,
+        x: f32,
+        y: f32,
+        font_size: f32,
+        text_color: Color,
+        border_color: Color,
+        min_width: f32,
+    ) -> f32 {
+        let padding_x = 8.0;
+        let text_w = self.measure_text(content, font_size);
+        let box_w = (text_w + 2.0 * padding_x).max(min_width);
+        let box_h = font_size + 8.0;
+
+        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
+        let text_x = x + (box_w - text_w) / 2.0;
         let text_y = y + 4.0;
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 

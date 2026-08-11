@@ -115,8 +115,9 @@ else
     nohup swaybg -c "#000000" >/dev/null 2>&1 &
 fi
 
-# 3. Reload Waybar & Hyprland
+# 3. Reload Waybar, Rustbar & Hyprland
 killall -SIGUSR2 waybar 2>/dev/null || true
+pkill -SIGUSR2 rustbar 2>/dev/null || true
 hyprctl reload 2>/dev/null || true
 
 # 4. Desktop Notification

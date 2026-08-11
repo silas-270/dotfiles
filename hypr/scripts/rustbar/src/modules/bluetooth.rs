@@ -11,7 +11,7 @@ pub fn render_bluetooth(
     font_size: f32,
 ) -> f32 {
     let content = "[  ]";
-    font_cache.draw_module_box(pixmap, content, start_x, top_y, font_size, theme.text_color, theme.border)
+    font_cache.draw_module_box(pixmap, content, start_x, top_y, font_size, theme.fg_muted, theme.border)
 }
 
 pub fn handle_click() {

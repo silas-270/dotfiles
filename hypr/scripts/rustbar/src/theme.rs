@@ -19,16 +19,15 @@ pub struct ThemeConfig {
 
 impl Default for ThemeConfig {
     fn default() -> Self {
-        // Default Matrix Green palette
         Self {
             bg_base: Color::from_rgba(0.0, 0.0, 0.0, 1.0).unwrap(),
-            border: Color::from_rgba(0.0, 85.0 / 255.0, 20.0 / 255.0, 1.0).unwrap(), // #005514
-            sec_border: Color::from_rgba(0.0, 85.0 / 255.0, 20.0 / 255.0, 1.0).unwrap(), // #005514
-            text_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(), // #00FF41
-            fg_muted: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(), // #00FF41
-            accent_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(), // #00FF41
+            border: Color::from_rgba(0.0, 85.0 / 255.0, 20.0 / 255.0, 1.0).unwrap(),
+            sec_border: Color::from_rgba(0.0, 85.0 / 255.0, 20.0 / 255.0, 1.0).unwrap(),
+            text_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(),
+            fg_muted: Color::from_rgba(0.0, 179.0 / 255.0, 45.0 / 255.0, 1.0).unwrap(),
+            accent_color: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(),
             inner_border: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 0.2).unwrap(),
-            waybar_border: Color::from_rgba(0.0, 255.0 / 255.0, 65.0 / 255.0, 1.0).unwrap(), // #00FF41
+            waybar_border: Color::TRANSPARENT,
             warning: Color::from_rgba(255.0 / 255.0, 176.0 / 255.0, 0.0 / 255.0, 1.0).unwrap(),
             danger: Color::from_rgba(255.0 / 255.0, 51.0 / 255.0, 51.0 / 255.0, 1.0).unwrap(),
         }
@@ -76,10 +75,14 @@ impl ThemeConfig {
         if let Some(val) = colors_map.get("border_subtle").and_then(|v| v.as_str()).and_then(parse_color) {
             self.sec_border = val;
         }
-        if let Some(val) = colors_map.get("fg_primary").or_else(|| colors_map.get("accent")).or_else(|| colors_map.get("text_color")).and_then(|v| v.as_str()).and_then(parse_color) {
+        if let Some(val) = colors_map.get("fg_primary").or_else(|| colors_map.get("text_color")).and_then(|v| v.as_str()).and_then(parse_color) {
             self.text_color = val;
-            self.accent_color = val;
+        }
+        if let Some(val) = colors_map.get("fg_muted").and_then(|v| v.as_str()).and_then(parse_color) {
             self.fg_muted = val;
+        }
+        if let Some(val) = colors_map.get("accent").or_else(|| colors_map.get("accent_color")).and_then(|v| v.as_str()).and_then(parse_color) {
+            self.accent_color = val;
         }
         if let Some(val) = colors_map.get("waybar_border").and_then(|v| v.as_str()).and_then(parse_color) {
             self.waybar_border = val;
@@ -105,6 +108,9 @@ fn get_colors_path() -> PathBuf {
 
 pub fn parse_color(s: &str) -> Option<Color> {
     let s = s.trim();
+    if s == "transparent" {
+        return Some(Color::TRANSPARENT);
+    }
     if s.starts_with('#') {
         let hex = &s[1..];
         if hex.len() == 6 {
