@@ -57,6 +57,8 @@ def generate_theme_files(preset_path):
         ("border", colors.get("border")),
         ("border-subtle", colors.get("border_subtle")),
         ("inner-border", colors.get("inner_border")),
+        ("waybar-border", colors.get("waybar_border", "transparent")),
+        ("cc-border", colors.get("cc_border", "transparent")),
         ("warning", colors.get("warning")),
         ("danger", colors.get("danger")),
         ("term-bg", colors.get("term_bg")),
@@ -98,7 +100,8 @@ def generate_theme_files(preset_path):
     lua_items = []
     for key in ["bg_base", "bg_input", "bg_box", "bg_box_solid", "fg_primary", "fg_muted", "fg_dark", 
                 "accent", "accent_hover", "accent_bg", "border", "border_subtle", "inner_border", 
-                "warning", "danger", "hypr_active_border", "hypr_inactive_border", "term_bg", "term_fg"]:
+                "waybar_border", "cc_border", "warning", "danger", "hypr_active_border", 
+                "hypr_inactive_border", "term_bg", "term_fg"]:
         if key in colors:
             lua_items.append(f'    {key} = "{colors[key]}"')
     for i in range(16):

@@ -8,6 +8,9 @@
 @define-color accent-hover {{color11}};
 @define-color border {{color8}};
 @define-color border-subtle {{color8}};
+@define-color inner-border rgba({{color3 | rgb}}, 0.3);
+@define-color waybar-border transparent;
+@define-color cc-border transparent;
 @define-color danger {{color1}};
 @define-color warning {{color11}};
 

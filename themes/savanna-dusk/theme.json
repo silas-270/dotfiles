@@ -19,6 +19,8 @@
     "border": "#7A523D",
     "border_subtle": "#7A523D",
     "inner_border": "rgba(103, 69, 52, 0.75)",
+    "waybar_border": "transparent",
+    "cc_border": "transparent",
     "warning": "#FF9800",
     "danger": "#E74C3C",
     "hypr_active_border": "0xffff8c00",

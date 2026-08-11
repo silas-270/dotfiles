@@ -11,6 +11,7 @@ pub struct ThemeConfig {
     pub text_color: Color,
     pub accent_color: Color,
     pub inner_border: Color,
+    pub cc_border: Color,
 }
 
 impl Default for ThemeConfig {
@@ -23,6 +24,7 @@ impl Default for ThemeConfig {
             text_color: Color::from_rgba(194.0 / 255.0, 170.0 / 255.0, 149.0 / 255.0, 1.0).unwrap(),
             accent_color: Color::from_rgba(217.0 / 255.0, 119.0 / 255.0, 54.0 / 255.0, 1.0).unwrap(),
             inner_border: Color::from_rgba(103.0 / 255.0, 69.0 / 255.0, 52.0 / 255.0, 0.75).unwrap(),
+            cc_border: Color::from_rgba(0.0, 0.0, 0.0, 0.0).unwrap(),
         }
     }
 }
@@ -87,6 +89,9 @@ impl ThemeConfig {
         }
         if let Some(val) = colors_map.get("inner_border").and_then(|v| v.as_str()).and_then(parse_color) {
             self.inner_border = val;
+        }
+        if let Some(val) = colors_map.get("cc_border").and_then(|v| v.as_str()).and_then(parse_color) {
+            self.cc_border = val;
         }
     }
 }

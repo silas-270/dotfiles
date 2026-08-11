@@ -1,0 +1,78 @@
+/* Rofi Power Profile Menu Theme - Styled to match Waybar Brutalist aesthetic */
+
+configuration {
+    click-to-exit:      true;
+    hover-select:       false;
+    me-select-entry:    "";
+    me-accept-entry:    "MousePrimary";
+}
+
+@import "../theme/generated/colors.rasi"
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+    background-color: transparent;
+    text-color:       @fg-muted;
+}
+
+window {
+    background-color: @bg-base;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
+    width:            220px;
+    padding:          4px;
+    location:         north;
+    anchor:           north;
+    y-offset:         11px;
+}
+
+mainbox {
+    spacing:          4px;
+    padding:          0px;
+    children:         [ listview ];
+}
+
+listview {
+    fixed-height:     false;
+    spacing:          4px;
+    scrollbar:        false;
+    lines:            3;
+    padding:          2px;
+}
+
+element {
+    children:         [ element-text ];
+    background-color: transparent;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
+    padding:          4px 0px;
+    cursor:           pointer;
+    text-color:       @fg-muted;
+}
+
+element normal.normal,
+element alternate.normal,
+element normal.active,
+element alternate.active {
+    background-color: transparent;
+    text-color:       @fg-muted;
+    border-color:     @border;
+}
+
+element selected.normal,
+element selected.active {
+    background-color: transparent;
+    text-color:       @accent;
+    border-color:     @accent;
+}
+
+element-text {
+    font:             "JetBrainsMono Nerd Font 12";
+    text-color:       inherit;
+    vertical-align:   0.5;
+    horizontal-align: 0.5;
+    cursor:           inherit;
+}
+

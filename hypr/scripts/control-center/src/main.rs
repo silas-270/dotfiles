@@ -231,7 +231,7 @@ impl ControlCenter {
         );
         panel_layer.set_anchor(Anchor::TOP | Anchor::RIGHT);
         panel_layer.set_size(self.panel_width, self.panel_height);
-        panel_layer.set_margin(61, 11, 0, 0);
+        panel_layer.set_margin(65, 11, 0, 0);
         panel_layer.set_exclusive_zone(-1);
         panel_layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
         panel_layer.commit();
@@ -319,7 +319,14 @@ impl ControlCenter {
 
         // Background & border
         render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, self.theme.bg_base);
-        render::fill_rect(&mut pixmap.as_mut(), 0.0, h as f32 - 1.0, w as f32, 1.0, self.theme.border);
+        let cc_border = self.theme.cc_border;
+        let thickness = 1.0;
+        if cc_border.alpha() > 0.0 {
+            render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, thickness, cc_border); // top
+            render::fill_rect(&mut pixmap.as_mut(), 0.0, h as f32 - thickness, w as f32, thickness, cc_border); // bottom
+            render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, thickness, h as f32, cc_border); // left
+            render::fill_rect(&mut pixmap.as_mut(), w as f32 - thickness, 0.0, thickness, h as f32, cc_border); // right
+        }
 
         let outer_pad = 10.0;
         let sec_x = outer_pad;

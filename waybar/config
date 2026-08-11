@@ -63,7 +63,7 @@
   "custom/centerpiece": {
     "exec": "~/.config/hypr/scripts/waybar-centerpiece.sh",
     "interval": 1,
-    "on-click": "~/.config/hypr/scripts/control-center/target/release/control-center",
+    "on-click": "~/.config/hypr/scripts/rofi-power-profile-menu.sh",
     "tooltip": false
   },
 
