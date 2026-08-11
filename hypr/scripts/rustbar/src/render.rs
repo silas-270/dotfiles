@@ -137,20 +137,14 @@ impl FontCache {
         x
     }
 
-    /// Measure a module box tile.
-    pub fn measure_module_box(&mut self, content: &str, font_size: f32) -> f32 {
-        let padding_x = 8.0;
-        let text_w = self.measure_text(content, font_size);
-        text_w + 2.0 * padding_x
-    }
-
+    /// Measure GTK module box (padding: 2px 6px, border: 2px solid)
     pub fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32) -> f32 {
-        let padding_x = 8.0;
+        let padding_x = 6.0; // GTK Waybar style.css padding: 2px 6px
+        let border_w = 2.0;   // GTK Waybar style.css border: 2px solid
         let text_w = self.measure_text(content, font_size);
-        (text_w + 2.0 * padding_x).max(min_width)
+        (text_w + 2.0 * (padding_x + border_w)).max(min_width)
     }
 
-    /// Draws a module box tile with 2px border and centered text padding.
     pub fn draw_module_box(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -161,19 +155,10 @@ impl FontCache {
         text_color: Color,
         border_color: Color,
     ) -> f32 {
-        let padding_x = 8.0;
-        let text_w = self.measure_text(content, font_size);
-        let box_w = text_w + 2.0 * padding_x;
-        let box_h = font_size + 10.0; // 30px for 20px font
-
-        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
-        let text_x = x + padding_x;
-        let text_y = y + 3.0;
-        self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
-
-        box_w
+        self.draw_gtk_box(pixmap, content, x, y, font_size, text_color, border_color, 0.0)
     }
 
+    /// Draws a GTK module box tile matching GTK Waybar style.css (16px font, 24px box height, 2px border)
     pub fn draw_gtk_box(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -185,14 +170,15 @@ impl FontCache {
         border_color: Color,
         min_width: f32,
     ) -> f32 {
-        let padding_x = 8.0;
+        let padding_x = 6.0; // GTK Waybar style.css padding: 2px 6px
+        let border_w = 2.0;   // GTK Waybar style.css border: 2px solid
         let text_w = self.measure_text(content, font_size);
-        let box_w = (text_w + 2.0 * padding_x).max(min_width);
-        let box_h = font_size + 10.0;
+        let box_w = (text_w + 2.0 * (padding_x + border_w)).max(min_width);
+        let box_h = font_size + 8.0; // 24px box height for 16px font
 
-        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
+        stroke_rect(pixmap, x, y, box_w, box_h, border_color, border_w);
         let text_x = x + (box_w - text_w) / 2.0;
-        let text_y = y + 3.0;
+        let text_y = y + 2.0 + border_w / 2.0; // 2px top padding
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 
         box_w

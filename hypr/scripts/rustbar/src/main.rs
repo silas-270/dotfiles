@@ -107,7 +107,7 @@ impl RustBar {
         };
 
         let width = if self.width > 10 { self.width } else { 1900 };
-        let height = if self.height > 0 { self.height } else { 44 };
+        let height = if self.height > 0 { self.height } else { 36 };
         let stride = width * 4;
 
         let (buffer, canvas) = match self.pool.create_buffer(
@@ -139,10 +139,10 @@ impl RustBar {
 
         self.click_regions.clear();
 
-        // 20px font size, 30px box height inside 44px bar height
-        let font_size = 20.0;
-        let box_h = font_size + 10.0; // 30px box height
-        let top_y = (height as f32 - box_h) / 2.0; // 7.0px top margin
+        // 16px font size, 24px box height inside 36px bar height
+        let font_size = 16.0;
+        let box_h = font_size + 8.0; // 24px box height
+        let top_y = (height as f32 - box_h) / 2.0; // 6.0px top margin
 
         // ── Render Left Group ──
         let mut left_x = 12.0;
@@ -189,7 +189,7 @@ impl RustBar {
         let mut right_x = width as f32 - 12.0;
 
         // Control Center icon (rightmost)
-        let cc_w = self.font_cache.draw_gtk_box(&mut pixmap.as_mut(), "[  ]", 0.0, -100.0, font_size, self.theme.accent_color, self.theme.border, 0.0);
+        let cc_w = self.font_cache.draw_gtk_box(&mut pixmap.as_mut(), "[  ]", 0.0, -100.0, font_size, self.theme.accent_color, self.theme.border, 0.0);
         right_x -= cc_w;
         controlcenter::render_controlcenter(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, right_x, top_y, font_size);
         self.click_regions.push(ClickRegion {
@@ -353,7 +353,7 @@ impl LayerShellHandler for RustBar {
             w = 1900;
         }
         if h == 0 {
-            h = 44;
+            h = 36;
         }
         self.width = w;
         self.height = h;
@@ -407,7 +407,7 @@ fn main() {
         pool,
         layer_surface: None,
         width: 1900,
-        height: 44,
+        height: 36,
         configured: false,
         needs_draw: false,
         theme: ThemeConfig::load(),
@@ -435,9 +435,9 @@ fn main() {
     );
 
     layer_surface.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
-    layer_surface.set_size(1900, 44);
+    layer_surface.set_size(1900, 36);
     layer_surface.set_margin(10, 10, 0, 10);
-    layer_surface.set_exclusive_zone(44);
+    layer_surface.set_exclusive_zone(36);
     layer_surface.set_keyboard_interactivity(KeyboardInteractivity::None);
     layer_surface.commit();
 
