@@ -97,6 +97,9 @@ if [ -f "$WALLUST_BIN" ] && [ -f "$JSON_FILE" ]; then
     "$WALLUST_BIN" cs "$JSON_FILE" >/dev/null 2>&1
 fi
 
+# 1b. Compile theme colors via apply.py to preserve custom fields
+python3 "$HOME/dotfiles/theme/apply.py" "$JSON_FILE" >/dev/null 2>&1 || true
+
 # 2. Set Wallpaper (or solid black fallback if no wallpapers exist)
 IFS=$'\n' read -r -d '' -a WPS < <(find "$THEME_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) | sort && printf '\0')
 
@@ -108,6 +111,7 @@ if [ ${#WPS[@]} -gt 0 ]; then
     nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
 else
     # Solid black screen fallback
+    rm -f "$SWAYBG_LINK"
     nohup swaybg -c "#000000" >/dev/null 2>&1 &
 fi
 

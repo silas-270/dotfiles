@@ -23,10 +23,33 @@ fi
 # Get available wallpapers in current theme folder
 IFS=$'\n' read -r -d '' -a WPS < <(find "$THEME_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) | sort && printf '\0')
 
+# Handle startup initialization / restoration
+if [ "$1" = "init" ] || [ "$1" = "restore" ]; then
+    killall swaybg 2>/dev/null || true
+    if [ ${#WPS[@]} -eq 0 ]; then
+        rm -f "$SWAYBG_LINK"
+        nohup swaybg -c "#000000" >/dev/null 2>&1 &
+        exit 0
+    fi
+
+    # Check if current link target belongs to the active theme
+    CURRENT_TARGET=$(readlink -f "$SWAYBG_LINK" 2>/dev/null)
+    TARGET_DIR=$(dirname "$CURRENT_TARGET" 2>/dev/null)
+
+    if [ "$TARGET_DIR" != "$THEME_DIR" ] || [ ! -f "$CURRENT_TARGET" ]; then
+        # Link is missing, broken, or pointing to another theme -> default to first wallpaper in active theme
+        ln -sf "${WPS[0]}" "$SWAYBG_LINK"
+    fi
+
+    nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
+    exit 0
+fi
+
 # Show usage / status if no wallpapers exist
 if [ ${#WPS[@]} -eq 0 ]; then
     echo "No wallpapers found in theme folder: $THEME_DIR. Applying solid black screen."
-    killall swaybg 2>/dev/null
+    rm -f "$SWAYBG_LINK"
+    killall swaybg 2>/dev/null || true
     nohup swaybg -c "#000000" >/dev/null 2>&1 &
     notify-send "Wallpaper" "No wallpapers in theme '${ACTIVE_THEME}'. Using solid black screen." 2>/dev/null || true
     exit 0
@@ -34,7 +57,7 @@ fi
 
 # Show usage if no argument
 if [ -z "$1" ]; then
-    echo "Usage: $0 <next|prev|number>"
+    echo "Usage: $0 <next|prev|init|number>"
     echo "Theme: $ACTIVE_THEME"
     echo "Available wallpapers (${#WPS[@]}):"
     for wp in "${WPS[@]}"; do
@@ -81,7 +104,7 @@ fi
 
 if [ -f "$FULL_PATH" ]; then
     ln -sf "$FULL_PATH" "$SWAYBG_LINK"
-    killall swaybg 2>/dev/null
+    killall swaybg 2>/dev/null || true
     nohup swaybg -i "$SWAYBG_LINK" -m fill >/dev/null 2>&1 &
     echo "Wallpaper set to: $(basename "$FULL_PATH")"
     notify-send "Wallpaper Changed" "$(basename "$FULL_PATH")" 2>/dev/null || true
