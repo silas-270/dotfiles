@@ -69,8 +69,6 @@ impl FontCache {
         x
     }
 
-    /// Renders text with GTK baseline metric positioning.
-    /// `top_y` is the top edge of the text bounding box (or inner box padding top).
     pub fn draw_text(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -139,17 +137,28 @@ impl FontCache {
         x
     }
 
-    /// Measure a GTK module box matching `padding: 2px 6px; border: 2px solid`.
-    pub fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32) -> f32 {
-        let padding_x = 6.0; // GTK padding: 2px 6px
-        let border_w = 2.0;   // 2px solid border
-        let text_w = self.measure_text(content, font_size);
-        let calc_w = text_w + 2.0 * (padding_x + border_w);
-        calc_w.max(min_width)
+    /// Measure a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
+    pub fn measure_bracket_tag(&mut self, content: &str, font_size: f32) -> f32 {
+        let text = format!("[ {} ]", content);
+        self.measure_text(&text, font_size)
     }
 
-    /// Renders a GTK module box tile matching `padding: 2px 6px; border: 2px solid @border`.
-    pub fn draw_gtk_box(
+    /// Draw a bracket tag block like "[ RAM 4.2G ]" or "[ 1 ]".
+    pub fn draw_bracket_tag(
+        &mut self,
+        pixmap: &mut PixmapMut,
+        content: &str,
+        start_x: f32,
+        top_y: f32,
+        font_size: f32,
+        color: Color,
+    ) -> f32 {
+        let text = format!("[ {} ]", content);
+        self.draw_text(pixmap, &text, start_x, top_y, font_size, color)
+    }
+
+    /// Draws a module box tile with 2px border and centered text padding.
+    pub fn draw_module_box(
         &mut self,
         pixmap: &mut PixmapMut,
         content: &str,
@@ -158,21 +167,18 @@ impl FontCache {
         font_size: f32,
         text_color: Color,
         border_color: Color,
-        min_width: f32,
     ) -> f32 {
-        let padding_x = 6.0; // GTK padding: 2px 6px
-        let border_w = 2.0;   // GTK border: 2px solid @border
+        let padding_x = 8.0;
         let text_w = self.measure_text(content, font_size);
-        let box_w = (text_w + 2.0 * (padding_x + border_w)).max(min_width);
-        let box_h = font_size + 8.0; // 24px box height for 16px font
+        let box_w = text_w + 2.0 * padding_x;
+        let box_h = font_size + 8.0; // 29px for 21px font
 
         // 1. Draw outer 2px border rectangle
-        stroke_rect(pixmap, x, y, box_w, box_h, border_color, border_w);
+        stroke_rect(pixmap, x, y, box_w, box_h, border_color, 2.0);
 
-        // 2. Center text horizontally inside box
-        let content_w = text_w;
-        let text_x = x + (box_w - content_w) / 2.0;
-        let text_y = y + 2.0 + border_w / 2.0; // 2px top padding
+        // 2. Draw text centered inside padding
+        let text_x = x + padding_x;
+        let text_y = y + 4.0;
         self.draw_text(pixmap, content, text_x, text_y, font_size, text_color);
 
         box_w

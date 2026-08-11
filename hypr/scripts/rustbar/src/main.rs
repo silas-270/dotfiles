@@ -107,7 +107,7 @@ impl RustBar {
         };
 
         let width = if self.width > 10 { self.width } else { 1900 };
-        let height = if self.height > 0 { self.height } else { 36 };
+        let height = if self.height > 0 { self.height } else { 44 };
         let stride = width * 4;
 
         let (buffer, canvas) = match self.pool.create_buffer(
@@ -129,23 +129,23 @@ impl RustBar {
         };
         pixmap.fill(tiny_skia::Color::TRANSPARENT);
 
-        // 1. Fill background box matching GTK window#waybar
+        // 1. Fill background box
         fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, width as f32, height as f32, self.theme.bg_base);
 
-        // 2. Draw 1px border around bar matching GTK border: 1px solid @waybar-border
+        // 2. Draw 1px border around bar
         stroke_rect(&mut pixmap.as_mut(), 0.0, 0.0, width as f32, height as f32, self.theme.waybar_border, 1.0);
 
         self.click_regions.clear();
 
-        // GTK font-size: 16px, modules margin: 6px 6px
-        let font_size = 16.0;
-        let box_h = font_size + 8.0; // 24px box height
-        let top_y = (height as f32 - box_h) / 2.0; // 6.0px top margin
+        // Matching control center font size
+        let font_size = 21.0;
+        let box_h = font_size + 8.0; // 29px
+        let top_y = (height as f32 - box_h) / 2.0;
 
-        // ── Render Left Group (margin: 6px 6px) ──
-        let mut left_x = 12.0;
+        // ── Render Left Group ──
+        let mut left_x = 10.0;
 
-        // Workspaces (#workspaces margin-right: 2px)
+        // Workspaces
         let (next_x, buttons) = render_workspaces(
             &mut pixmap.as_mut(),
             &mut self.font_cache,
@@ -162,20 +162,18 @@ impl RustBar {
                 action: ModuleClickAction::Workspace(btn.id),
             });
         }
-        left_x = next_x + 2.0;
+        left_x = next_x + 6.0;
 
-        // Network (#network margin-left: 2px, margin-right: 2px)
-        left_x += 2.0;
+        // Network
         let net_w = network::render_network(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, left_x, top_y, font_size);
         self.click_regions.push(ClickRegion {
             x_min: left_x,
             x_max: left_x + net_w,
             action: ModuleClickAction::Network,
         });
-        left_x += net_w + 2.0;
+        left_x += net_w + 6.0;
 
-        // Bluetooth (#bluetooth margin-left: 2px)
-        left_x += 2.0;
+        // Bluetooth
         let bt_w = bluetooth::render_bluetooth(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, left_x, top_y, font_size);
         self.click_regions.push(ClickRegion {
             x_min: left_x,
@@ -184,10 +182,10 @@ impl RustBar {
         });
 
         // ── Render Right Group ──
-        let mut right_x = width as f32 - 12.0;
+        let mut right_x = width as f32 - 10.0;
 
-        // Control Center icon (rightmost, margin-left: 4px)
-        let cc_w = self.font_cache.measure_gtk_box("[  ]", font_size, 0.0);
+        // Control Center icon (rightmost)
+        let cc_w = self.font_cache.measure_text("[  ]", font_size) + 16.0;
         right_x -= cc_w;
         controlcenter::render_controlcenter(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, right_x, top_y, font_size);
         self.click_regions.push(ClickRegion {
@@ -195,9 +193,9 @@ impl RustBar {
             x_max: right_x + cc_w,
             action: ModuleClickAction::ControlCenter,
         });
-        right_x -= 4.0;
+        right_x -= 6.0;
 
-        // Clock (#clock margin-left: 4px)
+        // Clock
         let clock_w = clock::render_clock(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
         right_x -= clock_w;
         clock::render_clock(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, right_x, top_y, font_size);
@@ -206,15 +204,15 @@ impl RustBar {
             x_max: right_x + clock_w,
             action: ModuleClickAction::Clock,
         });
-        right_x -= 4.0;
+        right_x -= 6.0;
 
-        // Battery (#battery margin-left: 4px)
+        // Battery
         let bat_w = modules::battery::render_battery(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
         right_x -= bat_w;
         modules::battery::render_battery(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, right_x, top_y, font_size);
-        right_x -= 4.0;
+        right_x -= 6.0;
 
-        // Volume (#custom-volume margin-left: 4px)
+        // Volume
         let vol_w = volume::render_volume(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
         right_x -= vol_w;
         volume::render_volume(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, right_x, top_y, font_size);
@@ -227,29 +225,28 @@ impl RustBar {
         // ── Render Center Group ──
         let center_x_mid = width as f32 / 2.0;
 
-        // Measure centerpiece, cpu, ram for 1:1 GTK center layout
+        // Measure centerpiece, cpu, ram for centering
         let cp_w = centerpiece::render_centerpiece(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
         let cpu_w = cpu::render_cpu(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
         let ram_w = ram::render_ram(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, 0.0, -100.0, font_size);
 
-        // margins: cpu (margin-right: 2px), centerpiece (margin-left: 2px, margin-right: 2px), memory (margin-left: 2px)
-        let total_center_w = cpu_w + 4.0 + cp_w + 4.0 + ram_w;
+        let total_center_w = cpu_w + 6.0 + cp_w + 6.0 + ram_w;
         let mut center_start_x = center_x_mid - (total_center_w / 2.0);
 
-        // Render CPU (#cpu margin-right: 2px)
+        // Render CPU
         cpu::render_cpu(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_start_x, top_y, font_size);
-        center_start_x += cpu_w + 4.0;
+        center_start_x += cpu_w + 6.0;
 
-        // Render Centerpiece (#custom-centerpiece margin-left: 2px, margin-right: 2px)
+        // Render Centerpiece
         centerpiece::render_centerpiece(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_start_x, top_y, font_size);
         self.click_regions.push(ClickRegion {
             x_min: center_start_x,
             x_max: center_start_x + cp_w,
             action: ModuleClickAction::Centerpiece,
         });
-        center_start_x += cp_w + 4.0;
+        center_start_x += cp_w + 6.0;
 
-        // Render RAM (#custom-memory margin-left: 2px)
+        // Render RAM
         ram::render_ram(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_start_x, top_y, font_size);
 
         // Copy RGBA to BGRA buffer
@@ -264,10 +261,8 @@ impl RustBar {
 
     pub fn handle_pointer_click(&mut self) {
         let x = self.mouse_x as f32;
-        eprintln!("[RustBar] Click at x = {}", x);
         for region in &self.click_regions {
             if x >= region.x_min && x <= region.x_max {
-                eprintln!("[RustBar] Triggering click action for region min={}, max={}", region.x_min, region.x_max);
                 match region.action {
                     ModuleClickAction::Workspace(id) => switch_workspace(id),
                     ModuleClickAction::Network => network::handle_click(),
@@ -308,7 +303,7 @@ impl SeatHandler for RustBar {
     fn seat_state(&mut self) -> &mut SeatState { &mut self.seat_state }
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
     fn new_capability(&mut self, _conn: &Connection, qh: &QueueHandle<Self>, seat: wl_seat::WlSeat, capability: Capability) {
-        if capability == Capability::Pointer {
+        if capability == Capability::Pointer && self._seat.is_none() {
             let _ = self.seat_state.get_pointer(qh, &seat);
             self._seat = Some(seat);
         }
@@ -335,8 +330,6 @@ impl PointerHandler for RustBar {
                 }
                 PointerEventKind::Press { button, .. } => {
                     if button == 0x110 { // BTN_LEFT
-                        self.mouse_x = event.position.0;
-                        self.mouse_y = event.position.1;
                         self.handle_pointer_click();
                         self.needs_draw = true;
                     }
@@ -355,7 +348,7 @@ impl LayerShellHandler for RustBar {
             w = 1900;
         }
         if h == 0 {
-            h = 36;
+            h = 44;
         }
         self.width = w;
         self.height = h;
@@ -409,7 +402,7 @@ fn main() {
         pool,
         layer_surface: None,
         width: 1900,
-        height: 36,
+        height: 44,
         configured: false,
         needs_draw: false,
         theme: ThemeConfig::load(),
@@ -419,12 +412,6 @@ fn main() {
         mouse_x: 0.0,
         mouse_y: 0.0,
     };
-
-    // Bind pointer for all seats initialized in registry
-    for seat in app.seat_state.seats() {
-        let _ = app.seat_state.get_pointer(&qh, &seat);
-        app._seat = Some(seat);
-    }
 
     // Create LayerSurface on app instance
     let surface = app.compositor_state.create_surface(&qh);
@@ -437,9 +424,9 @@ fn main() {
     );
 
     layer_surface.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
-    layer_surface.set_size(1900, 36);
+    layer_surface.set_size(1900, 44);
     layer_surface.set_margin(10, 10, 0, 10);
-    layer_surface.set_exclusive_zone(36);
+    layer_surface.set_exclusive_zone(44);
     layer_surface.set_keyboard_interactivity(KeyboardInteractivity::None);
     layer_surface.commit();
 
@@ -457,10 +444,9 @@ fn main() {
         let _ = tx_clone.send(());
     });
 
-    // 1-second interval timer for stat updates and dynamic theme reloading
+    // 1-second interval timer for stat updates
     let timer = calloop::timer::Timer::from_duration(Duration::from_secs(1));
     loop_handle.insert_source(timer, move |_, _, state: &mut RustBar| {
-        state.theme = ThemeConfig::load();
         state.needs_draw = true;
         calloop::timer::TimeoutAction::ToDuration(Duration::from_secs(1))
     }).expect("Failed to insert timer source");

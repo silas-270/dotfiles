@@ -11,6 +11,7 @@ pub fn render_ram(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    let ram_str = get_ram_display(); // returns e.g. "[ RAM 4.2G ]"
-    font_cache.draw_gtk_box(pixmap, &ram_str, start_x, top_y, font_size, theme.fg_muted, theme.border, 115.0)
+    let ram_str = get_ram_display();
+    let text = format!("[ {} ]", ram_str);
+    font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.text_color, theme.sec_border)
 }
