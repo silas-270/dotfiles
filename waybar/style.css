@@ -30,7 +30,8 @@ window#waybar {
 #custom-volume,
 #battery,
 #clock,
-#custom-controlcenter {
+#custom-controlcenter,
+#custom-fedora {
     background: transparent;
     color: @fg-muted;
     border: 2px solid @border;
@@ -89,6 +90,11 @@ window#waybar {
 #bluetooth.disabled,
 #bluetooth.off {
     color: @fg-muted;
+}
+
+#custom-fedora {
+    margin-left: 2px;
+    color: @accent;
 }
 
 /* ── Center Section ── */

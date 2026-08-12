@@ -5,9 +5,9 @@ echo "======================================"
 echo "🚀 Silas Dotfiles Installer"
 echo "======================================"
 
-# 1. Sicherstellen, dass .config existiert
+# 1. Sicherstellen, dass .config und .cache existieren
 mkdir -p ~/.config
-mkdir -p ~/Bilder/Wallpaper
+mkdir -p ~/.cache
 
 echo "🔗 Verlinke Konfigurationen..."
 
@@ -44,7 +44,7 @@ if ! grep -q "source ~/dotfiles/shell/custom_bash.sh" ~/.bashrc; then
 fi
 
 # Wallpaper
-rm -f ~/Bilder/Wallpaper/wallpaper-home.jpg && ln -s ~/dotfiles/themes/savanna-dusk/wallpaper1.jpg ~/Bilder/Wallpaper/wallpaper-home.jpg
+rm -f ~/.cache/wallpaper-home.jpg && ln -s ~/dotfiles/themes/savanna-dusk/wallpaper1.jpg ~/.cache/wallpaper-home.jpg
 
 echo "🦀 Kompiliere Custom Rust Control-Center..."
 if command -v cargo &> /dev/null; then

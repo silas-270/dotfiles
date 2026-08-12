@@ -17,7 +17,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY")
     hl.exec_cmd("~/.config/hypr/scripts/change_wallpaper.sh init")
-    hl.exec_cmd("waybar")
+    hl.exec_cmd("~/.config/hypr/scripts/rustbar/target/release/rustbar")
     hl.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center --daemon")
 end)
 
@@ -88,7 +88,7 @@ hl.animation({ leaf = "fade",       enabled = true, speed = 2, bezier = "snappy"
 hl.animation({ leaf = "workspaces", enabled = true, speed = 2, bezier = "snappy", style = "slide" })
 
 -- layer rules
-hl.layer_rule({ match = { namespace = "waybar" }, blur = true, ignore_alpha = 1.0 })
+hl.layer_rule({ match = { namespace = "rustbar" }, blur = true, ignore_alpha = 1.0 })
 hl.layer_rule({ match = { namespace = "rofi" }, blur = true, ignore_alpha = 0.5 })
 hl.layer_rule({ match = { namespace = "control-center" }, blur = true, ignore_alpha = 0.1 })
 

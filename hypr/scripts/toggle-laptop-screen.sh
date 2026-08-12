@@ -2,7 +2,7 @@
 # Toggles eDP-1 on/off when keybind is pressed. Runs once and exits (no background daemon).
 
 LAPTOP="eDP-1"
-WALLPAPER="/home/silas270/Bilder/Wallpaper/wallpaper-home.jpg"
+WALLPAPER="/home/silas270/.cache/wallpaper-home.jpg"
 
 # Check if eDP-1 is currently active (not disabled)
 is_active=$(hyprctl monitors -j | jq -r ".[] | select(.name==\"$LAPTOP\") | .name")

@@ -8,7 +8,8 @@
   "modules-left": [
     "hyprland/workspaces",
     "network",
-    "bluetooth"
+    "bluetooth",
+    "custom/fedora"
   ],
   "modules-center": [
     "cpu",
@@ -58,6 +59,16 @@
     "format-connected-battery": "[ 󰂱 ]",
     "on-click": "~/.config/hypr/scripts/rofi-bluetooth-menu.sh",
     "tooltip": false
+  },
+
+  "custom/fedora": {
+    "exec": "/home/silas270/.local/bin/fedora-mount status-json",
+    "interval": 30,
+    "format": "{}",
+    "return-type": "json",
+    "on-click": "/home/silas270/.local/bin/fedora-mount toggle",
+    "signal": 8,
+    "tooltip": true
   },
 
   "custom/centerpiece": {

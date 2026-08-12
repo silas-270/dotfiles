@@ -10,7 +10,7 @@ pub fn render_controlcenter(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    font_cache.draw_module_box(pixmap, "[  ]", start_x, top_y, font_size, theme.accent_color, theme.waybar_border)
+    font_cache.draw_gtk_box(pixmap, "", start_x, top_y, font_size, theme.accent_color, theme.border, 0.0, true)
 }
 
 pub fn handle_click() {

@@ -5,10 +5,10 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 THEMES_DIR="$HOME/dotfiles/themes"
 ACTIVE_THEME_FILE="$HOME/.config/active_theme"
-SWAYBG_LINK="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
+SWAYBG_LINK="$HOME/.cache/wallpaper-home.jpg"
 ROFI_THEME="$HOME/.config/rofi/theme.rasi"
 
-mkdir -p "$HOME/.config" "$HOME/Bilder/Wallpaper"
+mkdir -p "$HOME/.config" "$HOME/.cache"
 
 # Determine current active theme
 ACTIVE_THEME=""

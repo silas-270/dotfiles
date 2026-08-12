@@ -12,8 +12,8 @@ pub fn render_centerpiece(
     font_size: f32,
 ) -> f32 {
     let (text, _is_playing) = get_centerpiece_text();
-    let label = format!("[ {} ]", text);
-    font_cache.draw_module_box(pixmap, &label, start_x, top_y, font_size, theme.accent_color, theme.waybar_border)
+    let label = text;
+    font_cache.draw_module_box(pixmap, &label, start_x, top_y, font_size, theme.accent_color, theme.border, false)
 }
 
 pub fn handle_click() {

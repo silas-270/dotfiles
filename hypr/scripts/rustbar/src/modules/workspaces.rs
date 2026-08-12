@@ -25,19 +25,23 @@ pub fn render_workspaces(
     let button_padding_x = 4.0;
     let button_min_w = 24.0;
     let mut btn_widths = Vec::new();
+    let button_spacing = 1.0;
 
-    for &ws_id in &state.workspaces {
-        let label = format!("[ {} ]", ws_id);
-        let text_w = font_cache.measure_text(&label, font_size);
+    for (idx, &ws_id) in state.workspaces.iter().enumerate() {
+        let label = format!("{}", ws_id);
+        let text_w = font_cache.measure_calibrated_bracket_tag(&label, font_size, false);
         let btn_w = (text_w + 2.0 * button_padding_x).max(button_min_w);
         btn_widths.push(btn_w);
         content_w += btn_w;
+        if idx > 0 {
+            content_w += button_spacing;
+        }
     }
 
     let outer_padding_x = 2.0; // GTK #workspaces padding: 0px 2px
     let border_w = 2.0;        // GTK border: 2px solid @border
     let box_w = content_w + 2.0 * (outer_padding_x + border_w);
-    let box_h = font_size + 8.0; // 24px
+    let box_h = 32.0;
 
     // 2. Draw outer 2px border container for #workspaces
     stroke_rect(pixmap, start_x, top_y, box_w, box_h, theme.border, border_w);
@@ -46,6 +50,9 @@ pub fn render_workspaces(
     let mut curr_x = start_x + border_w + outer_padding_x;
     for (idx, &ws_id) in state.workspaces.iter().enumerate() {
         let btn_w = btn_widths[idx];
+        if idx > 0 {
+            curr_x += button_spacing;
+        }
         let is_active = ws_id == state.active_id;
 
         let text_color = if is_active {
@@ -54,12 +61,13 @@ pub fn render_workspaces(
             theme.fg_muted     // GTK button: color: @fg-muted (#C2AA95 / #00B32D)
         };
 
-        let label = format!("[ {} ]", ws_id);
-        let text_w = font_cache.measure_text(&label, font_size);
+        let label = format!("{}", ws_id);
+        let text_w = font_cache.measure_calibrated_bracket_tag(&label, font_size, false);
         let text_x = curr_x + (btn_w - text_w) / 2.0;
-        let text_y = top_y + 2.0 + border_w / 2.0;
+        let text_h = font_cache.text_height(font_size);
+        let text_y = top_y + (box_h - text_h) / 2.0;
 
-        font_cache.draw_text(pixmap, &label, text_x, text_y, font_size, text_color);
+        font_cache.draw_calibrated_bracket_tag(pixmap, &label, text_x, text_y, font_size, text_color, false);
 
         buttons.push(WorkspaceButton {
             id: ws_id,

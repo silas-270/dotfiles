@@ -3,9 +3,9 @@
 
 THEMES_DIR="$HOME/dotfiles/themes"
 ACTIVE_THEME_FILE="$HOME/.config/active_theme"
-SWAYBG_LINK="$HOME/Bilder/Wallpaper/wallpaper-home.jpg"
+SWAYBG_LINK="$HOME/.cache/wallpaper-home.jpg"
 
-mkdir -p "$HOME/Bilder/Wallpaper"
+mkdir -p "$HOME/.cache"
 
 # Determine current active theme folder
 if [ -f "$ACTIVE_THEME_FILE" ]; then
