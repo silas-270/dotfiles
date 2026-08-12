@@ -266,10 +266,13 @@ impl RustBar {
         // Render RAM
         ram::render_ram(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_start_x, top_y, font_size, &self.ram_display);
 
+        eprintln!("[RustBar] Redrawing: focused_region_idx = {:?}, click_regions len = {}", self.focused_region_idx, self.click_regions.len());
+
         // Draw highlight overlay around focused region if keyboard focus is active
         if let Some(idx) = self.focused_region_idx {
             if idx < self.click_regions.len() {
                 let region = &self.click_regions[idx];
+                eprintln!("[RustBar] Drawing focus ring at x_min={}, x_max={}", region.x_min, region.x_max);
                 stroke_rect(
                     &mut pixmap.as_mut(),
                     region.x_min,
@@ -279,6 +282,8 @@ impl RustBar {
                     self.theme.accent_color,
                     2.0,
                 );
+            } else {
+                eprintln!("[RustBar] Focus index {} is out of bounds (len={})", idx, self.click_regions.len());
             }
         }
 
@@ -566,9 +571,8 @@ fn main() {
                     ls.commit();
                 }
                 // Pre-focus the first interactive element when keyboard focus is acquired
-                if !state.click_regions.is_empty() {
-                    state.focused_region_idx = Some(0);
-                }
+                eprintln!("[RustBar] Setting focused_region_idx = Some(0) unconditionally. click_regions len = {}", state.click_regions.len());
+                state.focused_region_idx = Some(0);
                 state.needs_draw = true;
             }
             _ => {}
