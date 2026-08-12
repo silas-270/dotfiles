@@ -403,6 +403,16 @@ impl KeyboardHandler for RustBar {
                 if idx < self.click_regions.len() {
                     let action = self.click_regions[idx].action;
                     eprintln!("[RustBar] Executing action for focused region: {:?}", action);
+
+                    if matches!(action, ModuleClickAction::ControlCenter) {
+                        // Pause Rustbar interactivity while popup panel is open
+                        if let Some(ref ls) = self.layer_surface {
+                            ls.set_keyboard_interactivity(KeyboardInteractivity::None);
+                            ls.commit();
+                            let _ = conn.flush();
+                        }
+                    }
+
                     self.execute_action(action);
                     let _ = conn.flush();
                     self.needs_draw = true;
@@ -553,7 +563,7 @@ fn main() {
                         let mut buf = [0u8; 32];
                         let n = s.read(&mut buf).unwrap_or(0);
                         let msg = String::from_utf8_lossy(&buf[..n]);
-                        if msg.trim() == "restore" {
+                        if msg.trim() == "panel_closed" {
                             let _ = tx_focus.send(AppEvent::RestoreFocusIfActive);
                         } else {
                             let _ = tx_focus.send(AppEvent::RequestFocus);

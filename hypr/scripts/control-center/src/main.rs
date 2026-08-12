@@ -267,7 +267,7 @@ impl ControlCenter {
         // Notify rustbar to restore keyboard focus if navigation mode is active
         std::thread::spawn(|| {
             if let Ok(mut stream) = std::os::unix::net::UnixStream::connect("/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock") {
-                let _ = stream.write_all(b"restore");
+                let _ = stream.write_all(b"panel_closed");
             }
         });
     }
