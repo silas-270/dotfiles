@@ -891,7 +891,7 @@ impl KeyboardHandler for ControlCenter {
     fn enter(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32, _: &[u32], _: &[Keysym]) {}
     fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32) {}
     fn press_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
-        if event.raw_code == 1 { // Escape key
+        if event.raw_code == 1 || event.keysym == Keysym::Return || event.keysym == Keysym::space {
             self.hide_panel();
         }
     }
