@@ -322,7 +322,10 @@ impl SeatHandler for RustBar {
     fn new_capability(&mut self, _conn: &Connection, qh: &QueueHandle<Self>, seat: wl_seat::WlSeat, capability: Capability) {
         if capability == Capability::Pointer {
             let _ = self.seat_state.get_pointer(qh, &seat);
-            self._seat = Some(seat);
+            self._seat = Some(seat.clone());
+        }
+        if capability == Capability::Keyboard {
+            let _ = self.seat_state.get_keyboard(qh, &seat, None);
         }
     }
     fn remove_capability(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat, _: Capability) {}
@@ -331,15 +334,15 @@ impl SeatHandler for RustBar {
 
 impl KeyboardHandler for RustBar {
     fn enter(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32, _: &[u32], _: &[Keysym]) {
-        println!("[RustBar] Keyboard focus entered!");
+        eprintln!("[RustBar] Keyboard focus entered!");
     }
     fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32) {
-        println!("[RustBar] Keyboard focus left!");
+        eprintln!("[RustBar] Keyboard focus left!");
     }
     fn press_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
-        println!("[RustBar] Key pressed: keysym={:?}, keycode={}", event.keysym, event.raw_code);
+        eprintln!("[RustBar] Key pressed: keysym={:?}, keycode={}", event.keysym, event.raw_code);
         if event.keysym == Keysym::Escape {
-            println!("[RustBar] Escape pressed! Releasing keyboard focus.");
+            eprintln!("[RustBar] Escape pressed! Releasing keyboard focus.");
             if let Some(ref ls) = self.layer_surface {
                 ls.set_keyboard_interactivity(KeyboardInteractivity::None);
                 ls.commit();
@@ -447,9 +450,10 @@ fn main() {
         ram_display: api::stats::get_ram_display(),
     };
 
-    // Bind pointer for all seats initialized in registry
+    // Bind pointer and keyboard for all seats initialized in registry
     for seat in app.seat_state.seats() {
         let _ = app.seat_state.get_pointer(&qh, &seat);
+        let _ = app.seat_state.get_keyboard(&qh, &seat, None);
         app._seat = Some(seat);
     }
 
@@ -477,13 +481,18 @@ fn main() {
     
     // Spawn background thread to listen for focus trigger on Unix socket
     std::thread::spawn(move || {
-        let socket_path = "/tmp/rustbar.sock";
+        let socket_path = "/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock";
         let _ = std::fs::remove_file(socket_path);
-        if let Ok(listener) = std::os::unix::net::UnixListener::bind(socket_path) {
-            for stream in listener.incoming() {
-                if stream.is_ok() {
-                    let _ = tx_focus.send(AppEvent::RequestFocus);
+        match std::os::unix::net::UnixListener::bind(socket_path) {
+            Ok(listener) => {
+                for stream in listener.incoming() {
+                    if stream.is_ok() {
+                        let _ = tx_focus.send(AppEvent::RequestFocus);
+                    }
                 }
+            }
+            Err(e) => {
+                eprintln!("[RustBar] Socket bind error: {:?}", e);
             }
         }
     });
@@ -496,9 +505,9 @@ fn main() {
                 state.needs_draw = true;
             }
             calloop::channel::Event::Msg(AppEvent::RequestFocus) => {
-                println!("[RustBar] Focus command received. Requesting Wayland keyboard focus.");
+                eprintln!("[RustBar] Focus command received. Requesting Wayland keyboard focus.");
                 if let Some(ref ls) = state.layer_surface {
-                    ls.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
+                    ls.set_keyboard_interactivity(KeyboardInteractivity::Exclusive);
                     ls.commit();
                 }
             }

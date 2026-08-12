@@ -104,7 +104,7 @@ hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center"))
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/theme-switcher.sh"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("nc -U /tmp/rustbar.sock"))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("python3 -c \"import socket; socket.socket(socket.AF_UNIX).connect('/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock')\""))
 
 
 
