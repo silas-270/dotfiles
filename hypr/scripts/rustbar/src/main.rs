@@ -103,6 +103,7 @@ struct RustBar {
     // Cached system stats (updated once per second in timer, not in render path)
     cpu_usage: u32,
     ram_display: String,
+    focused_region_idx: Option<usize>,
 }
 
 impl RustBar {
@@ -265,6 +266,22 @@ impl RustBar {
         // Render RAM
         ram::render_ram(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, center_start_x, top_y, font_size, &self.ram_display);
 
+        // Draw highlight overlay around focused region if keyboard focus is active
+        if let Some(idx) = self.focused_region_idx {
+            if idx < self.click_regions.len() {
+                let region = &self.click_regions[idx];
+                stroke_rect(
+                    &mut pixmap.as_mut(),
+                    region.x_min,
+                    top_y,
+                    region.x_max - region.x_min,
+                    box_h,
+                    self.theme.accent_color,
+                    2.0,
+                );
+            }
+        }
+
         // Copy RGBA to BGRA buffer
         rgba_to_bgra(pixmap.data(), canvas);
 
@@ -275,20 +292,25 @@ impl RustBar {
         self.needs_draw = false;
     }
 
+    pub fn execute_action(&self, action: ModuleClickAction) {
+        match action {
+            ModuleClickAction::Workspace(id) => switch_workspace(id),
+            ModuleClickAction::Network => network::handle_click(),
+            ModuleClickAction::Bluetooth => bluetooth::handle_click(),
+            ModuleClickAction::Centerpiece => centerpiece::handle_click(),
+            ModuleClickAction::Volume => volume::handle_click(),
+            ModuleClickAction::Battery => modules::battery::handle_click(),
+            ModuleClickAction::Clock => clock::handle_click(),
+            ModuleClickAction::ControlCenter => controlcenter::handle_click(),
+        }
+    }
+
     pub fn handle_pointer_click(&mut self) {
         let x = self.mouse_x as f32;
-        for region in &self.click_regions {
+        for (idx, region) in self.click_regions.iter().enumerate() {
             if x >= region.x_min && x <= region.x_max {
-                match region.action {
-                    ModuleClickAction::Workspace(id) => switch_workspace(id),
-                    ModuleClickAction::Network => network::handle_click(),
-                    ModuleClickAction::Bluetooth => bluetooth::handle_click(),
-                    ModuleClickAction::Centerpiece => centerpiece::handle_click(),
-                    ModuleClickAction::Volume => volume::handle_click(),
-                    ModuleClickAction::Battery => modules::battery::handle_click(),
-                    ModuleClickAction::Clock => clock::handle_click(),
-                    ModuleClickAction::ControlCenter => controlcenter::handle_click(),
-                }
+                self.focused_region_idx = Some(idx);
+                self.execute_action(region.action);
                 break;
             }
         }
@@ -343,9 +365,41 @@ impl KeyboardHandler for RustBar {
         eprintln!("[RustBar] Key pressed: keysym={:?}, keycode={}", event.keysym, event.raw_code);
         if event.keysym == Keysym::Escape {
             eprintln!("[RustBar] Escape pressed! Releasing keyboard focus.");
+            self.focused_region_idx = None;
             if let Some(ref ls) = self.layer_surface {
                 ls.set_keyboard_interactivity(KeyboardInteractivity::None);
                 ls.commit();
+            }
+            self.needs_draw = true;
+        } else if event.keysym == Keysym::Tab || event.keysym == Keysym::Right {
+            let num_regions = self.click_regions.len();
+            if num_regions > 0 {
+                if let Some(idx) = self.focused_region_idx {
+                    self.focused_region_idx = Some((idx + 1) % num_regions);
+                } else {
+                    self.focused_region_idx = Some(0);
+                }
+                eprintln!("[RustBar] Focus moved to region: {:?}", self.focused_region_idx);
+                self.needs_draw = true;
+            }
+        } else if event.keysym == Keysym::ISO_Left_Tab || event.keysym == Keysym::Left {
+            let num_regions = self.click_regions.len();
+            if num_regions > 0 {
+                if let Some(idx) = self.focused_region_idx {
+                    self.focused_region_idx = Some((idx + num_regions - 1) % num_regions);
+                } else {
+                    self.focused_region_idx = Some(num_regions - 1);
+                }
+                eprintln!("[RustBar] Focus moved back to region: {:?}", self.focused_region_idx);
+                self.needs_draw = true;
+            }
+        } else if event.keysym == Keysym::Return || event.keysym == Keysym::space {
+            if let Some(idx) = self.focused_region_idx {
+                if idx < self.click_regions.len() {
+                    let action = self.click_regions[idx].action;
+                    eprintln!("[RustBar] Executing action for focused region: {:?}", action);
+                    self.execute_action(action);
+                }
             }
         }
     }
@@ -448,6 +502,7 @@ fn main() {
         mouse_y: 0.0,
         cpu_usage: 0,
         ram_display: api::stats::get_ram_display(),
+        focused_region_idx: None,
     };
 
     // Bind pointer and keyboard for all seats initialized in registry
@@ -510,6 +565,11 @@ fn main() {
                     ls.set_keyboard_interactivity(KeyboardInteractivity::Exclusive);
                     ls.commit();
                 }
+                // Pre-focus the first interactive element when keyboard focus is acquired
+                if !state.click_regions.is_empty() {
+                    state.focused_region_idx = Some(0);
+                }
+                state.needs_draw = true;
             }
             _ => {}
         }
