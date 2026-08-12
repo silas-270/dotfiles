@@ -53,6 +53,7 @@ use theme::ThemeConfig;
 enum AppEvent {
     Update,
     RequestFocus,
+    RestoreFocusIfActive,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -547,8 +548,16 @@ fn main() {
         match std::os::unix::net::UnixListener::bind(socket_path) {
             Ok(listener) => {
                 for stream in listener.incoming() {
-                    if stream.is_ok() {
-                        let _ = tx_focus.send(AppEvent::RequestFocus);
+                    if let Ok(mut s) = stream {
+                        use std::io::Read;
+                        let mut buf = [0u8; 32];
+                        let n = s.read(&mut buf).unwrap_or(0);
+                        let msg = String::from_utf8_lossy(&buf[..n]);
+                        if msg.trim() == "restore" {
+                            let _ = tx_focus.send(AppEvent::RestoreFocusIfActive);
+                        } else {
+                            let _ = tx_focus.send(AppEvent::RequestFocus);
+                        }
                     }
                 }
             }
@@ -577,6 +586,17 @@ fn main() {
                 eprintln!("[RustBar] Setting focused_region_idx = Some(0) unconditionally. click_regions len = {}", state.click_regions.len());
                 state.focused_region_idx = Some(0);
                 state.needs_draw = true;
+            }
+            calloop::channel::Event::Msg(AppEvent::RestoreFocusIfActive) => {
+                if state.focused_region_idx.is_some() {
+                    eprintln!("[RustBar] Restoring keyboard focus to rustbar as navigation mode is active.");
+                    if let Some(ref ls) = state.layer_surface {
+                        ls.set_keyboard_interactivity(KeyboardInteractivity::Exclusive);
+                        ls.commit();
+                        let _ = conn_clone.flush();
+                    }
+                    state.needs_draw = true;
+                }
             }
             _ => {}
         }
