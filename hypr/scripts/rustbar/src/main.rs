@@ -401,19 +401,10 @@ impl KeyboardHandler for RustBar {
             if let Some(idx) = self.focused_region_idx {
                 if idx < self.click_regions.len() {
                     let action = self.click_regions[idx].action;
-                    
-                    // 1. Release Rustbar's keyboard focus FIRST so other apps (like Control Center) can claim focus
-                    self.focused_region_idx = None;
-                    if let Some(ref ls) = self.layer_surface {
-                        ls.set_keyboard_interactivity(KeyboardInteractivity::None);
-                        ls.commit();
-                        let _ = conn.flush();
-                    }
-                    self.needs_draw = true;
-
-                    // 2. NOW execute the action
                     eprintln!("[RustBar] Executing action for focused region: {:?}", action);
                     self.execute_action(action);
+                    let _ = conn.flush();
+                    self.needs_draw = true;
                 }
             }
         }
