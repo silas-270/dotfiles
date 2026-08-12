@@ -17,5 +17,9 @@ pub fn render_network(
 pub fn handle_click() {
     std::thread::spawn(|| {
         let _ = std::process::Command::new("/home/silas270/.config/hypr/scripts/rofi-wifi-menu.sh").status();
+        if let Ok(mut stream) = std::os::unix::net::UnixStream::connect("/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock") {
+            use std::io::Write;
+            let _ = stream.write_all(b"panel_closed");
+        }
     });
 }

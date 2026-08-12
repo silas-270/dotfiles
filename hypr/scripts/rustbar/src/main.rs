@@ -404,7 +404,7 @@ impl KeyboardHandler for RustBar {
                     let action = self.click_regions[idx].action;
                     eprintln!("[RustBar] Executing action for focused region: {:?}", action);
 
-                    if matches!(action, ModuleClickAction::ControlCenter) {
+                    if matches!(action, ModuleClickAction::Network | ModuleClickAction::Bluetooth | ModuleClickAction::ControlCenter) {
                         // Pause Rustbar interactivity while popup panel is open
                         if let Some(ref ls) = self.layer_surface {
                             ls.set_keyboard_interactivity(KeyboardInteractivity::None);
