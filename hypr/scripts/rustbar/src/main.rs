@@ -50,6 +50,12 @@ use render::{fill_rect, rgba_to_bgra, stroke_rect, FontCache};
 use theme::ThemeConfig;
 
 #[derive(Debug, Clone, Copy)]
+enum AppEvent {
+    Update,
+    RequestFocus,
+}
+
+#[derive(Debug, Clone, Copy)]
 enum ModuleClickAction {
     Workspace(i32),
     Network,
@@ -324,9 +330,22 @@ impl SeatHandler for RustBar {
 }
 
 impl KeyboardHandler for RustBar {
-    fn enter(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32, _: &[u32], _: &[Keysym]) {}
-    fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32) {}
-    fn press_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, _: KeyEvent) {}
+    fn enter(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32, _: &[u32], _: &[Keysym]) {
+        println!("[RustBar] Keyboard focus entered!");
+    }
+    fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32) {
+        println!("[RustBar] Keyboard focus left!");
+    }
+    fn press_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
+        println!("[RustBar] Key pressed: keysym={:?}, keycode={}", event.keysym, event.raw_code);
+        if event.keysym == Keysym::Escape {
+            println!("[RustBar] Escape pressed! Releasing keyboard focus.");
+            if let Some(ref ls) = self.layer_surface {
+                ls.set_keyboard_interactivity(KeyboardInteractivity::None);
+                ls.commit();
+            }
+        }
+    }
     fn release_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, _: KeyEvent) {}
     fn update_modifiers(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, _: Modifiers, _: u32) {}
 }
@@ -453,16 +472,43 @@ fn main() {
 
     app.layer_surface = Some(layer_surface);
 
-    let (tx, rx) = calloop::channel::channel::<()>();
-    loop_handle.insert_source(rx, |_, _, state: &mut RustBar| {
-        state.workspace_state = get_workspace_state();
-        state.theme = ThemeConfig::load();
-        state.needs_draw = true;
+    let (tx, rx) = calloop::channel::channel::<AppEvent>();
+    let tx_focus = tx.clone();
+    
+    // Spawn background thread to listen for focus trigger on Unix socket
+    std::thread::spawn(move || {
+        let socket_path = "/tmp/rustbar.sock";
+        let _ = std::fs::remove_file(socket_path);
+        if let Ok(listener) = std::os::unix::net::UnixListener::bind(socket_path) {
+            for stream in listener.incoming() {
+                if stream.is_ok() {
+                    let _ = tx_focus.send(AppEvent::RequestFocus);
+                }
+            }
+        }
+    });
+
+    loop_handle.insert_source(rx, |event, _, state: &mut RustBar| {
+        match event {
+            calloop::channel::Event::Msg(AppEvent::Update) => {
+                state.workspace_state = get_workspace_state();
+                state.theme = ThemeConfig::load();
+                state.needs_draw = true;
+            }
+            calloop::channel::Event::Msg(AppEvent::RequestFocus) => {
+                println!("[RustBar] Focus command received. Requesting Wayland keyboard focus.");
+                if let Some(ref ls) = state.layer_surface {
+                    ls.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
+                    ls.commit();
+                }
+            }
+            _ => {}
+        }
     }).expect("Failed to insert channel source");
 
     let tx_clone = tx.clone();
     listen_hyprland_events(move || {
-        let _ = tx_clone.send(());
+        let _ = tx_clone.send(AppEvent::Update);
     });
 
     // 1-second interval timer for stat updates and dynamic theme reloading
