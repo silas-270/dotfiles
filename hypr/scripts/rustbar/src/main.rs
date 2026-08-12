@@ -364,7 +364,7 @@ impl KeyboardHandler for RustBar {
     fn leave(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: &wl_surface::WlSurface, _: u32) {
         eprintln!("[RustBar] Keyboard focus left!");
     }
-    fn press_key(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
+    fn press_key(&mut self, conn: &Connection, _: &QueueHandle<Self>, _: &wl_keyboard::WlKeyboard, _: u32, event: KeyEvent) {
         eprintln!("[RustBar] Key pressed: keysym={:?}, keycode={}", event.keysym, event.raw_code);
         if event.keysym == Keysym::Escape {
             eprintln!("[RustBar] Escape pressed! Releasing keyboard focus.");
@@ -372,6 +372,7 @@ impl KeyboardHandler for RustBar {
             if let Some(ref ls) = self.layer_surface {
                 ls.set_keyboard_interactivity(KeyboardInteractivity::None);
                 ls.commit();
+                let _ = conn.flush();
             }
             self.needs_draw = true;
         } else if event.keysym == Keysym::Tab || event.keysym == Keysym::Right {
@@ -402,6 +403,15 @@ impl KeyboardHandler for RustBar {
                     let action = self.click_regions[idx].action;
                     eprintln!("[RustBar] Executing action for focused region: {:?}", action);
                     self.execute_action(action);
+                    
+                    // Release keyboard focus on action execution to prevent lockups with opened windows (like Control Center)
+                    self.focused_region_idx = None;
+                    if let Some(ref ls) = self.layer_surface {
+                        ls.set_keyboard_interactivity(KeyboardInteractivity::None);
+                        ls.commit();
+                        let _ = conn.flush();
+                    }
+                    self.needs_draw = true;
                 }
             }
         }
@@ -555,7 +565,8 @@ fn main() {
         }
     });
 
-    loop_handle.insert_source(rx, |event, _, state: &mut RustBar| {
+    let conn_clone = conn.clone();
+    loop_handle.insert_source(rx, move |event, _, state: &mut RustBar| {
         match event {
             calloop::channel::Event::Msg(AppEvent::Update) => {
                 state.workspace_state = get_workspace_state();
@@ -567,6 +578,7 @@ fn main() {
                 if let Some(ref ls) = state.layer_surface {
                     ls.set_keyboard_interactivity(KeyboardInteractivity::Exclusive);
                     ls.commit();
+                    let _ = conn_clone.flush();
                 }
                 // Pre-focus the first interactive element when keyboard focus is acquired
                 eprintln!("[RustBar] Setting focused_region_idx = Some(0) unconditionally. click_regions len = {}", state.click_regions.len());
@@ -606,6 +618,7 @@ fn main() {
 
         if app.configured && app.needs_draw {
             app.redraw();
+            let _ = conn.flush();
         }
     }
 }
