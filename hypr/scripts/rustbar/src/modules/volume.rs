@@ -6,6 +6,7 @@ use std::sync::Mutex;
 use std::time::{Instant, Duration};
 
 static LAST_STATE: Mutex<Option<(u32, bool, Instant)>> = Mutex::new(None);
+static SHOW_PERCENT: Mutex<bool> = Mutex::new(false);
 
 pub fn render_volume(
     pixmap: &mut PixmapMut,
@@ -20,16 +21,17 @@ pub fn render_volume(
 
     let show_pct = {
         let mut last = LAST_STATE.lock().unwrap();
+        let manual = *SHOW_PERCENT.lock().unwrap();
         if let Some((last_pct, last_muted, last_time)) = *last {
             if last_pct != pct || last_muted != muted {
                 *last = Some((pct, muted, Instant::now()));
                 true
             } else {
-                last_time.elapsed() < Duration::from_secs(1)
+                manual || last_time.elapsed() < Duration::from_secs(1)
             }
         } else {
             *last = Some((pct, muted, Instant::now()));
-            false // initially hide percentage (matching waybar-volume.sh print_json 0)
+            false
         }
     };
 
@@ -54,7 +56,6 @@ pub fn render_volume(
 }
 
 pub fn handle_click() {
-    std::thread::spawn(|| {
-        let _ = std::process::Command::new("/home/silas270/.config/hypr/scripts/control-center/target/release/control-center").status();
-    });
+    let mut show = SHOW_PERCENT.lock().unwrap();
+    *show = !*show;
 }

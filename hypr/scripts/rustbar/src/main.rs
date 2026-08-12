@@ -311,9 +311,9 @@ impl RustBar {
 
     pub fn handle_pointer_click(&mut self) {
         let x = self.mouse_x as f32;
-        for (idx, region) in self.click_regions.iter().enumerate() {
+        for region in self.click_regions.iter() {
             if x >= region.x_min && x <= region.x_max {
-                self.focused_region_idx = Some(idx);
+                // Mouse clicks execute the action but do NOT enter keyboard navigation mode
                 self.execute_action(region.action);
                 break;
             }
