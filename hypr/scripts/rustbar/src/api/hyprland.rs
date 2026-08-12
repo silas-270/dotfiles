@@ -64,7 +64,7 @@ pub fn get_workspace_state() -> WorkspaceState {
 /// Switch to a workspace by ID
 pub fn switch_workspace(id: i32) {
     let _ = Command::new("hyprctl")
-        .args(["dispatch", "workspace", &id.to_string()])
+        .args(["dispatch", &format!("workspace {}", id)])
         .status();
 }
 
