@@ -5,7 +5,9 @@ use tiny_skia::PixmapMut;
 use std::sync::Mutex;
 use std::time::{Instant, Duration};
 
-static LAST_STATE: Mutex<Option<(u32, bool, Instant)>> = Mutex::new(None);
+static LAST_CHANGE: Mutex<Option<Instant>> = Mutex::new(None);
+static LAST_PCT: Mutex<u32> = Mutex::new(u32::MAX);
+static LAST_MUTED: Mutex<bool> = Mutex::new(false);
 static SHOW_PERCENT: Mutex<bool> = Mutex::new(false);
 
 pub fn render_volume(
@@ -19,21 +21,26 @@ pub fn render_volume(
     let (vol, muted) = get_volume_and_mute();
     let pct = (vol * 100.0).round() as u32;
 
-    let show_pct = {
-        let mut last = LAST_STATE.lock().unwrap();
-        let manual = *SHOW_PERCENT.lock().unwrap();
-        if let Some((last_pct, last_muted, last_time)) = *last {
-            if last_pct != pct || last_muted != muted {
-                *last = Some((pct, muted, Instant::now()));
-                true
-            } else {
-                manual || last_time.elapsed() < Duration::from_secs(1)
-            }
+    // Read manual toggle (separate, immediately-released lock)
+    let manual = *SHOW_PERCENT.lock().unwrap();
+
+    // Track auto-show when volume/mute changes
+    let auto_show = {
+        let prev_pct = *LAST_PCT.lock().unwrap();
+        let prev_muted = *LAST_MUTED.lock().unwrap();
+        if prev_pct != pct || prev_muted != muted {
+            *LAST_PCT.lock().unwrap() = pct;
+            *LAST_MUTED.lock().unwrap() = muted;
+            *LAST_CHANGE.lock().unwrap() = Some(Instant::now());
+            true
         } else {
-            *last = Some((pct, muted, Instant::now()));
-            false
+            LAST_CHANGE.lock().unwrap()
+                .map(|t| t.elapsed() < Duration::from_secs(1))
+                .unwrap_or(false)
         }
     };
+
+    let show_pct = manual || auto_show;
 
     let text = if muted {
         "󰝟".to_string()
