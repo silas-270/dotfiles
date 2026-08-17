@@ -115,10 +115,14 @@ else
     nohup swaybg -c "#000000" >/dev/null 2>&1 &
 fi
 
-# 3. Reload Waybar, Rustbar & Hyprland
+# 3. Reload Waybar, Rustbar & Hyprland/Sway
 killall -SIGUSR2 waybar 2>/dev/null || true
 pkill -SIGUSR2 rustbar 2>/dev/null || true
-hyprctl reload 2>/dev/null || true
+if [ -n "$SWAYSOCK" ]; then
+    swaymsg reload 2>/dev/null || true
+else
+    hyprctl reload 2>/dev/null || true
+fi
 
 # 4. Desktop Notification
 notify-send "Theme Changed" "Switched to ${SELECTED_DISPLAY}" -i preferences-desktop-theme 2>/dev/null || true

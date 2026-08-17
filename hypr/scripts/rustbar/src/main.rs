@@ -3,7 +3,7 @@
 //! ============================================================================
 
 use smithay_client_toolkit::{
-    compositor::{CompositorHandler, CompositorState},
+    compositor::{CompositorHandler, CompositorState, Region},
     delegate_compositor, delegate_keyboard, delegate_layer, delegate_output,
     delegate_pointer, delegate_registry, delegate_seat, delegate_shm,
     output::{OutputHandler, OutputState},
@@ -84,6 +84,7 @@ struct RustBar {
     _qh: QueueHandle<Self>,
 
     _seat: Option<wl_seat::WlSeat>,
+    _pointer: Option<wl_pointer::WlPointer>,
 
     // Buffer pool
     pool: SlotPool,
@@ -347,7 +348,16 @@ impl SeatHandler for RustBar {
     fn new_seat(&mut self, _: &Connection, _: &QueueHandle<Self>, _: wl_seat::WlSeat) {}
     fn new_capability(&mut self, _conn: &Connection, qh: &QueueHandle<Self>, seat: wl_seat::WlSeat, capability: Capability) {
         if capability == Capability::Pointer {
-            let _ = self.seat_state.get_pointer(qh, &seat);
+            eprintln!("[RustBar] Pointer capability acquired, binding wl_pointer...");
+            match self.seat_state.get_pointer(qh, &seat) {
+                Ok(ptr) => {
+                    eprintln!("[RustBar] wl_pointer bound successfully.");
+                    self._pointer = Some(ptr);
+                }
+                Err(e) => {
+                    eprintln!("[RustBar] Failed to bind wl_pointer: {:?}", e);
+                }
+            }
             self._seat = Some(seat.clone());
         }
         if capability == Capability::Keyboard {
@@ -428,11 +438,19 @@ impl PointerHandler for RustBar {
     fn pointer_frame(&mut self, _: &Connection, _qh: &QueueHandle<Self>, _: &wl_pointer::WlPointer, events: &[PointerEvent]) {
         for event in events {
             match event.kind {
+                PointerEventKind::Enter { .. } => {
+                    eprintln!("[RustBar] Pointer ENTERED surface at {:?}", event.position);
+                    let _ = std::fs::write("/tmp/rustbar.log", format!("ENTER at {:?}\n", event.position));
+                }
+                PointerEventKind::Leave { .. } => {
+                    eprintln!("[RustBar] Pointer LEFT surface");
+                }
                 PointerEventKind::Motion { .. } => {
                     self.mouse_x = event.position.0;
                     self.mouse_y = event.position.1;
                 }
                 PointerEventKind::Press { button, .. } => {
+                    let _ = std::fs::write("/tmp/rustbar.log", format!("Clicked {} at {},{}\n", button, event.position.0, event.position.1));
                     if button == 0x110 { // BTN_LEFT
                         self.mouse_x = event.position.0;
                         self.mouse_y = event.position.1;
@@ -448,7 +466,7 @@ impl PointerHandler for RustBar {
 
 impl LayerShellHandler for RustBar {
     fn closed(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &LayerSurface) {}
-    fn configure(&mut self, _: &Connection, _qh: &QueueHandle<Self>, _layer_surface: &LayerSurface, configure: LayerSurfaceConfigure, _: u32) {
+    fn configure(&mut self, _: &Connection, _qh: &QueueHandle<Self>, layer_surface: &LayerSurface, configure: LayerSurfaceConfigure, _: u32) {
         let (mut w, mut h) = configure.new_size;
         if w == 0 {
             w = 1900;
@@ -505,6 +523,7 @@ fn main() {
         layer_shell,
         _qh: qh.clone(),
         _seat: None,
+        _pointer: None,
         pool,
         layer_surface: None,
         width: 1900,
@@ -524,7 +543,7 @@ fn main() {
 
     // Bind pointer and keyboard for all seats initialized in registry
     for seat in app.seat_state.seats() {
-        let _ = app.seat_state.get_pointer(&qh, &seat);
+        app._pointer = app.seat_state.get_pointer(&qh, &seat).ok();
         let _ = app.seat_state.get_keyboard(&qh, &seat, None);
         app._seat = Some(seat);
     }
@@ -542,8 +561,13 @@ fn main() {
     layer_surface.set_anchor(Anchor::TOP | Anchor::LEFT | Anchor::RIGHT);
     layer_surface.set_size(1900, 44);
     layer_surface.set_margin(10, 10, 0, 10);
-    layer_surface.set_exclusive_zone(44);
+    // exclusive_zone must be margin_top + height = 10 + 44 = 54 so Sway reserves
+    // the full bar area from the top edge. With 44, windows started at y=44 and
+    // overlapped the bar (y=10..54), intercepting all pointer events.
+    layer_surface.set_exclusive_zone(54);
     layer_surface.set_keyboard_interactivity(KeyboardInteractivity::None);
+    // Do NOT call set_input_region — the default (NULL = infinite) means the full
+    // surface receives input.
     layer_surface.commit();
 
     app.layer_surface = Some(layer_surface);

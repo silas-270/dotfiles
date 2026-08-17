@@ -19,6 +19,10 @@ case "$chosen" in
         systemctl reboot
         ;;
     *"$logout"*)
-        uwsm stop || hyprctl dispatch exit 0 || loginctl terminate-session "${XDG_SESSION_ID:-self}"
+        if [ -n "$SWAYSOCK" ]; then
+            swaymsg exit
+        else
+            uwsm stop || hyprctl dispatch exit 0 || loginctl terminate-session "${XDG_SESSION_ID:-self}"
+        fi
         ;;
 esac
