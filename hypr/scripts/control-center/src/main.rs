@@ -132,7 +132,6 @@ struct ControlCenter {
     layer_shell: LayerShell,
 
     _seat: Option<wl_seat::WlSeat>,
-    _pointer: Option<smithay_client_toolkit::seat::pointer::ThemedPointer>,
 
     // Buffer pool
     pool: SlotPool,
@@ -207,15 +206,13 @@ impl ControlCenter {
         backdrop_layer.set_exclusive_zone(-1);
         backdrop_layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
 
-        // Exclude the top zone (rustbar height + margin) from the backdrop input region
-        // so that clicking the bar area still toggles the control center closed.
-        // Use the configured backdrop dimensions (set from the configure event) rather
-        // than hardcoded 1920x1080 so this works correctly on any screen size.
-        let waybar_h: i32 = 65; // bar height (44) + top margin (10) + a few px buffer
-        let bw = self.backdrop_width as i32;
-        let bh = self.backdrop_height as i32;
+        // Exclude the top 50px (Waybar zone) from the backdrop's input region.
+        // The backdrop still renders full-screen, but clicks in the Waybar area
+        // pass through to Waybar so its on-click toggle works without needing
+        // the compositor to refocus the pointer.
+        let waybar_h: i32 = 50;
         if let Ok(region) = Region::new(&self.compositor_state) {
-            region.add(0, waybar_h, bw, bh - waybar_h);
+            region.add(0, waybar_h, 1920, 1080 - waybar_h);
             backdrop_layer.wl_surface().set_input_region(Some(region.wl_region()));
         }
 
@@ -237,10 +234,6 @@ impl ControlCenter {
         panel_layer.set_margin(65, 11, 0, 0);
         panel_layer.set_exclusive_zone(-1);
         panel_layer.set_keyboard_interactivity(KeyboardInteractivity::OnDemand);
-        if let Ok(region) = Region::new(&self.compositor_state) {
-            region.add(0, 0, self.panel_width as i32, self.panel_height as i32);
-            panel_layer.wl_surface().set_input_region(Some(region.wl_region()));
-        }
         panel_layer.commit();
         self.panel_surface = Some(panel_layer);
         self.panel_configured = false;
@@ -779,19 +772,6 @@ impl LayerShellHandler for ControlCenter {
                 self.backdrop_width = if w > 0 { w } else { 1920 };
                 self.backdrop_height = if h > 0 { h } else { 1080 };
                 self.backdrop_configured = true;
-
-                // Re-apply input region with the actual compositor-assigned dimensions.
-                // This is important on Sway which sends the real output size in configure,
-                // whereas the initial region in show_panel() used the pre-configure defaults.
-                // Do NOT commit here — the pending state will be flushed by draw_backdrop().
-                let waybar_h: i32 = 65;
-                let bw = self.backdrop_width as i32;
-                let bh = self.backdrop_height as i32;
-                if let Ok(region) = Region::new(&self.compositor_state) {
-                    region.add(0, waybar_h, bw, bh - waybar_h);
-                    backdrop.wl_surface().set_input_region(Some(region.wl_region()));
-                }
-
                 self.draw_backdrop();
                 return;
             }
@@ -803,16 +783,35 @@ impl LayerShellHandler for ControlCenter {
                 if w > 0 { self.panel_width = w; }
                 if h > 0 { self.panel_height = h; }
                 self.panel_configured = true;
-
-                // Re-apply input region with the actual size so Sway delivers
-                // pointer events to the panel correctly.
-                // Do NOT commit here — draw_panel() will commit the pending state.
-                if let Ok(region) = Region::new(&self.compositor_state) {
-                    region.add(0, 0, self.panel_width as i32, self.panel_height as i32);
-                    panel.wl_surface().set_input_region(Some(region.wl_region()));
-                }
-
                 self.draw_panel();
+
+                // Force Hyprland to re-evaluate pointer focus after both
+                // surfaces are mapped. Without this, Hyprland sends
+                // wl_pointer::leave to Waybar when our surfaces map but
+                // never re-enters until the mouse physically moves.
+                // Jiggle 1px right then back (imperceptible) using the
+                // Hyprland 0.56+ Lua dispatch syntax.
+                std::thread::spawn(|| {
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    if let Ok(pos) = std::process::Command::new("hyprctl")
+                        .args(["cursorpos"])
+                        .output()
+                    {
+                        let pos_str = String::from_utf8_lossy(&pos.stdout);
+                        if let Some((x_str, y_str)) = pos_str.trim().split_once(", ") {
+                            if let (Ok(x), Ok(y)) = (x_str.parse::<i32>(), y_str.parse::<i32>()) {
+                                let cmd1 = format!("hl.dsp.cursor.move({{x={}, y={}}})", x + 1, y);
+                                let cmd2 = format!("hl.dsp.cursor.move({{x={}, y={}}})", x, y);
+                                let _ = std::process::Command::new("hyprctl")
+                                    .args(["dispatch", &cmd1])
+                                    .output();
+                                let _ = std::process::Command::new("hyprctl")
+                                    .args(["dispatch", &cmd2])
+                                    .output();
+                            }
+                        }
+                    }
+                });
             }
         }
     }
@@ -978,7 +977,6 @@ fn main() {
         shm,
         layer_shell,
         _seat: None,
-        _pointer: None,
         pool,
         backdrop_pool,
         panel_surface: None,
@@ -1109,9 +1107,10 @@ fn main() {
     );
 
     loop {
-        event_loop
-            .dispatch(Duration::from_millis(16), &mut app)
-            .expect("Error during EventLoop dispatch");
+        if let Err(e) = event_loop.dispatch(Duration::from_millis(16), &mut app) {
+            eprintln!("[ControlCenter] EventLoop error: {:?}", e);
+            break;
+        }
 
         if app.visible && app.needs_draw {
             app.draw_panel();

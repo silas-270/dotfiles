@@ -1,5 +1,5 @@
 /* Savanna Dusk Theme - GTK 4.0 Color Definitions */
-@import '../../theme/generated/colors.css';
+@import '../theme/generated/colors.css';
 
 /* Standard GTK color aliases mapping to Savanna Dusk generated colors */
 @define-color theme_bg_color @bg-base;
