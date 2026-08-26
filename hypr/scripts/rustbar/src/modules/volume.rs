@@ -35,28 +35,26 @@ pub fn render_volume(
             true
         } else {
             LAST_CHANGE.lock().unwrap()
-                .map(|t| t.elapsed() < Duration::from_secs(1))
+                .map(|t| t.elapsed() < Duration::from_millis(1500))
                 .unwrap_or(false)
         }
     };
 
     let show_pct = manual || auto_show;
 
-    let text = if muted {
-        "󰝟".to_string()
+    let icon = if muted {
+        "󰝟"
+    } else if pct == 0 {
+        "󰕿"
+    } else if pct < 50 {
+        "󰖀"
     } else {
-        let icon = if pct == 0 {
-            "󰕿"
-        } else if pct < 50 {
-            "󰖀"
-        } else {
-            "󰕾"
-        };
-        if show_pct {
-            format!("{} {}%", icon, pct)
-        } else {
-            icon.to_string()
-        }
+        "󰕾"
+    };
+    let text = if show_pct {
+        format!("{} {}%", icon, pct)
+    } else {
+        icon.to_string()
     };
 
     font_cache.draw_module_box(pixmap, &text, start_x, top_y, font_size, theme.fg_muted, theme.border, false)

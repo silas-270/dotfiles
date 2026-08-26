@@ -10,6 +10,40 @@ pub enum PlaybackStatus {
     None,
 }
 
+#[derive(Debug, Clone)]
+pub struct TrackMeta {
+    pub artist: String,
+    pub title: String,
+    pub album: String,
+    pub duration_secs: u64,
+}
+
+/// Fetches separated artist/title/album/duration metadata for the current track via playerctl.
+pub fn get_track_meta() -> Option<TrackMeta> {
+    let fmt = "{{artist}}|||{{title}}|||{{album}}|||{{mpris:length}}";
+    let output = Command::new("playerctl").args(["metadata", "-f", fmt]).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parts: Vec<&str> = stdout.trim().split("|||").collect();
+    let artist = parts.get(0).unwrap_or(&"").trim().to_string();
+    let title = parts.get(1).unwrap_or(&"").trim().to_string();
+    let album = parts.get(2).unwrap_or(&"").trim().to_string();
+    let length_micros: u64 = parts.get(3).unwrap_or(&"0").trim().parse().unwrap_or(0);
+
+    if title.is_empty() {
+        return None;
+    }
+
+    Some(TrackMeta {
+        artist,
+        title,
+        album,
+        duration_secs: length_micros / 1_000_000,
+    })
+}
+
 pub fn get_status() -> PlaybackStatus {
     if let Ok(output) = Command::new("playerctl").arg("status").output() {
         if output.status.success() {
