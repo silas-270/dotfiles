@@ -1,5 +1,5 @@
 use crate::api::lyrics::{self, LyricLine, LyricsResult};
-use crate::api::media::{self, get_centerpiece_text, PlaybackStatus};
+use shell_common::api::media::{self, MediaMetadata, PlaybackStatus};
 use crate::render::BarText;
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
@@ -101,7 +101,7 @@ pub fn toggle(state: &mut CenterpieceState) {
             // Already mid-transition; ignore extra presses.
         }
         CenterpieceDisplay::Title => {
-            let Some(meta) = media::get_track_meta() else {
+            let Some(meta) = current_track() else {
                 state.display = CenterpieceDisplay::Message(NOT_FOUND_MESSAGE.to_string(), Instant::now());
                 return;
             };
@@ -109,7 +109,7 @@ pub fn toggle(state: &mut CenterpieceState) {
             let result = state
                 .lyrics_cache
                 .entry(key.clone())
-                .or_insert_with(|| lyrics::fetch_lyrics(&meta.artist, &meta.title, &meta.album, meta.duration_secs))
+                .or_insert_with(|| lyrics::fetch_lyrics(&meta.artist, &meta.title, &meta.album, meta.length_secs as u64))
                 .clone();
 
             state.current_track = Some(key);
@@ -143,7 +143,7 @@ pub fn tick(state: &mut CenterpieceState) -> bool {
     }
 
     if matches!(state.display, CenterpieceDisplay::Lyrics) {
-        let meta_now = media::get_track_meta();
+        let meta_now = current_track();
         let track_now = meta_now.as_ref().map(|m| (m.artist.clone(), m.title.clone()));
         if track_now != state.current_track {
             if let Some(meta) = meta_now {
@@ -154,7 +154,7 @@ pub fn tick(state: &mut CenterpieceState) -> bool {
                 let result = state
                     .lyrics_cache
                     .entry(key.clone())
-                    .or_insert_with(|| lyrics::fetch_lyrics(&meta.artist, &meta.title, &meta.album, meta.duration_secs))
+                    .or_insert_with(|| lyrics::fetch_lyrics(&meta.artist, &meta.title, &meta.album, meta.length_secs as u64))
                     .clone();
                 state.pending_lyrics = Some(result);
                 state.current_track = Some(key);
@@ -288,4 +288,53 @@ pub fn handle_click() {
             let _ = stream.write_all(b"panel_closed");
         }
     });
+}
+
+/// The track the player is currently on, or `None` when nothing is playing or
+/// the player reports nothing usable.
+///
+/// `media::get_metadata()` always returns a struct — it substitutes placeholders
+/// rather than failing — so the placeholders are what "no track" looks like here.
+fn current_track() -> Option<MediaMetadata> {
+    if !matches!(media::get_status(), PlaybackStatus::Playing | PlaybackStatus::Paused) {
+        return None;
+    }
+    let meta = media::get_metadata();
+    if meta.title.is_empty() || meta.title == media::UNKNOWN_TITLE {
+        return None;
+    }
+    Some(meta)
+}
+
+/// Text shown in the centerpiece when it is displaying the track rather than
+/// lyrics: a play/pause glyph followed by "artist - title", truncated to fit.
+///
+/// This is presentation, not an API query — it lives here rather than in
+/// `shell_common::api::media` because only the bar renders it.
+pub fn get_centerpiece_text() -> (String, bool) {
+    const IDLE_TEXT: &str = "I use Arch btw";
+    /// Longest track string rendered before it is elided.
+    const MAX_CHARS: usize = 32;
+
+    let status = media::get_status();
+    let Some(meta) = current_track() else {
+        return (IDLE_TEXT.to_string(), false);
+    };
+
+    // A placeholder artist is worse than no artist at all in a one-line display.
+    let artist = if meta.artist == media::UNKNOWN_ARTIST { "" } else { meta.artist.as_str() };
+    let track = if artist.is_empty() {
+        meta.title.clone()
+    } else {
+        format!("{} - {}", artist, meta.title)
+    };
+
+    let truncated = if track.chars().count() > MAX_CHARS {
+        format!("{}...", track.chars().take(MAX_CHARS - 2).collect::<String>())
+    } else {
+        track
+    };
+
+    let icon = if status == PlaybackStatus::Paused { "4" } else { "8" };
+    (format!("{} {}", icon, truncated), status == PlaybackStatus::Playing)
 }
