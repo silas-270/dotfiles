@@ -43,7 +43,6 @@ pub trait BarText {
         color: Color,
         spacing: BracketSpacing,
     ) -> f32;
-    fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32, asymmetric: bool) -> f32;
     fn draw_module_box(
         &mut self,
         pixmap: &mut PixmapMut,
@@ -144,15 +143,6 @@ impl BarText for FontCache {
         self.draw_text(pixmap, "]", right_bracket_x, top_y, font_size, color);
 
         target_w
-    }
-
-    /// Measure GTK module box (padding: 6px, border: 2px solid)
-    fn measure_gtk_box(&mut self, content: &str, font_size: f32, min_width: f32, asymmetric: bool) -> f32 {
-        let spacing = if asymmetric { BracketSpacing::Asymmetric } else { BracketSpacing::Symmetric };
-        let padding_x = 6.0;
-        let border_w = 2.0;
-        let text_w = self.measure_calibrated_bracket_tag_with_spacing(content, font_size, spacing);
-        (text_w + 2.0 * (padding_x + border_w)).max(min_width)
     }
 
     fn draw_module_box(

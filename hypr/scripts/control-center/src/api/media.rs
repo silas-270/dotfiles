@@ -29,7 +29,6 @@ pub struct MediaMetadata {
     pub album: String,
     /// Cover art URL.  May be a `file://` path or `https://` URL,
     /// or empty if the player doesn't provide artwork.
-    pub art_url: String,
     /// Total track length in seconds, or `0.0` if unavailable.
     pub length_secs: f64,
 }
@@ -40,22 +39,12 @@ impl Default for MediaMetadata {
             title: String::new(),
             artist: String::new(),
             album: String::new(),
-            art_url: String::new(),
             length_secs: 0.0,
         }
     }
 }
 
 // ── Queries (synchronous – meant to be called from background threads) ──────
-
-/// Returns `true` if at least one MPRIS2 player is running.
-pub fn has_player() -> bool {
-    Command::new("playerctl")
-        .arg("status")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
 
 /// Returns the playback status of the active player.
 pub fn get_status() -> PlaybackStatus {
@@ -79,8 +68,8 @@ pub fn get_status() -> PlaybackStatus {
 pub fn get_metadata() -> MediaMetadata {
     let separator = "|||";
     let fmt = format!(
-        "{{{{title}}}}{}{{{{artist}}}}{}{{{{album}}}}{}{{{{mpris:artUrl}}}}{}{{{{mpris:length}}}}{}{{{{url}}}}{}{{{{xesam:url}}}}{}{{{{playerName}}}}",
-        separator, separator, separator, separator, separator, separator, separator
+        "{{{{title}}}}{}{{{{artist}}}}{}{{{{album}}}}{}{{{{mpris:length}}}}{}{{{{url}}}}{}{{{{xesam:url}}}}{}{{{{playerName}}}}",
+        separator, separator, separator, separator, separator, separator
     );
 
     if let Ok(output) = Command::new("playerctl")
@@ -90,15 +79,14 @@ pub fn get_metadata() -> MediaMetadata {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let parts: Vec<&str> = stdout.trim_end().split("|||").collect();
-            if parts.len() >= 8 {
+            if parts.len() >= 7 {
                 let mut title = parts[0].trim().to_string();
                 let mut artist = parts[1].trim().to_string();
                 let album = parts[2].trim().to_string();
-                let art_url = parts[3].trim().to_string();
-                let length_us: f64 = parts[4].parse().unwrap_or(0.0);
-                let raw_url = parts[5].trim();
-                let xesam_url = parts[6].trim();
-                let player_name = parts[7].trim();
+                let length_us: f64 = parts[3].parse().unwrap_or(0.0);
+                let raw_url = parts[4].trim();
+                let xesam_url = parts[5].trim();
+                let player_name = parts[6].trim();
 
                 let effective_url = if !raw_url.is_empty() {
                     raw_url
@@ -147,7 +135,6 @@ pub fn get_metadata() -> MediaMetadata {
                     title,
                     artist,
                     album,
-                    art_url,
                     length_secs: length_us / 1_000_000.0,
                 };
             }
@@ -209,8 +196,7 @@ pub fn get_media_state() -> MediaState {
                 title: "No Media Playing".to_string(),
                 artist: "None".to_string(),
                 album: String::new(),
-                art_url: String::new(),
-                length_secs: 0.0,
+                    length_secs: 0.0,
             },
             position_secs: 0.0,
         };

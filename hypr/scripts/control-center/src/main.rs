@@ -109,7 +109,6 @@ enum SyncMessage {
         muted: bool,
     },
     Media(api::media::MediaState),
-    RecreateBackdrop,
 }
 
 // ---------------------------------------------------------------------------
@@ -160,7 +159,6 @@ struct ControlCenter {
 
     // Cached state from API syncs
     wifi_active: bool,
-    wifi_status: String,
     net_info: api::network::NetInfo,
     bt_active: bool,
     bt_status: String,
@@ -441,7 +439,6 @@ impl ControlCenter {
                     if !self.wifi_active && self.net_info.kind == api::network::NetKind::Wifi {
                         self.net_info.kind = api::network::NetKind::None;
                         self.net_info.name = String::new();
-                        self.wifi_status = String::new();
                     }
                 }
                 if self.bt_active != bt_before {
@@ -968,7 +965,7 @@ fn main() {
     };
 
     let conn = Connection::connect_to_env().expect("Failed to connect to Wayland display");
-    let (globals, mut event_queue) = registry_queue_init(&conn).expect("Failed to init registry");
+    let (globals, event_queue) = registry_queue_init(&conn).expect("Failed to init registry");
     let qh = event_queue.handle();
 
     let compositor_state = CompositorState::bind(&globals, &qh).expect("wl_compositor unavailable");
@@ -1011,7 +1008,6 @@ fn main() {
         wifi_toggle_time: None,
         bt_toggle_time: None,
         wifi_active: false,
-        wifi_status: "Disabled".to_string(),
         net_info: api::network::NetInfo::default(),
         bt_active: false,
         bt_status: "Disconnected".to_string(),
@@ -1057,7 +1053,6 @@ fn main() {
                         if let Some(net) = wifi {
                             if !wifi_grace {
                                 state.wifi_active = net.wifi_enabled;
-                                state.wifi_status = net.name.clone();
                                 state.net_info = net;
                             }
                         }
@@ -1092,10 +1087,6 @@ fn main() {
                         if state.drag_state != DragState::MediaSeek {
                             state.media_state = media_state;
                         }
-                        state.needs_draw = true;
-                    }
-                    SyncMessage::RecreateBackdrop => {
-                        state.refresh_backdrop();
                         state.needs_draw = true;
                     }
                 }

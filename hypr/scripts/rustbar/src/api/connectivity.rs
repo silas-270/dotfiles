@@ -32,12 +32,6 @@ pub struct NetState {
     pub eth_present: bool,
 }
 
-impl NetState {
-    pub fn connected(&self) -> bool {
-        self.kind != NetKind::None && !self.name.is_empty()
-    }
-}
-
 #[derive(Clone, Default)]
 pub struct BtState {
     pub powered: bool,
