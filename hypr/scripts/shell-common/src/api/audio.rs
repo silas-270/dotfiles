@@ -1,4 +1,4 @@
-//! Audio API module (WirePlumber / PulseAudio / ALSA)
+//! Audio API (WirePlumber / PulseAudio / ALSA), shared by both surfaces.
 
 pub fn get_volume() -> f64 {
     get_volume_and_mute().0

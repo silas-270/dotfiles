@@ -1,6 +1,6 @@
 use tiny_skia::PixmapMut;
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use crate::api;
 use super::fieldset::{draw_section_header, draw_inner_box};
 
@@ -65,7 +65,7 @@ impl MediaSection {
         } else {
             format!("{} - {}", media_state.metadata.artist.to_uppercase(), media_state.metadata.title.to_uppercase())
         };
-        font_cache.draw_text(pixmap, &display_str, icon_x, media_line1_y, font_size, false, accent_color);
+        font_cache.draw_text(pixmap, &display_str, icon_x, media_line1_y, font_size, accent_color);
 
         // Line 2: Seek Bar
         let elapsed_str = format_time(media_state.position_secs);
@@ -73,16 +73,16 @@ impl MediaSection {
         let left_lbl = format!("{} (", elapsed_str);
         let right_lbl = format!(") {}", dur_str);
 
-        font_cache.draw_text(pixmap, &left_lbl, icon_x, media_line2_y, font_size, false, text_color);
-        let left_lbl_w = font_cache.measure_text(&left_lbl, font_size, false);
-        let right_lbl_w = font_cache.measure_text(&right_lbl, font_size, false);
+        font_cache.draw_text(pixmap, &left_lbl, icon_x, media_line2_y, font_size, text_color);
+        let left_lbl_w = font_cache.measure_text(&left_lbl, font_size);
+        let right_lbl_w = font_cache.measure_text(&right_lbl, font_size);
 
         let rail_start_x = icon_x + left_lbl_w;
         let right_lbl_x = icon_x + content_w - right_lbl_w;
-        font_cache.draw_text(pixmap, &right_lbl, right_lbl_x, media_line2_y, font_size, false, text_color);
+        font_cache.draw_text(pixmap, &right_lbl, right_lbl_x, media_line2_y, font_size, text_color);
 
         let available_rail_w = right_lbl_x - rail_start_x;
-        let rail_char_w = font_cache.measure_text("─", font_size, false);
+        let rail_char_w = font_cache.measure_text("─", font_size);
         let rail_len = (available_rail_w / rail_char_w).floor() as usize;
 
         let total_dur = media_state.metadata.length_secs;
@@ -92,23 +92,23 @@ impl MediaSection {
         let right_rail_len = rail_len.saturating_sub(thumb_idx + 1);
 
         let rail_str = format!("{}|{}", "─".repeat(left_rail_len), "─".repeat(right_rail_len));
-        font_cache.draw_text(pixmap, &rail_str, rail_start_x, media_line2_y, font_size, false, accent_color);
+        font_cache.draw_text(pixmap, &rail_str, rail_start_x, media_line2_y, font_size, accent_color);
 
         // Line 3: Transport Controls
         let btn1_str = "( 󰒮 PREV )";
         let btn2_str = if media_state.status == api::media::PlaybackStatus::Playing { "( 󰏤 PAUSE )" } else { "( 󰐊 PLAY )" };
         let btn3_str = "( 󰒭 NEXT )";
 
-        let btn2_w = font_cache.measure_text(btn2_str, font_size, false);
-        let btn3_w = font_cache.measure_text(btn3_str, font_size, false);
+        let btn2_w = font_cache.measure_text(btn2_str, font_size);
+        let btn3_w = font_cache.measure_text(btn3_str, font_size);
 
         let btn1_x = icon_x;
         let btn3_x = icon_x + content_w - btn3_w;
         let btn2_x = icon_x + (content_w - btn2_w) / 2.0;
 
-        font_cache.draw_text(pixmap, btn1_str, btn1_x, media_line3_y, font_size, false, text_color);
-        font_cache.draw_text(pixmap, btn2_str, btn2_x, media_line3_y, font_size, false, text_color);
-        font_cache.draw_text(pixmap, btn3_str, btn3_x, media_line3_y, font_size, false, text_color);
+        font_cache.draw_text(pixmap, btn1_str, btn1_x, media_line3_y, font_size, text_color);
+        font_cache.draw_text(pixmap, btn2_str, btn2_x, media_line3_y, font_size, text_color);
+        font_cache.draw_text(pixmap, btn3_str, btn3_x, media_line3_y, font_size, text_color);
     }
 
     pub fn handle_click(
@@ -139,9 +139,9 @@ impl MediaSection {
         let btn2_str = if media_state.status == api::media::PlaybackStatus::Playing { "( 󰏤 PAUSE )" } else { "( 󰐊 PLAY )" };
         let btn3_str = "( 󰒭 NEXT )";
 
-        let btn1_w = font_cache.measure_text(btn1_str, font_size, false) as f64;
-        let btn2_w = font_cache.measure_text(btn2_str, font_size, false) as f64;
-        let btn3_w = font_cache.measure_text(btn3_str, font_size, false) as f64;
+        let btn1_w = font_cache.measure_text(btn1_str, font_size) as f64;
+        let btn2_w = font_cache.measure_text(btn2_str, font_size) as f64;
+        let btn3_w = font_cache.measure_text(btn3_str, font_size) as f64;
 
         let btn1_x = icon_x;
         let btn3_x = icon_x + content_w - btn3_w;
@@ -172,8 +172,8 @@ impl MediaSection {
             let dur_str = format_time(media_state.metadata.length_secs);
             let left_lbl = format!("{} (", elapsed_str);
             let right_lbl = format!(") {}", dur_str);
-            let left_lbl_w = font_cache.measure_text(&left_lbl, font_size, false) as f64;
-            let right_lbl_w = font_cache.measure_text(&right_lbl, font_size, false) as f64;
+            let left_lbl_w = font_cache.measure_text(&left_lbl, font_size) as f64;
+            let right_lbl_w = font_cache.measure_text(&right_lbl, font_size) as f64;
 
             let rail_start_x = icon_x + left_lbl_w;
             let right_lbl_x = icon_x + content_w - right_lbl_w;

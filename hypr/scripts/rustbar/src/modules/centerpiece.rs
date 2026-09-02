@@ -1,7 +1,9 @@
 use crate::api::lyrics::{self, LyricLine, LyricsResult};
 use crate::api::media::{self, get_centerpiece_text, PlaybackStatus};
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
+use shell_common::paint::stroke_rect;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tiny_skia::{Color, PixmapMut};
@@ -255,7 +257,7 @@ pub fn render_centerpiece(
                 let progress = (anim.start.elapsed().as_secs_f32() / ANIM_DURATION.as_secs_f32()).min(1.0);
                 let box_w = font_cache.measure_calibrated_bracket_tag(&anim.to_text, font_size, false)
                     + 2.0 * (6.0 + 2.0);
-                crate::render::stroke_rect(pixmap, start_x, top_y, box_w, box_h, theme.border, 2.0);
+                stroke_rect(pixmap, start_x, top_y, box_w, box_h, theme.border, 2.0);
 
                 draw_tag_line(
                     font_cache, pixmap, &anim.from_text, start_x, top_y, box_w, box_h,

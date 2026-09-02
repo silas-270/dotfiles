@@ -8,22 +8,13 @@ name = "rustbar"
 path = "src/main.rs"
 
 [dependencies]
-smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
-wayland-client = "0.31"
-tiny-skia = "0.11"
-resvg = "0.44"
-rusttype = "0.9"
-calloop = "0.13"
-libc = "0.2"
-image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
-memmap2 = "0.9"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-chrono = "0.4"
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-strip = true
-panic = "abort"
+shell-common.workspace = true
+smithay-client-toolkit.workspace = true
+wayland-client.workspace = true
+tiny-skia.workspace = true
+rusttype.workspace = true
+calloop.workspace = true
+libc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true

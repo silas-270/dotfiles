@@ -46,11 +46,11 @@ fi
 # Wallpaper
 rm -f ~/.cache/wallpaper-home.jpg && ln -s ~/dotfiles/themes/savanna-dusk/wallpaper1.jpg ~/.cache/wallpaper-home.jpg
 
-echo "🦀 Kompiliere Custom Rust Control-Center..."
+echo "🦀 Kompiliere Custom Rust Shell (rustbar + control-center)..."
 if command -v cargo &> /dev/null; then
-    cd ~/dotfiles/hypr/scripts/control-center
+    cd ~/dotfiles/hypr/scripts
     cargo build --release
-    echo "Rust Projekt erfolgreich kompiliert."
+    echo "Rust Projekte erfolgreich kompiliert."
 else
     echo "⚠️ 'cargo' nicht gefunden! Bitte Rust installieren und manuell kompilieren."
 fi

@@ -1,6 +1,7 @@
 use tiny_skia::PixmapMut;
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use crate::render::PanelText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use crate::api;
 use crate::api::network::{NetInfo, NetKind};
 use super::fieldset::{draw_section_header, draw_inner_box, draw_tree_corner};
@@ -92,12 +93,12 @@ impl ConnectionsSection {
         // symmetric brackets, like the Bluetooth row.
         let tag_w = if Self::primary_is_ethernet(net) {
             let tag = format!("( {} )", primary_icon);
-            font_cache.draw_text(pixmap, &tag, icon_x, wifi_line1_y, font_size, false, accent_color);
-            font_cache.measure_text(&tag, font_size, false)
+            font_cache.draw_text(pixmap, &tag, icon_x, wifi_line1_y, font_size, accent_color);
+            font_cache.measure_text(&tag, font_size)
         } else {
             font_cache.draw_calibrated_bracket_tag(pixmap, primary_icon, icon_x, wifi_line1_y, font_size, accent_color)
         };
-        font_cache.draw_text(pixmap, primary_label, icon_x + tag_w, wifi_line1_y, font_size, false, accent_color);
+        font_cache.draw_text(pixmap, primary_label, icon_x + tag_w, wifi_line1_y, font_size, accent_color);
 
         // When the cable is the live route the Wi-Fi radio state would
         // otherwise be invisible, so show it as a marker on the right. That
@@ -105,9 +106,9 @@ impl ConnectionsSection {
         if Self::shows_wifi_marker(net) {
             let marker = Self::wifi_marker_text(net);
             let marker_color = if net.wifi_enabled { accent_color } else { text_color };
-            let marker_w = font_cache.measure_text(marker, font_size, false);
+            let marker_w = font_cache.measure_text(marker, font_size);
             let marker_x = wifi_box_x + wifi_box_w - marker_w - 8.0;
-            font_cache.draw_text(pixmap, marker, marker_x, wifi_line1_y, font_size, false, marker_color);
+            font_cache.draw_text(pixmap, marker, marker_x, wifi_line1_y, font_size, marker_color);
         }
 
         let net_sub_text: &str = if net.kind == NetKind::None {
@@ -123,7 +124,7 @@ impl ConnectionsSection {
             &net.name
         };
         draw_tree_corner(pixmap, icon_x, wifi_line2_y, font_size, text_color);
-        font_cache.draw_text(pixmap, net_sub_text, icon_x + 14.0, wifi_line2_y, font_size, false, text_color);
+        font_cache.draw_text(pixmap, net_sub_text, icon_x + 14.0, wifi_line2_y, font_size, text_color);
 
         // --- Bluetooth Box ---
         let bt_box_x = sec_x;
@@ -139,7 +140,7 @@ impl ConnectionsSection {
         // Bluetooth uses standard space padding
         let bt_icon = if bt_enabled { "" } else { "󰂲" };
         let bt_header = format!("( {} ) BLUETOOTH", bt_icon);
-        font_cache.draw_text(pixmap, &bt_header, icon_x, bt_line1_y, font_size, false, accent_color);
+        font_cache.draw_text(pixmap, &bt_header, icon_x, bt_line1_y, font_size, accent_color);
 
         let bt_sub_text = if !bt_enabled {
             "Disabled"
@@ -149,7 +150,7 @@ impl ConnectionsSection {
             bt_device
         };
         draw_tree_corner(pixmap, icon_x, bt_line2_y, font_size, text_color);
-        font_cache.draw_text(pixmap, bt_sub_text, icon_x + 14.0, bt_line2_y, font_size, false, text_color);
+        font_cache.draw_text(pixmap, bt_sub_text, icon_x + 14.0, bt_line2_y, font_size, text_color);
     }
 
     pub fn handle_click(
@@ -180,7 +181,7 @@ impl ConnectionsSection {
             // when Wi-Fi is the primary link, and moves to the right-hand
             // marker when a cable has taken over.
             let toggles_wifi = if Self::shows_wifi_marker(net) {
-                let marker_w = font_cache.measure_text(Self::wifi_marker_text(net), font_size, false) as f64;
+                let marker_w = font_cache.measure_text(Self::wifi_marker_text(net), font_size) as f64;
                 let marker_x = sec_x + sec_w - marker_w - 8.0;
                 y <= wifi_box_y + 35.0 && x >= marker_x && x <= marker_x + marker_w
             } else {
@@ -201,7 +202,7 @@ impl ConnectionsSection {
         } else if y >= bt_box_y && y <= bt_box_y + bt_box_h {
             let bt_icon = if *bt_enabled { "" } else { "󰂲" };
             let bt_tag = format!("( {} )", bt_icon);
-            let tag_w = font_cache.measure_text(&bt_tag, font_size, false) as f64;
+            let tag_w = font_cache.measure_text(&bt_tag, font_size) as f64;
             let icon_hitbox_end = icon_x + tag_w;
 
             if y <= bt_box_y + 24.0 && x >= icon_x && x <= icon_hitbox_end {

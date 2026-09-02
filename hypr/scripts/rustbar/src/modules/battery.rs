@@ -1,6 +1,7 @@
 use crate::api::stats::{get_battery_info, BatteryStatus};
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 use std::sync::Mutex;
 

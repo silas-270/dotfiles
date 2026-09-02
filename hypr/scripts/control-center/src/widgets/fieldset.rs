@@ -1,5 +1,5 @@
 use tiny_skia::{Color, PixmapMut};
-use crate::render;
+use shell_common::paint as render;
 
 /// Draws a fieldset container outline with a gap in the top horizontal border for title text.
 pub fn draw_fieldset_outline(
@@ -46,7 +46,7 @@ pub fn draw_fieldset_outline(
 /// Lower margin (space below title text to top of lower rect) = 14px (matching inter-box gap).
 pub fn draw_section_header(
     pixmap: &mut PixmapMut,
-    font_cache: &mut crate::render::FontCache,
+    font_cache: &mut shell_common::font::FontCache,
     title: &str,
     sec_x: f32,
     sec_y: f32,
@@ -56,8 +56,8 @@ pub fn draw_section_header(
     line_color: Color,
 ) {
     let text_top_y = sec_y + 14.0;
-    font_cache.draw_text(pixmap, title, sec_x, text_top_y, font_size, false, accent_color);
-    let title_w = font_cache.measure_text(title, font_size, false);
+    font_cache.draw_text(pixmap, title, sec_x, text_top_y, font_size, accent_color);
+    let title_w = font_cache.measure_text(title, font_size);
     let line_start_x = sec_x + title_w + 8.0;
     let line_w = (sec_x + sec_w - line_start_x).max(0.0);
     let line_y = text_top_y + 11.0;

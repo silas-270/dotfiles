@@ -1,6 +1,8 @@
 use crate::api::hyprland::WorkspaceState;
-use crate::render::{stroke_rect, FontCache};
-use crate::theme::ThemeConfig;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::paint::stroke_rect;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 
 pub struct WorkspaceButton {

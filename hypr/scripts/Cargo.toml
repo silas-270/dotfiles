@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = ["shell-common", "rustbar", "control-center"]
+
+[workspace.dependencies]
+smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
+wayland-client = "0.31"
+tiny-skia = "0.11"
+rusttype = "0.9"
+calloop = "0.13"
+libc = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
+shell-common = { path = "shell-common" }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

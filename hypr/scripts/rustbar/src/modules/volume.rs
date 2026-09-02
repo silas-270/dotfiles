@@ -1,6 +1,7 @@
-use crate::api::audio::get_volume_and_mute;
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use shell_common::api::audio::get_volume_and_mute;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 use std::sync::Mutex;
 use std::time::{Instant, Duration};

@@ -1,5 +1,6 @@
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use chrono::Local;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tiny_skia::PixmapMut;

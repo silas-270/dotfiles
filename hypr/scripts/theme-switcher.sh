@@ -121,9 +121,9 @@ killall -SIGUSR2 waybar 2>/dev/null || true
 # Restart Rustbar on Sway & Hyprland
 pkill -x rustbar 2>/dev/null || true
 sleep 0.1
-RUSTBAR_BIN="$HOME/.config/hypr/scripts/rustbar/target/release/rustbar"
+RUSTBAR_BIN="$HOME/.config/hypr/scripts/target/release/rustbar"
 if [ ! -x "$RUSTBAR_BIN" ]; then
-    RUSTBAR_BIN="$HOME/dotfiles/hypr/scripts/rustbar/target/release/rustbar"
+    RUSTBAR_BIN="$HOME/dotfiles/hypr/scripts/target/release/rustbar"
 fi
 if [ -x "$RUSTBAR_BIN" ]; then
     setsid "$RUSTBAR_BIN" >/dev/null 2>&1 &

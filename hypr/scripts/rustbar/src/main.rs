@@ -29,25 +29,26 @@ use smithay_client_toolkit::{
 };
 use wayland_client::{
     globals::registry_queue_init,
-    protocol::{wl_keyboard, wl_output, wl_pointer, wl_seat, wl_shm, wl_surface},
+    protocol::{wl_keyboard, wl_output, wl_pointer, wl_seat, wl_surface},
     Connection, QueueHandle,
 };
 
 use calloop::EventLoop;
-use tiny_skia::Pixmap;
 use std::time::Duration;
 
 mod api;
 mod modules;
 mod render;
-mod theme;
 
 use api::hyprland::{get_workspace_state, listen_hyprland_events, switch_workspace, WorkspaceState};
 use modules::{
     bluetooth, centerpiece, clock, controlcenter, cpu, fedora, network, ram, volume, workspaces::render_workspaces,
 };
-use render::{fill_rect, rgba_to_bgra, stroke_rect, FontCache};
-use theme::ThemeConfig;
+use render::BarText;
+use shell_common::font::{FontCache, FontWeight};
+use shell_common::paint::{fill_rect, stroke_rect};
+use shell_common::wayland;
+use shell_common::theme::ThemeConfig;
 
 #[derive(Debug, Clone, Copy)]
 enum AppEvent {
@@ -124,26 +125,13 @@ impl RustBar {
 
         let width = if self.width > 10 { self.width } else { 1900 };
         let height = if self.height > 0 { self.height } else { 44 };
-        let stride = width * 4;
-
-        let (buffer, canvas) = match self.pool.create_buffer(
-            width as i32,
-            height as i32,
-            stride as i32,
-            wl_shm::Format::Argb8888,
-        ) {
-            Ok(b) => b,
+        let (buffer, canvas, mut pixmap) = match wayland::acquire(&mut self.pool, width, height) {
+            Ok(t) => t,
             Err(e) => {
-                eprintln!("[RustBar] Failed to create SHM buffer ({}x{}): {:?}", width, height, e);
+                eprintln!("[RustBar] Cannot draw {}x{}: {}", width, height, e);
                 return;
             }
         };
-
-        let mut pixmap = match Pixmap::new(width, height) {
-            Some(p) => p,
-            None => return,
-        };
-        pixmap.fill(tiny_skia::Color::TRANSPARENT);
 
         // 1. Fill background box matching GTK window#waybar
         fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, width as f32, height as f32, self.theme.bg_base);
@@ -315,13 +303,7 @@ impl RustBar {
             }
         }
 
-        // Copy RGBA to BGRA buffer
-        rgba_to_bgra(pixmap.data(), canvas);
-
-        let wl_surface = layer_surface.wl_surface();
-        wl_surface.attach(Some(buffer.wl_buffer()), 0, 0);
-        wl_surface.damage_buffer(0, 0, width as i32, height as i32);
-        wl_surface.commit();
+        wayland::present(&buffer, canvas, layer_surface.wl_surface(), &pixmap, width, height);
         self.needs_draw = false;
     }
 
@@ -568,7 +550,7 @@ fn main() {
         configured: false,
         needs_draw: false,
         theme: ThemeConfig::load(),
-        font_cache: FontCache::new(),
+        font_cache: FontCache::new(FontWeight::Regular),
         workspace_state: get_workspace_state(),
         click_regions: Vec::new(),
         mouse_x: 0.0,

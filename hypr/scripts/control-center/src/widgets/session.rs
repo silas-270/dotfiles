@@ -1,6 +1,6 @@
 use tiny_skia::PixmapMut;
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use crate::api;
 use super::fieldset::{draw_section_header, draw_inner_box};
 use super::ActionResult;
@@ -43,10 +43,10 @@ impl SessionSection {
             let bx = sess_x + i as f32 * (btn_w + gap);
             draw_inner_box(pixmap, bx, box_y, btn_w, box_h, None, inner_border, 1.5);
 
-            let icon_w = font_cache.measure_text(icon, font_size, false);
+            let icon_w = font_cache.measure_text(icon, font_size);
             let text_x = bx + (btn_w - icon_w) / 2.0;
             let text_y = box_y + 5.0;
-            font_cache.draw_text(pixmap, icon, text_x, text_y, font_size, false, accent_color);
+            font_cache.draw_text(pixmap, icon, text_x, text_y, font_size, accent_color);
         }
     }
 

@@ -1,5 +1,5 @@
 # Rust build artifacts
-hypr/scripts/control-center/target/
+hypr/scripts/target/
 
 # Massive Icon-Packs (besser über den Paketmanager installieren)
 icons/

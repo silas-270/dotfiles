@@ -17,8 +17,8 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY")
     hl.exec_cmd("~/.config/hypr/scripts/change_wallpaper.sh init")
-    hl.exec_cmd("~/.config/hypr/scripts/rustbar/target/release/rustbar")
-    hl.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center --daemon")
+    hl.exec_cmd("~/.config/hypr/scripts/target/release/rustbar")
+    hl.exec_cmd("~/.config/hypr/scripts/target/release/control-center --daemon")
 end)
 
 -- env
@@ -115,7 +115,7 @@ local mainMod = "SUPER"
 -- Toggle laptop screen on/off
 hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-laptop-screen.sh"))
 
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center"))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/target/release/control-center"))
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
 hl.bind(mainMod .. " + ALT + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-mouse.sh"))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/theme-switcher.sh"))

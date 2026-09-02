@@ -6,9 +6,9 @@
 //! If you modify any code in this project, ALWAYS ensure old daemon processes
 //! are completely terminated before launching a new daemon:
 //!
-//! 1. Build release binary:
-//!    $ cd ~/.config/hypr/scripts/control-center
-//!    $ cargo build --release
+//! 1. Build release binary (workspace root builds rustbar too):
+//!    $ cd ~/.config/hypr/scripts
+//!    $ cargo build --release -p control-center
 //!
 //! 2. Terminate all old control-center processes:
 //!    $ pkill -9 -f control-center || true
@@ -17,10 +17,10 @@
 //!    $ ps aux | grep control-center | grep -v grep  # Verify 0 running processes
 //!
 //! 3. Restart background daemon:
-//!    $ WAYLAND_DISPLAY=wayland-1 ~/.config/hypr/scripts/control-center/target/release/control-center >/dev/null 2>&1 &
+//!    $ WAYLAND_DISPLAY=wayland-1 ~/.config/hypr/scripts/target/release/control-center >/dev/null 2>&1 &
 //!
 //! 4. Toggle Control Center overlay via IPC:
-//!    $ ~/.config/hypr/scripts/control-center/target/release/control-center
+//!    $ ~/.config/hypr/scripts/target/release/control-center
 //!    (Or trigger via Hyprland keybinding bound to this binary execution)
 //! ============================================================================
 
@@ -61,11 +61,12 @@ use std::time::Duration;
 mod api;
 mod grid;
 mod render;
-mod theme;
 mod widgets;
 
-use render::FontCache;
-use theme::ThemeConfig;
+use shell_common::paint;
+use shell_common::wayland;
+use shell_common::font::{FontCache, FontWeight};
+use shell_common::theme::ThemeConfig;
 use widgets::{ConnectionsSection, ControlsSection, DragTarget, MediaSection, SessionSection};
 
 /// Socket path unique per user so multiple sessions don't collide.
@@ -305,35 +306,20 @@ impl ControlCenter {
             return;
         }
 
-        let stride = w as i32 * 4;
-        let (buffer, canvas) = match self.pool.create_buffer(
-            w as i32,
-            h as i32,
-            stride,
-            wl_shm::Format::Argb8888,
-        ) {
-            Ok(pair) => pair,
+        let (buffer, canvas, mut pixmap) = match wayland::acquire(&mut self.pool, w, h) {
+            Ok(t) => t,
             Err(e) => {
-                eprintln!("[CC] Failed to create panel buffer: {e}");
+                eprintln!("[CC] Cannot draw panel {w}x{h}: {e}");
                 return;
             }
         };
 
-        let mut pixmap = match tiny_skia::Pixmap::new(w, h) {
-            Some(p) => p,
-            None => return,
-        };
-        pixmap.fill(tiny_skia::Color::TRANSPARENT);
-
         // Background & border
-        render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, self.theme.bg_base);
+        paint::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, self.theme.bg_base);
         let cc_border = self.theme.cc_border;
         let thickness = 1.0;
         if cc_border.alpha() > 0.0 {
-            render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, thickness, cc_border); // top
-            render::fill_rect(&mut pixmap.as_mut(), 0.0, h as f32 - thickness, w as f32, thickness, cc_border); // bottom
-            render::fill_rect(&mut pixmap.as_mut(), 0.0, 0.0, thickness, h as f32, cc_border); // left
-            render::fill_rect(&mut pixmap.as_mut(), w as f32 - thickness, 0.0, thickness, h as f32, cc_border); // right
+            paint::stroke_rect(&mut pixmap.as_mut(), 0.0, 0.0, w as f32, h as f32, cc_border, thickness);
         }
 
         let outer_pad = 10.0;
@@ -387,12 +373,8 @@ impl ControlCenter {
         );
 
         // Submit to Wayland surface
-        render::rgba_to_bgra(pixmap.data(), canvas);
         if let Some(ref surface) = self.panel_surface {
-            let wl = surface.wl_surface();
-            wl.attach(Some(buffer.wl_buffer()), 0, 0);
-            wl.damage_buffer(0, 0, w as i32, h as i32);
-            wl.commit();
+            wayland::present(&buffer, canvas, surface.wl_surface(), &pixmap, w, h);
         }
         self.needs_draw = false;
     }
@@ -544,8 +526,8 @@ impl ControlCenter {
         let sec_w = (self.panel_width as f32 - 2.0 * outer_pad) as f64;
         let font_size = 21.0;
 
-        let char_w = self.font_cache.measure_text("=", font_size, false) as f64;
-        let bracket_w = self.font_cache.measure_text("(", font_size, false) as f64;
+        let char_w = self.font_cache.measure_text("=", font_size) as f64;
+        let bracket_w = self.font_cache.measure_text("(", font_size) as f64;
         let box_x = sec_x + 8.0;
         let box_w = sec_w - 16.0;
         let icon_x = box_x + 8.0;
@@ -588,8 +570,8 @@ impl ControlCenter {
                 let dur_str = format!("{:02}:{:02}", (self.media_state.metadata.length_secs as u64) / 60, (self.media_state.metadata.length_secs as u64) % 60);
                 let left_lbl = format!("{} (", elapsed_str);
                 let right_lbl = format!(") {}", dur_str);
-                let left_lbl_w = self.font_cache.measure_text(&left_lbl, font_size, false) as f64;
-                let right_lbl_w = self.font_cache.measure_text(&right_lbl, font_size, false) as f64;
+                let left_lbl_w = self.font_cache.measure_text(&left_lbl, font_size) as f64;
+                let right_lbl_w = self.font_cache.measure_text(&right_lbl, font_size) as f64;
 
                 let rail_start_x = m_icon_x + left_lbl_w;
                 let right_lbl_x = m_icon_x + m_content_w - right_lbl_w;
@@ -1002,7 +984,7 @@ fn main() {
     let (sync_tx, sync_rx) = calloop::channel::channel::<SyncMessage>();
     ControlCenter::spawn_sync_thread(sync_tx.clone());
 
-    let font_cache = FontCache::new();
+    let font_cache = FontCache::new(FontWeight::Medium);
 
     let mut app = ControlCenter {
         registry_state: RegistryState::new(&globals),

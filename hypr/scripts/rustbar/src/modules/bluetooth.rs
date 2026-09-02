@@ -1,6 +1,7 @@
 use crate::api::connectivity::bt_state;
-use crate::render::FontCache;
-use crate::theme::ThemeConfig;
+use crate::render::BarText;
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 
 pub fn render_bluetooth(

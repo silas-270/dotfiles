@@ -1,19 +1,11 @@
 [package]
-name = "control-center"
+name = "shell-common"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "control-center"
-path = "src/main.rs"
-
 [dependencies]
-shell-common.workspace = true
 smithay-client-toolkit.workspace = true
 wayland-client.workspace = true
 tiny-skia.workspace = true
 rusttype.workspace = true
-calloop.workspace = true
-libc.workspace = true
-serde.workspace = true
 serde_json.workspace = true

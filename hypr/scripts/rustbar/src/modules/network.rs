@@ -1,6 +1,7 @@
 use crate::api::connectivity::{net_state, NetKind};
-use crate::render::{BracketSpacing, FontCache};
-use crate::theme::ThemeConfig;
+use crate::render::{BarText, BracketSpacing};
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 
 fn signal_icon(signal: u8) -> &'static str {

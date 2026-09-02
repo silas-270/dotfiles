@@ -38,8 +38,8 @@ exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP SWA
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY SWAYSOCK
 exec command -v uwsm >/dev/null && uwsm finalize SWAYSOCK
 exec ~/.config/hypr/scripts/change_wallpaper.sh init
-exec ~/.config/hypr/scripts/rustbar/target/release/rustbar
-exec ~/.config/hypr/scripts/control-center/target/release/control-center --daemon
+exec ~/.config/hypr/scripts/target/release/rustbar
+exec ~/.config/hypr/scripts/target/release/control-center --daemon
 exec autotiling-rs
 exec_always ~/.config/sway/scripts/apply-theme-colors.sh
 
@@ -85,7 +85,7 @@ bindsym $mod+Shift+Left move container to workspace prev
 
 # Custom Scripts Keybindings
 bindsym $mod+Mod1+d exec ~/.config/hypr/scripts/toggle-laptop-screen.sh
-bindsym $mod+c exec ~/.config/hypr/scripts/control-center/target/release/control-center
+bindsym $mod+c exec ~/.config/hypr/scripts/target/release/control-center
 bindsym $mod+Mod1+k exec ~/.config/hypr/scripts/toggle-keyd.sh
 bindsym $mod+t exec ~/.config/hypr/scripts/theme-switcher.sh
 bindsym $mod+b exec python3 -c "import socket; socket.socket(socket.AF_UNIX).connect('/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock')"

@@ -1,5 +1,6 @@
-use crate::render::{BracketSpacing, FontCache};
-use crate::theme::ThemeConfig;
+use crate::render::{BarText, BracketSpacing};
+use shell_common::font::FontCache;
+use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
 
 pub fn is_fedora_mounted() -> bool {
