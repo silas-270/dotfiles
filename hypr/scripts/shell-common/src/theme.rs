@@ -122,13 +122,7 @@ impl ThemeConfig {
 }
 
 pub fn get_colors_path() -> PathBuf {
-    if let Ok(home) = std::env::var("HOME") {
-        let path = PathBuf::from(home).join("dotfiles/theme/generated/colors.json");
-        if path.exists() {
-            return path;
-        }
-    }
-    PathBuf::from("/home/silas270/dotfiles/theme/generated/colors.json")
+    crate::paths::colors_json()
 }
 
 /// Parses a color string into a `tiny_skia::Color`.

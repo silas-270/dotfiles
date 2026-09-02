@@ -35,6 +35,7 @@ use wayland_client::{
 
 use calloop::EventLoop;
 use std::time::Duration;
+use shell_common::paths;
 
 mod api;
 mod modules;
@@ -593,9 +594,9 @@ fn main() {
     
     // Spawn background thread to listen for focus trigger on Unix socket
     std::thread::spawn(move || {
-        let socket_path = "/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock";
-        let _ = std::fs::remove_file(socket_path);
-        match std::os::unix::net::UnixListener::bind(socket_path) {
+        let socket_path = paths::rustbar_socket();
+        let _ = std::fs::remove_file(&socket_path);
+        match std::os::unix::net::UnixListener::bind(&socket_path) {
             Ok(listener) => {
                 for stream in listener.incoming() {
                     if let Ok(mut s) = stream {

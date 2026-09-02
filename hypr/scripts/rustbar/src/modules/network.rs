@@ -4,6 +4,7 @@ use crate::render::{BarText, BracketSpacing};
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
+use shell_common::paths;
 
 fn signal_icon(signal: u8) -> &'static str {
     match signal {
@@ -50,8 +51,8 @@ pub fn render_network(
 
 pub fn handle_click() {
     std::thread::spawn(|| {
-        let _ = std::process::Command::new("/home/silas270/.config/hypr/scripts/rofi-wifi-menu.sh").status();
-        if let Ok(mut stream) = std::os::unix::net::UnixStream::connect("/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock") {
+        let _ = std::process::Command::new(paths::script("rofi-wifi-menu.sh")).status();
+        if let Ok(mut stream) = std::os::unix::net::UnixStream::connect(paths::rustbar_socket()) {
             use std::io::Write;
             let _ = stream.write_all(b"panel_closed");
         }

@@ -88,7 +88,7 @@ bindsym $mod+Mod1+d exec ~/.config/hypr/scripts/toggle-laptop-screen.sh
 bindsym $mod+c exec ~/.config/hypr/scripts/target/release/control-center
 bindsym $mod+Mod1+k exec ~/.config/hypr/scripts/toggle-keyd.sh
 bindsym $mod+t exec ~/.config/hypr/scripts/theme-switcher.sh
-bindsym $mod+b exec python3 -c "import socket; socket.socket(socket.AF_UNIX).connect('/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock')"
+bindsym $mod+b exec python3 -c "import socket,os; socket.socket(socket.AF_UNIX).connect(f'/tmp/rustbar-{os.getuid()}.sock')"
 bindsym $mod+w exec ~/.config/hypr/scripts/change_wallpaper.sh next
 bindsym $mod+Shift+w exec ~/.config/hypr/scripts/change_wallpaper.sh prev
 

@@ -64,6 +64,7 @@ mod render;
 mod widgets;
 
 use shell_common::paint;
+use shell_common::paths;
 use shell_common::wayland;
 use shell_common::font::{FontCache, FontWeight};
 use shell_common::theme::ThemeConfig;
@@ -266,7 +267,7 @@ impl ControlCenter {
 
         // Notify rustbar to restore keyboard focus if navigation mode is active
         std::thread::spawn(|| {
-            if let Ok(mut stream) = std::os::unix::net::UnixStream::connect("/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock") {
+            if let Ok(mut stream) = std::os::unix::net::UnixStream::connect(paths::rustbar_socket()) {
                 let _ = stream.write_all(b"panel_closed");
             }
         });

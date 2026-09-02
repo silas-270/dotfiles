@@ -561,6 +561,7 @@ dependencies = [
 name = "shell-common"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "rusttype",
  "serde_json",
  "smithay-client-toolkit",

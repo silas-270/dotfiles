@@ -7,6 +7,7 @@ use shell_common::paint::stroke_rect;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tiny_skia::{Color, PixmapMut};
+use shell_common::paths;
 
 const ANIM_DURATION: Duration = Duration::from_millis(220);
 const MESSAGE_DURATION: Duration = Duration::from_secs(1);
@@ -282,8 +283,8 @@ pub fn render_centerpiece(
 
 pub fn handle_click() {
     std::thread::spawn(|| {
-        let _ = std::process::Command::new("/home/silas270/.config/hypr/scripts/rofi-power-profile-menu.sh").status();
-        if let Ok(mut stream) = std::os::unix::net::UnixStream::connect("/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock") {
+        let _ = std::process::Command::new(paths::script("rofi-power-profile-menu.sh")).status();
+        if let Ok(mut stream) = std::os::unix::net::UnixStream::connect(paths::rustbar_socket()) {
             use std::io::Write;
             let _ = stream.write_all(b"panel_closed");
         }

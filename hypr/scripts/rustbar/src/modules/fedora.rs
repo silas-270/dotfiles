@@ -2,6 +2,7 @@ use crate::render::{BarText, BracketSpacing};
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
+use shell_common::paths;
 
 pub fn is_fedora_mounted() -> bool {
     std::fs::read_to_string("/proc/mounts")
@@ -33,7 +34,7 @@ pub fn render_fedora(
 
 pub fn handle_click() {
     std::thread::spawn(|| {
-        let _ = std::process::Command::new("/home/silas270/.local/bin/fedora-mount")
+        let _ = std::process::Command::new(paths::user_bin("fedora-mount"))
             .arg("toggle")
             .status();
     });

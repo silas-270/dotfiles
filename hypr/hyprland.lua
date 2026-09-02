@@ -119,7 +119,7 @@ hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/target/releas
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
 hl.bind(mainMod .. " + ALT + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-mouse.sh"))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/theme-switcher.sh"))
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("python3 -c \"import socket; socket.socket(socket.AF_UNIX).connect('/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock')\""))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("python3 -c \"import socket,os; socket.socket(socket.AF_UNIX).connect(f'/tmp/rustbar-{os.getuid()}.sock')\""))
 
 
 

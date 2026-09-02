@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
 members = ["shell-common", "rustbar", "control-center"]
+# Standalone experiment, unrelated to the shell and on a different toolchain
+# (fontdue rather than rusttype). Excluded so it still builds on its own.
+exclude = ["fidget-rs"]
 
 [workspace.dependencies]
 smithay-client-toolkit = { version = "0.19", features = ["calloop"] }

@@ -9,5 +9,6 @@
 pub mod api;
 pub mod font;
 pub mod paint;
+pub mod paths;
 pub mod theme;
 pub mod wayland;

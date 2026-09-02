@@ -2,6 +2,7 @@ use crate::render::BarText;
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
+use shell_common::paths;
 
 pub fn render_controlcenter(
     pixmap: &mut PixmapMut,
@@ -16,6 +17,6 @@ pub fn render_controlcenter(
 
 pub fn handle_click() {
     std::thread::spawn(|| {
-        let _ = std::process::Command::new("/home/silas270/.config/hypr/scripts/target/release/control-center").status();
+        let _ = std::process::Command::new(paths::control_center_bin()).status();
     });
 }

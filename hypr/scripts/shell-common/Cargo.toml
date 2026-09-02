@@ -9,3 +9,4 @@ wayland-client.workspace = true
 tiny-skia.workspace = true
 rusttype.workspace = true
 serde_json.workspace = true
+libc.workspace = true
