@@ -44,7 +44,7 @@ mod theme;
 
 use api::hyprland::{get_workspace_state, listen_hyprland_events, switch_workspace, WorkspaceState};
 use modules::{
-    bluetooth, centerpiece, clock, controlcenter, cpu, network, ram, volume, workspaces::render_workspaces,
+    bluetooth, centerpiece, clock, controlcenter, cpu, fedora, network, ram, volume, workspaces::render_workspaces,
 };
 use render::{fill_rect, rgba_to_bgra, stroke_rect, FontCache};
 use theme::ThemeConfig;
@@ -54,6 +54,7 @@ enum AppEvent {
     Update,
     RequestFocus,
     RestoreFocusIfActive,
+    FedoraUpdate,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -61,6 +62,7 @@ enum ModuleClickAction {
     Workspace(i32),
     Network,
     Bluetooth,
+    Fedora,
     Centerpiece,
     Volume,
     Battery,
@@ -106,6 +108,7 @@ struct RustBar {
     ram_display: String,
     focused_region_idx: Option<usize>,
     centerpiece_state: centerpiece::CenterpieceState,
+    fedora_mounted: bool,
 }
 
 impl RustBar {
@@ -195,6 +198,17 @@ impl RustBar {
             x_max: left_x + bt_w,
             action: ModuleClickAction::Bluetooth,
         });
+        left_x += bt_w + 4.0;
+
+        // Fedora (only shown and selectable when mounted)
+        if self.fedora_mounted {
+            let fed_w = fedora::render_fedora(&mut pixmap.as_mut(), &mut self.font_cache, &self.theme, left_x, top_y, font_size);
+            self.click_regions.push(ClickRegion {
+                x_min: left_x,
+                x_max: left_x + fed_w,
+                action: ModuleClickAction::Fedora,
+            });
+        }
 
         // ── Render Right Group ──
         let mut right_x = width as f32 - 6.0;
@@ -284,6 +298,20 @@ impl RustBar {
                     self.theme.accent_color,
                     2.0,
                 );
+            } else if !self.click_regions.is_empty() {
+                self.focused_region_idx = Some(self.click_regions.len() - 1);
+                let region = &self.click_regions[self.click_regions.len() - 1];
+                stroke_rect(
+                    &mut pixmap.as_mut(),
+                    region.x_min,
+                    top_y,
+                    region.x_max - region.x_min,
+                    box_h,
+                    self.theme.accent_color,
+                    2.0,
+                );
+            } else {
+                self.focused_region_idx = None;
             }
         }
 
@@ -302,6 +330,7 @@ impl RustBar {
             ModuleClickAction::Workspace(id) => switch_workspace(id),
             ModuleClickAction::Network => network::handle_click(),
             ModuleClickAction::Bluetooth => bluetooth::handle_click(),
+            ModuleClickAction::Fedora => fedora::handle_click(),
             ModuleClickAction::Centerpiece => centerpiece::handle_click(),
             ModuleClickAction::Volume => volume::handle_click(),
             ModuleClickAction::Battery => modules::battery::handle_click(),
@@ -548,6 +577,7 @@ fn main() {
         ram_display: api::stats::get_ram_display(),
         focused_region_idx: None,
         centerpiece_state: centerpiece::CenterpieceState::default(),
+        fedora_mounted: modules::fedora::is_fedora_mounted(),
     };
 
     // Bind pointer and keyboard for all seats initialized in registry
@@ -591,8 +621,11 @@ fn main() {
                         let mut buf = [0u8; 32];
                         let n = s.read(&mut buf).unwrap_or(0);
                         let msg = String::from_utf8_lossy(&buf[..n]);
-                        if msg.trim() == "panel_closed" {
+                        let msg_str = msg.trim();
+                        if msg_str == "panel_closed" {
                             let _ = tx_focus.send(AppEvent::RestoreFocusIfActive);
+                        } else if msg_str == "fedora_update" {
+                            let _ = tx_focus.send(AppEvent::FedoraUpdate);
                         } else {
                             let _ = tx_focus.send(AppEvent::RequestFocus);
                         }
@@ -611,6 +644,10 @@ fn main() {
             calloop::channel::Event::Msg(AppEvent::Update) => {
                 state.workspace_state = get_workspace_state();
                 state.theme = ThemeConfig::load();
+                state.needs_draw = true;
+            }
+            calloop::channel::Event::Msg(AppEvent::FedoraUpdate) => {
+                state.fedora_mounted = modules::fedora::is_fedora_mounted();
                 state.needs_draw = true;
             }
             calloop::channel::Event::Msg(AppEvent::RequestFocus) => {

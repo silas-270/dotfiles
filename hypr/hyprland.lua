@@ -41,6 +41,10 @@ hl.config({
         follow_mouse = 1,
     },
 
+    cursor = {
+        hide_on_key_press = true,
+    },
+
     general = {
         gaps_in  = 5,
         gaps_out = 10,
@@ -87,9 +91,19 @@ hl.animation({ leaf = "windowsOut", enabled = true, speed = 2, bezier = "snappy"
 hl.animation({ leaf = "fade",       enabled = true, speed = 2, bezier = "snappy" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 2, bezier = "snappy", style = "slide" })
 
+-- Layer surfaces (rofi, control center, bar) appear instantly: no slide, no fade.
+-- The per-layer `animation = "none"` rule below is not honoured on its own, so
+-- the animation tree nodes are disabled here instead.
+hl.animation({ leaf = "layers",        enabled = false })
+hl.animation({ leaf = "layersIn",      enabled = false })
+hl.animation({ leaf = "layersOut",     enabled = false })
+hl.animation({ leaf = "fadeLayers",    enabled = false })
+hl.animation({ leaf = "fadeLayersIn",  enabled = false })
+hl.animation({ leaf = "fadeLayersOut", enabled = false })
+
 -- layer rules
 hl.layer_rule({ match = { namespace = "rustbar" }, blur = true, ignore_alpha = 1.0 })
-hl.layer_rule({ match = { namespace = "rofi" }, blur = true, ignore_alpha = 0.5 })
+hl.layer_rule({ match = { namespace = "rofi" }, blur = true, ignore_alpha = 0.5, animation = "none" })
 hl.layer_rule({ match = { namespace = "control-center" }, blur = true, ignore_alpha = 0.1 })
 
 -- window rules
@@ -103,6 +117,7 @@ hl.bind(mainMod .. " + ALT + D", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-
 
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("~/.config/hypr/scripts/control-center/target/release/control-center"))
 hl.bind(mainMod .. " + ALT + K", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-keyd.sh"))
+hl.bind(mainMod .. " + ALT + M", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-mouse.sh"))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/theme-switcher.sh"))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("python3 -c \"import socket; socket.socket(socket.AF_UNIX).connect('/home/silas270/dotfiles/hypr/scripts/rustbar/rustbar.sock')\""))
 
@@ -127,9 +142,14 @@ hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
 
-hl.bind("ALT + Tab", hl.dsp.exec_cmd("hyprctl dispatch cyclenext"))
-hl.bind("ALT + Tab", hl.dsp.exec_cmd("hyprctl dispatch bringactivetotop"))
-hl.bind("ALT + SHIFT + Tab", hl.dsp.exec_cmd("hyprctl dispatch cyclenext prev"))
+hl.bind("ALT + Tab", function()
+    hl.dispatch(hl.dsp.window.cycle_next())
+    hl.dispatch(hl.dsp.window.bring_to_top())
+end)
+hl.bind("ALT + SHIFT + Tab", function()
+    hl.dispatch(hl.dsp.window.cycle_next("prev"))
+    hl.dispatch(hl.dsp.window.bring_to_top())
+end)
 
 for i = 1, 5 do
     hl.bind(mainMod .. " + " .. i, hl.dsp.focus({ workspace = i }))

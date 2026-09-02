@@ -6,6 +6,37 @@ use std::sync::Mutex;
 
 static SHOW_PERCENT: Mutex<bool> = Mutex::new(false);
 
+fn get_discharging_icon(capacity: u32) -> &'static str {
+    match capacity {
+        0..=10 => "󰂎",
+        11..=20 => "󰁺",
+        21..=30 => "󰁻",
+        31..=40 => "󰁼",
+        41..=50 => "󰁽",
+        51..=60 => "󰁾",
+        61..=70 => "󰁿",
+        71..=80 => "󰂀",
+        81..=90 => "󰂁",
+        91..=99 => "󰂂",
+        _ => "󰁹",
+    }
+}
+
+fn get_charging_icon(capacity: u32) -> &'static str {
+    match capacity {
+        0..=10 => "󰢟",
+        11..=20 => "󰢜",
+        21..=30 => "󰂆",
+        31..=40 => "󰂇",
+        41..=50 => "󰂈",
+        51..=60 => "󰂉",
+        61..=70 => "󰂊",
+        71..=80 => "󰂋",
+        81..=90 => "󰂅",
+        _ => "󰂄",
+    }
+}
+
 pub fn render_battery(
     pixmap: &mut PixmapMut,
     font_cache: &mut FontCache,
@@ -17,15 +48,18 @@ pub fn render_battery(
     let info = get_battery_info();
 
     let (icon, color) = match info.status {
-        BatteryStatus::Charging | BatteryStatus::Full => ("󰂄", theme.fg_muted),
-        _ => {
-            if info.capacity <= 15 {
-                ("󰂎", theme.danger)
+        BatteryStatus::Charging => (get_charging_icon(info.capacity), theme.fg_muted),
+        BatteryStatus::Full => ("󰂄", theme.fg_muted),
+        BatteryStatus::NotCharging => (get_discharging_icon(info.capacity), theme.fg_muted),
+        BatteryStatus::Discharging | BatteryStatus::Unknown => {
+            let color = if info.capacity <= 15 {
+                theme.danger
             } else if info.capacity <= 30 {
-                ("󰁺", theme.warning)
+                theme.warning
             } else {
-                ("󰁹", theme.fg_muted)
-            }
+                theme.fg_muted
+            };
+            (get_discharging_icon(info.capacity), color)
         }
     };
 

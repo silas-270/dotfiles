@@ -2,6 +2,7 @@ use tiny_skia::PixmapMut;
 use crate::render::FontCache;
 use crate::theme::ThemeConfig;
 use crate::api;
+use crate::api::network::{NetInfo, NetKind};
 use super::fieldset::{draw_section_header, draw_inner_box, draw_tree_corner};
 use super::ActionResult;
 
@@ -9,6 +10,31 @@ pub struct ConnectionsSection;
 
 impl ConnectionsSection {
     pub const HEIGHT: f32 = 195.0;
+
+    fn wifi_signal_icon(signal: u8) -> &'static str {
+        match signal {
+            0..=20 => "󰤟",
+            21..=40 => "󰤢",
+            41..=60 => "󰤥",
+            _ => "󰤨",
+        }
+    }
+
+    /// The Wi-Fi radio marker is only needed when Wi-Fi is not the primary
+    /// link; otherwise the main icon already conveys the radio state.
+    fn shows_wifi_marker(net: &NetInfo) -> bool {
+        net.kind == NetKind::Ethernet
+            || (net.kind == NetKind::None && !net.wifi_enabled && net.eth_present)
+    }
+
+    /// True when the primary icon is an ethernet glyph rather than a Wi-Fi one.
+    fn primary_is_ethernet(net: &NetInfo) -> bool {
+        Self::shows_wifi_marker(net)
+    }
+
+    fn wifi_marker_text(net: &NetInfo) -> &'static str {
+        if net.wifi_enabled { "󰖩 on" } else { "󰖪 off" }
+    }
 
     pub fn draw(
         pixmap: &mut PixmapMut,
@@ -18,8 +44,7 @@ impl ConnectionsSection {
         sec_w: f32,
         font_size: f32,
         theme: &ThemeConfig,
-        wifi_enabled: bool,
-        wifi_ssid: &str,
+        net: &NetInfo,
         bt_enabled: bool,
         bt_device: &str,
     ) {
@@ -46,20 +71,59 @@ impl ConnectionsSection {
         let wifi_line1_y = wifi_box_y + 8.0;
         let wifi_line2_y = wifi_box_y + 37.0;
 
-        // WiFi uses calibrated bracket tag (centered icon, exact standard bracket width)
-        let wifi_icon = if wifi_enabled { "󰖩" } else { "󰖪" };
-        let tag_w = font_cache.draw_calibrated_bracket_tag(pixmap, wifi_icon, icon_x, wifi_line1_y, font_size, accent_color);
-        font_cache.draw_text(pixmap, " WIFI", icon_x + tag_w, wifi_line1_y, font_size, false, accent_color);
+        // The tile follows whatever is actually carrying traffic: a plugged-in
+        // cable outranks Wi-Fi.
+        let (primary_icon, primary_label) = match net.kind {
+            NetKind::Ethernet => ("󰈀", " ETHERNET"),
+            NetKind::Wifi => (Self::wifi_signal_icon(net.signal), " WIFI"),
+            NetKind::None => {
+                if net.wifi_enabled {
+                    ("󰤯", " WIFI")
+                } else if net.eth_present {
+                    ("󰈂", " ETHERNET")
+                } else {
+                    ("󰖪", " WIFI")
+                }
+            }
+        };
 
-        let wifi_sub_text = if !wifi_enabled {
-            "Disabled"
-        } else if wifi_ssid.is_empty() {
-            "Disconnected"
+        // The calibrated tag exists to re-centre the Wi-Fi glyphs, whose ink sits
+        // off-centre. The ethernet glyphs are centred already and use plain
+        // symmetric brackets, like the Bluetooth row.
+        let tag_w = if Self::primary_is_ethernet(net) {
+            let tag = format!("( {} )", primary_icon);
+            font_cache.draw_text(pixmap, &tag, icon_x, wifi_line1_y, font_size, false, accent_color);
+            font_cache.measure_text(&tag, font_size, false)
         } else {
-            wifi_ssid
+            font_cache.draw_calibrated_bracket_tag(pixmap, primary_icon, icon_x, wifi_line1_y, font_size, accent_color)
+        };
+        font_cache.draw_text(pixmap, primary_label, icon_x + tag_w, wifi_line1_y, font_size, false, accent_color);
+
+        // When the cable is the live route the Wi-Fi radio state would
+        // otherwise be invisible, so show it as a marker on the right. That
+        // marker doubles as the radio toggle (see handle_click).
+        if Self::shows_wifi_marker(net) {
+            let marker = Self::wifi_marker_text(net);
+            let marker_color = if net.wifi_enabled { accent_color } else { text_color };
+            let marker_w = font_cache.measure_text(marker, font_size, false);
+            let marker_x = wifi_box_x + wifi_box_w - marker_w - 8.0;
+            font_cache.draw_text(pixmap, marker, marker_x, wifi_line1_y, font_size, false, marker_color);
+        }
+
+        let net_sub_text: &str = if net.kind == NetKind::None {
+            if net.wifi_enabled {
+                "Disconnected"
+            } else if net.eth_present {
+                // Labelled ETHERNET in this state, so describe the cable.
+                "Unplugged"
+            } else {
+                "Disabled"
+            }
+        } else {
+            &net.name
         };
         draw_tree_corner(pixmap, icon_x, wifi_line2_y, font_size, text_color);
-        font_cache.draw_text(pixmap, wifi_sub_text, icon_x + 14.0, wifi_line2_y, font_size, false, text_color);
+        font_cache.draw_text(pixmap, net_sub_text, icon_x + 14.0, wifi_line2_y, font_size, false, text_color);
 
         // --- Bluetooth Box ---
         let bt_box_x = sec_x;
@@ -96,6 +160,7 @@ impl ConnectionsSection {
         sec_y: f64,
         sec_w: f64,
         font_size: f32,
+        net: &NetInfo,
         wifi_enabled: &mut bool,
         bt_enabled: &mut bool,
     ) -> ActionResult {
@@ -111,11 +176,20 @@ impl ConnectionsSection {
         let icon_x = sec_x + 8.0;
 
         if y >= wifi_box_y && y <= wifi_box_y + wifi_box_h {
-            let wifi_icon = if *wifi_enabled { "󰖩" } else { "󰖪" };
-            let tag_w = font_cache.measure_calibrated_bracket_tag(wifi_icon, font_size) as f64;
-            let icon_hitbox_end = icon_x + tag_w;
+            // The Wi-Fi glyph is always the radio toggle. It sits on the left
+            // when Wi-Fi is the primary link, and moves to the right-hand
+            // marker when a cable has taken over.
+            let toggles_wifi = if Self::shows_wifi_marker(net) {
+                let marker_w = font_cache.measure_text(Self::wifi_marker_text(net), font_size, false) as f64;
+                let marker_x = sec_x + sec_w - marker_w - 8.0;
+                y <= wifi_box_y + 35.0 && x >= marker_x && x <= marker_x + marker_w
+            } else {
+                let icon = if *wifi_enabled { "󰖩" } else { "󰖪" };
+                let tag_w = font_cache.measure_calibrated_bracket_tag(icon, font_size) as f64;
+                y <= wifi_box_y + 35.0 && x >= icon_x && x <= icon_x + tag_w
+            };
 
-            if y <= wifi_box_y + 35.0 && x >= icon_x && x <= icon_hitbox_end {
+            if toggles_wifi {
                 let new_state = !*wifi_enabled;
                 api::network::set_wifi_enabled(new_state);
                 *wifi_enabled = new_state;

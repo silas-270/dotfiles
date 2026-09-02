@@ -96,8 +96,8 @@ fn try_toggle_existing() -> bool {
 
 enum SyncMessage {
     WifiBluetooth {
-        wifi: Option<(bool, String)>,
-        bt: Option<bool>,
+        wifi: Option<api::network::NetInfo>,
+        bt: Option<(bool, String)>,
     },
     Brightness {
         brightness: f64,
@@ -160,6 +160,7 @@ struct ControlCenter {
     // Cached state from API syncs
     wifi_active: bool,
     wifi_status: String,
+    net_info: api::network::NetInfo,
     bt_active: bool,
     bt_status: String,
     brightness: f64,
@@ -347,7 +348,7 @@ impl ControlCenter {
             &mut self.font_cache,
             sec_x, sec1_y, sec_w,
             font_size, &self.theme,
-            self.wifi_active, &self.wifi_status, self.bt_active, &self.bt_status,
+            &self.net_info, self.bt_active, &self.bt_status,
         );
 
         // 2. CONTROLS
@@ -440,11 +441,32 @@ impl ControlCenter {
 
         let sec1_y = 0.0;
 
+        let (wifi_before, bt_before) = (self.wifi_active, self.bt_active);
         match ConnectionsSection::handle_click(
             x, y, &mut self.font_cache, sec_x, sec1_y, sec_w, font_size,
-            &mut self.wifi_active, &mut self.bt_active,
+            &self.net_info.clone(), &mut self.wifi_active, &mut self.bt_active,
         ) {
             widgets::ActionResult::NeedsDraw => {
+                // Record when a radio was toggled so the poller's grace window
+                // (which was previously dead code) keeps the optimistic flip
+                // on screen until the rfkill/nmcli call has actually landed.
+                let now = std::time::Instant::now();
+                if self.wifi_active != wifi_before {
+                    self.wifi_toggle_time = Some(now);
+                    self.net_info.wifi_enabled = self.wifi_active;
+                    // Turning the radio off drops any Wi-Fi-borne connection,
+                    // but must not disturb an active cable.
+                    if !self.wifi_active && self.net_info.kind == api::network::NetKind::Wifi {
+                        self.net_info.kind = api::network::NetKind::None;
+                        self.net_info.name = String::new();
+                        self.wifi_status = String::new();
+                    }
+                }
+                if self.bt_active != bt_before {
+                    self.bt_toggle_time = Some(now);
+                    // Never carry a stale device name across a toggle.
+                    self.bt_status = String::new();
+                }
                 self.needs_draw = true;
                 return;
             }
@@ -669,12 +691,12 @@ impl ControlCenter {
         });
         let s = self.sync_sender.clone();
         std::thread::spawn(move || {
-            let w_enabled = api::network::is_wifi_enabled();
-            let w_ssid = api::network::get_connected_ssid();
+            let net = api::network::get_net_info();
             let b_enabled = api::bluetooth::is_bluetooth_enabled();
+            let b_status = if b_enabled { api::bluetooth::get_bluetooth_status() } else { String::new() };
             let _ = s.send(SyncMessage::WifiBluetooth {
-                wifi: Some((w_enabled, w_ssid)),
-                bt: Some(b_enabled),
+                wifi: Some(net),
+                bt: Some((b_enabled, b_status)),
             });
         });
         let s = self.sync_sender.clone();
@@ -685,15 +707,27 @@ impl ControlCenter {
     }
 
     fn spawn_sync_thread(sender: calloop::channel::Sender<SyncMessage>) {
-        std::thread::spawn(move || loop {
+        std::thread::spawn(move || {
+            let mut bt_tick: u32 = 0;
+            loop {
             std::thread::sleep(Duration::from_millis(500));
 
-            let w_enabled = api::network::is_wifi_enabled();
-            let w_ssid = api::network::get_connected_ssid();
-            let b_enabled = api::bluetooth::is_bluetooth_enabled();
+            let net = api::network::get_net_info();
+
+            // Bluetooth needs up to three bluetoothctl forks; poll it every
+            // 4th tick (~2s) instead of twice a second.
+            bt_tick = (bt_tick + 1) % 4;
+            let bt = if bt_tick == 0 {
+                let b_enabled = api::bluetooth::is_bluetooth_enabled();
+                let b_status = if b_enabled { api::bluetooth::get_bluetooth_status() } else { String::new() };
+                Some((b_enabled, b_status))
+            } else {
+                None
+            };
+
             if sender.send(SyncMessage::WifiBluetooth {
-                wifi: Some((w_enabled, w_ssid)),
-                bt: Some(b_enabled),
+                wifi: Some(net),
+                bt,
             }).is_err() {
                 break;
             }
@@ -713,6 +747,7 @@ impl ControlCenter {
             let media = api::media::get_media_state();
             if sender.send(SyncMessage::Media(media)).is_err() {
                 break;
+            }
             }
         });
     }
@@ -995,6 +1030,7 @@ fn main() {
         bt_toggle_time: None,
         wifi_active: false,
         wifi_status: "Disabled".to_string(),
+        net_info: api::network::NetInfo::default(),
         bt_active: false,
         bt_status: "Disconnected".to_string(),
         brightness: 0.8,
@@ -1036,16 +1072,19 @@ fn main() {
                         let wifi_grace = state.wifi_toggle_time.map_or(false, |t| now.duration_since(t) < Duration::from_millis(3000));
                         let bt_grace = state.bt_toggle_time.map_or(false, |t| now.duration_since(t) < Duration::from_millis(3000));
 
-                        if let Some((w_active, w_ssid)) = wifi {
+                        if let Some(net) = wifi {
                             if !wifi_grace {
-                                state.wifi_active = w_active;
-                                state.wifi_status = w_ssid;
+                                state.wifi_active = net.wifi_enabled;
+                                state.wifi_status = net.name.clone();
+                                state.net_info = net;
                             }
                         }
-                        if let Some(b_active) = bt {
+                        if let Some((b_active, b_status)) = bt {
                             if !bt_grace {
                                 state.bt_active = b_active;
-                                state.bt_status = if b_active { "Connected".to_string() } else { "Disabled".to_string() };
+                                // Empty means "powered but nothing connected";
+                                // the widget renders that as "Disconnected".
+                                state.bt_status = b_status;
                             }
                         }
                         state.needs_draw = true;

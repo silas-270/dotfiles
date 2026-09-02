@@ -4,6 +4,7 @@ pub mod centerpiece;
 pub mod clock;
 pub mod controlcenter;
 pub mod cpu;
+pub mod fedora;
 pub mod network;
 pub mod ram;
 pub mod volume;

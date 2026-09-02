@@ -1,0 +1,132 @@
+/* Shared theme for the Wi-Fi / Bluetooth connection menus - Brutalist CLI Style
+ * Imported by wifi.rasi and bluetooth.rasi; edit here, not in those. */
+
+configuration {
+    click-to-exit: true;
+    show-icons:    false;
+}
+
+@import "../theme/generated/colors.rasi"
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+window {
+    background-color: @bg-base;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
+    width:            480px;
+    padding:          12px;
+}
+
+/* `message` is load-bearing: it is where -mesg status text renders.
+ * Without it in this list, all status feedback is silently dropped. */
+mainbox {
+    spacing:          10px;
+    children:         [ inputbar, message, listview ];
+}
+
+inputbar {
+    spacing:          8px;
+    padding:          6px 8px;
+    background-color: @bg-input;
+    border:           2px;
+    border-color:     @border;
+    border-radius:    0px;
+    children:         [ prompt, entry ];
+}
+
+prompt {
+    background-color: transparent;
+    text-color:       @accent;
+    font:             "JetBrainsMono Nerd Font Bold 12";
+    padding:          4px 8px;
+    vertical-align:   0.5;
+}
+
+entry {
+    placeholder:      "search...";
+    placeholder-color:@fg-muted;
+    vertical-align:   0.5;
+    text-color:       @fg-primary;
+    background-color: transparent;
+    font:             "JetBrainsMono Nerd Font 12";
+}
+
+message {
+    padding:          6px 8px;
+    border:           2px;
+    border-color:     @inner-border;
+    border-radius:    0px;
+    background-color: @bg-box;
+}
+
+textbox {
+    text-color:       @fg-muted;
+    background-color: transparent;
+    font:             "JetBrainsMono Nerd Font 12";
+    vertical-align:   0.5;
+    markup:           true;
+}
+
+listview {
+    fixed-height:     false;
+    spacing:          4px;
+    scrollbar:        false;
+    lines:            12;
+}
+
+element {
+    padding:          6px 8px;
+    border-radius:    0px;
+    spacing:          8px;
+    cursor:           pointer;
+}
+
+element normal.normal,
+element alternate.normal {
+    background-color: transparent;
+    text-color:       @fg-primary;
+}
+
+/* -a marks the currently connected row */
+element normal.active,
+element alternate.active {
+    background-color: @accent-bg;
+    text-color:       @accent;
+}
+
+/* -u marks rows in an error/unavailable state */
+element normal.urgent,
+element alternate.urgent {
+    background-color: transparent;
+    text-color:       @danger;
+}
+
+element selected.normal {
+    background-color: @accent;
+    text-color:       @bg-base;
+}
+
+element selected.active {
+    background-color: @accent-hover;
+    text-color:       @bg-base;
+}
+
+element selected.urgent {
+    background-color: @danger;
+    text-color:       @bg-base;
+}
+
+element-text {
+    font:             "JetBrainsMono Nerd Font 12";
+    text-color:       inherit;
+    vertical-align:   0.5;
+    cursor:           inherit;
+    highlight:        bold;
+}

@@ -97,6 +97,7 @@ pub fn get_ram_display() -> String {
 pub enum BatteryStatus {
     Charging,
     Discharging,
+    NotCharging,
     Full,
     Unknown,
 }
@@ -106,20 +107,37 @@ pub struct BatteryInfo {
     pub status: BatteryStatus,
 }
 
-/// Reads Battery capacity and status from /sys/class/power_supply/BAT0/
+fn get_battery_path() -> Option<std::path::PathBuf> {
+    if let Ok(entries) = fs::read_dir("/sys/class/power_supply") {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            if name_str.starts_with("BAT") {
+                return Some(entry.path());
+            }
+        }
+    }
+    None
+}
+
+/// Reads Battery capacity and status from /sys/class/power_supply/BAT*/
 pub fn get_battery_info() -> BatteryInfo {
-    let capacity = fs::read_to_string("/sys/class/power_supply/BAT0/capacity")
+    let bat_dir = get_battery_path();
+    let bat_path = bat_dir.as_deref().unwrap_or(std::path::Path::new("/sys/class/power_supply/BAT0"));
+
+    let capacity = fs::read_to_string(bat_path.join("capacity"))
         .ok()
         .and_then(|s| s.trim().parse::<u32>().ok())
         .unwrap_or(100);
 
-    let status_str = fs::read_to_string("/sys/class/power_supply/BAT0/status")
+    let status_str = fs::read_to_string(bat_path.join("status"))
         .ok()
         .unwrap_or_else(|| "Full".to_string());
 
     let status = match status_str.trim() {
         "Charging" => BatteryStatus::Charging,
         "Discharging" => BatteryStatus::Discharging,
+        "Not charging" | "Not Charging" => BatteryStatus::NotCharging,
         "Full" => BatteryStatus::Full,
         _ => BatteryStatus::Unknown,
     };

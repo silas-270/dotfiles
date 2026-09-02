@@ -1,3 +1,4 @@
+use crate::api::connectivity::bt_state;
 use crate::render::FontCache;
 use crate::theme::ThemeConfig;
 use tiny_skia::PixmapMut;
@@ -10,8 +11,24 @@ pub fn render_bluetooth(
     top_y: f32,
     font_size: f32,
 ) -> f32 {
-    let content = "";
-    font_cache.draw_gtk_box(pixmap, content, start_x, top_y, font_size, theme.fg_muted, theme.border, 0.0, false)
+    // Cheap: reads a cached snapshot refreshed on a background thread.
+    let state = bt_state();
+
+    // Uniform with the CPU/RAM boxes; the glyph carries the state, not colour.
+    let content = if !state.powered {
+        "󰂲".to_string()
+    } else if state.connected() {
+        match state.battery {
+            Some(b) => format!("󰂱 {}%", b),
+            None => "󰂱".to_string(),
+        }
+    } else {
+        "".to_string()
+    };
+
+    font_cache.draw_gtk_box(
+        pixmap, &content, start_x, top_y, font_size, theme.fg_muted, theme.border, 0.0, false,
+    )
 }
 
 pub fn handle_click() {
