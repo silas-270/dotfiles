@@ -3,7 +3,7 @@ use crate::render::PanelText;
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
 use crate::api;
-use crate::api::network::{NetInfo, NetKind};
+use shell_common::api::connectivity::{NetKind, NetState};
 use super::fieldset::{draw_section_header, draw_inner_box, draw_tree_corner};
 use super::ActionResult;
 
@@ -23,17 +23,17 @@ impl ConnectionsSection {
 
     /// The Wi-Fi radio marker is only needed when Wi-Fi is not the primary
     /// link; otherwise the main icon already conveys the radio state.
-    fn shows_wifi_marker(net: &NetInfo) -> bool {
+    fn shows_wifi_marker(net: &NetState) -> bool {
         net.kind == NetKind::Ethernet
             || (net.kind == NetKind::None && !net.wifi_enabled && net.eth_present)
     }
 
     /// True when the primary icon is an ethernet glyph rather than a Wi-Fi one.
-    fn primary_is_ethernet(net: &NetInfo) -> bool {
+    fn primary_is_ethernet(net: &NetState) -> bool {
         Self::shows_wifi_marker(net)
     }
 
-    fn wifi_marker_text(net: &NetInfo) -> &'static str {
+    fn wifi_marker_text(net: &NetState) -> &'static str {
         if net.wifi_enabled { "󰖩 on" } else { "󰖪 off" }
     }
 
@@ -45,7 +45,7 @@ impl ConnectionsSection {
         sec_w: f32,
         font_size: f32,
         theme: &ThemeConfig,
-        net: &NetInfo,
+        net: &NetState,
         bt_enabled: bool,
         bt_device: &str,
     ) {
@@ -161,7 +161,7 @@ impl ConnectionsSection {
         sec_y: f64,
         sec_w: f64,
         font_size: f32,
-        net: &NetInfo,
+        net: &NetState,
         wifi_enabled: &mut bool,
         bt_enabled: &mut bool,
     ) -> ActionResult {

@@ -97,7 +97,7 @@ fn try_toggle_existing() -> bool {
 
 enum SyncMessage {
     WifiBluetooth {
-        wifi: Option<api::network::NetInfo>,
+        wifi: Option<api::connectivity::NetState>,
         bt: Option<(bool, String)>,
     },
     Brightness {
@@ -159,7 +159,7 @@ struct ControlCenter {
 
     // Cached state from API syncs
     wifi_active: bool,
-    net_info: api::network::NetInfo,
+    net_info: api::connectivity::NetState,
     bt_active: bool,
     bt_status: String,
     brightness: f64,
@@ -436,8 +436,8 @@ impl ControlCenter {
                     self.net_info.wifi_enabled = self.wifi_active;
                     // Turning the radio off drops any Wi-Fi-borne connection,
                     // but must not disturb an active cable.
-                    if !self.wifi_active && self.net_info.kind == api::network::NetKind::Wifi {
-                        self.net_info.kind = api::network::NetKind::None;
+                    if !self.wifi_active && self.net_info.kind == api::connectivity::NetKind::Wifi {
+                        self.net_info.kind = api::connectivity::NetKind::None;
                         self.net_info.name = String::new();
                     }
                 }
@@ -670,9 +670,9 @@ impl ControlCenter {
         });
         let s = self.sync_sender.clone();
         std::thread::spawn(move || {
-            let net = api::network::get_net_info();
-            let b_enabled = api::bluetooth::is_bluetooth_enabled();
-            let b_status = if b_enabled { api::bluetooth::get_bluetooth_status() } else { String::new() };
+            let net = api::connectivity::poll_net();
+            let bt_state = api::connectivity::poll_bt();
+            let (b_enabled, b_status) = (bt_state.powered, bt_state.status_label());
             let _ = s.send(SyncMessage::WifiBluetooth {
                 wifi: Some(net),
                 bt: Some((b_enabled, b_status)),
@@ -691,14 +691,14 @@ impl ControlCenter {
             loop {
             std::thread::sleep(Duration::from_millis(500));
 
-            let net = api::network::get_net_info();
+            let net = api::connectivity::poll_net();
 
             // Bluetooth needs up to three bluetoothctl forks; poll it every
             // 4th tick (~2s) instead of twice a second.
             bt_tick = (bt_tick + 1) % 4;
             let bt = if bt_tick == 0 {
-                let b_enabled = api::bluetooth::is_bluetooth_enabled();
-                let b_status = if b_enabled { api::bluetooth::get_bluetooth_status() } else { String::new() };
+                let bt_state = api::connectivity::poll_bt();
+                let (b_enabled, b_status) = (bt_state.powered, bt_state.status_label());
                 Some((b_enabled, b_status))
             } else {
                 None
@@ -1008,7 +1008,7 @@ fn main() {
         wifi_toggle_time: None,
         bt_toggle_time: None,
         wifi_active: false,
-        net_info: api::network::NetInfo::default(),
+        net_info: api::connectivity::NetState::default(),
         bt_active: false,
         bt_status: "Disconnected".to_string(),
         brightness: 0.8,

@@ -1,4 +1,5 @@
-use crate::api::connectivity::{net_state, NetKind};
+use crate::api::connectivity::net_state;
+use shell_common::api::connectivity::NetKind;
 use crate::render::{BarText, BracketSpacing};
 use shell_common::font::FontCache;
 use shell_common::theme::ThemeConfig;
