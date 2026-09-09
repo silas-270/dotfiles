@@ -19,7 +19,12 @@ pub fn home() -> PathBuf {
 /// The dotfiles checkout. `~/.config/hypr` is a symlink into it, so either route
 /// reaches the same files; this one does not depend on the symlink existing.
 pub fn dotfiles() -> PathBuf {
-    home().join("dotfiles")
+    let cfg = home().join(".config/dotfiles");
+    if cfg.exists() {
+        cfg
+    } else {
+        home().join("dotfiles")
+    }
 }
 
 /// The generated theme palette both surfaces read.

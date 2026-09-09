@@ -3,3 +3,7 @@ hypr/scripts/target/
 
 # Massive Icon-Packs (besser über den Paketmanager installieren)
 icons/
+**/target/
+
+# Python bytecode cache
+**/__pycache__/

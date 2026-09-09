@@ -16,7 +16,12 @@ def load_theme_colors():
     badge_bg_rgb = (84 / 255.0, 56 / 255.0, 43 / 255.0)     # #54382B (bg_base)
     text_muted_rgb = (194 / 255.0, 170 / 255.0, 149 / 255.0) # #C2AA95 (fg_muted)
 
-    colors_lua = os.path.expanduser("~/dotfiles/theme/generated/colors.lua")
+    paths = [
+        os.path.expanduser("~/.config/theme/generated/colors.lua"),
+        os.path.expanduser("~/.config/dotfiles/theme/generated/colors.lua"),
+        os.path.expanduser("~/dotfiles/theme/generated/colors.lua"),
+    ]
+    colors_lua = next((p for p in paths if os.path.exists(p)), paths[0])
     if os.path.exists(colors_lua):
         try:
             with open(colors_lua, "r") as f:

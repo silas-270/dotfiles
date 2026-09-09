@@ -145,4 +145,14 @@ impl FontCache {
         let v = self.font.v_metrics(scale);
         v.ascent - v.descent
     }
+
+    /// Ascent (positive, above baseline) and descent (positive, below
+    /// baseline) — needed to align non-text content (e.g. a formula image)
+    /// to the same baseline `draw_text`/`draw_text_clipped` use internally
+    /// (`top_y + ascent`), rather than to the full line box.
+    pub fn ascent_descent(&mut self, font_size: f32) -> (f32, f32) {
+        let scale = Scale::uniform(font_size);
+        let v = self.font.v_metrics(scale);
+        (v.ascent, -v.descent)
+    }
 }

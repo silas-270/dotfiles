@@ -73,7 +73,20 @@ fn parse_hex_color(content: &str, key: &str) -> Option<(u8, u8, u8)> {
 fn load_theme_colors() -> ThemeColors {
     let mut colors = ThemeColors::default();
     let home = std::env::var("HOME").unwrap_or_else(|_| "/home/silas270".to_string());
-    let path = PathBuf::from(home).join("dotfiles/theme/generated/colors.lua");
+    let home_path = PathBuf::from(&home);
+    let path = {
+        let p1 = home_path.join(".config/theme/generated/colors.lua");
+        if p1.exists() {
+            p1
+        } else {
+            let p2 = home_path.join(".config/dotfiles/theme/generated/colors.lua");
+            if p2.exists() {
+                p2
+            } else {
+                home_path.join("dotfiles/theme/generated/colors.lua")
+            }
+        }
+    };
 
     if let Ok(content) = fs::read_to_string(path) {
         if let Some(c) = parse_hex_color(&content, "accent") {

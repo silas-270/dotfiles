@@ -3,7 +3,8 @@
 
 export PATH="$HOME/.cargo/bin:$PATH"
 
-THEMES_DIR="$HOME/dotfiles/themes"
+THEMES_DIR="$HOME/.config/dotfiles/themes"
+[ ! -d "$THEMES_DIR" ] && THEMES_DIR="$HOME/.config/themes"
 ACTIVE_THEME_FILE="$HOME/.config/active_theme"
 SWAYBG_LINK="$HOME/.cache/wallpaper-home.jpg"
 ROFI_THEME="$HOME/.config/rofi/theme.rasi"
@@ -98,7 +99,7 @@ if [ -f "$WALLUST_BIN" ] && [ -f "$JSON_FILE" ]; then
 fi
 
 # 1b. Compile theme colors via apply.py to preserve custom fields
-python3 "$HOME/dotfiles/theme/apply.py" "$JSON_FILE" >/dev/null 2>&1 || true
+python3 "$HOME/.config/dotfiles/theme/apply.py" "$JSON_FILE" >/dev/null 2>&1 || true
 
 # 2. Set Wallpaper (or solid black fallback if no wallpapers exist)
 IFS=$'\n' read -r -d '' -a WPS < <(find "$THEME_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) | sort && printf '\0')
@@ -123,7 +124,7 @@ pkill -x rustbar 2>/dev/null || true
 sleep 0.1
 RUSTBAR_BIN="$HOME/.config/hypr/scripts/target/release/rustbar"
 if [ ! -x "$RUSTBAR_BIN" ]; then
-    RUSTBAR_BIN="$HOME/dotfiles/hypr/scripts/target/release/rustbar"
+    RUSTBAR_BIN="$HOME/.config/dotfiles/hypr/scripts/target/release/rustbar"
 fi
 if [ -x "$RUSTBAR_BIN" ]; then
     setsid "$RUSTBAR_BIN" >/dev/null 2>&1 &

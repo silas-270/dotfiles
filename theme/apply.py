@@ -14,7 +14,7 @@ def generate_theme_files(preset_path):
     colors = data.get("colors", {})
     name = data.get("name", "Custom Theme")
 
-    generated_dir = os.path.expanduser("~/dotfiles/theme/generated")
+    generated_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated")
     os.makedirs(generated_dir, exist_ok=True)
 
     # 1. Save colors.json

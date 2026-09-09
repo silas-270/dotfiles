@@ -1,7 +1,8 @@
 #!/bin/bash
 # Wallpaper Cycling Script for Hyprland (Theme-Aware)
 
-THEMES_DIR="$HOME/dotfiles/themes"
+THEMES_DIR="$HOME/.config/dotfiles/themes"
+[ ! -d "$THEMES_DIR" ] && THEMES_DIR="$HOME/.config/themes"
 ACTIVE_THEME_FILE="$HOME/.config/active_theme"
 SWAYBG_LINK="$HOME/.cache/wallpaper-home.jpg"
 

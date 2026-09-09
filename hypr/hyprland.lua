@@ -31,7 +31,15 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 
 local theme = {}
 pcall(function()
-    theme = dofile(os.getenv("HOME") .. "/dotfiles/theme/generated/colors.lua")
+    local home = os.getenv("HOME")
+    local path = home .. "/.config/theme/generated/colors.lua"
+    local f = io.open(path, "r")
+    if f then
+        f:close()
+        theme = dofile(path)
+    else
+        theme = dofile(home .. "/.config/dotfiles/theme/generated/colors.lua")
+    end
 end)
 
 -- general, input, decoration, misc, xwayland
@@ -62,6 +70,7 @@ hl.config({
             enabled = true,
             size    = 8,
             passes  = 3,
+            ignore_opacity = true,
         },
         shadow = {
             enabled = false,
@@ -105,9 +114,12 @@ hl.animation({ leaf = "fadeLayersOut", enabled = false })
 hl.layer_rule({ match = { namespace = "rustbar" }, blur = true, ignore_alpha = 1.0 })
 hl.layer_rule({ match = { namespace = "rofi" }, blur = true, ignore_alpha = 0.5, animation = "none" })
 hl.layer_rule({ match = { namespace = "control-center" }, blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "ask-ai" }, blur = true, ignore_alpha = 0.1 })
 
 -- window rules
 hl.window_rule({ match = { class = "^control-center$" }, float = true })
+hl.window_rule({ match = { class = "(?i)qemu" }, fullscreen = true })
+hl.window_rule({ match = { class = "^ask-ai-overlay$" }, float = true, size = "900 650", center = true, pin = true })
 
 -- keybinds
 local mainMod = "SUPER"
@@ -163,6 +175,7 @@ hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.move({ workspace = "e-1" }))
 
 hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("hyprshot -m window"))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("~/.config/hypr/scripts/ask-ai.sh"))
 hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output"))
 
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })

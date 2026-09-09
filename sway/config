@@ -46,6 +46,10 @@ exec_always ~/.config/sway/scripts/apply-theme-colors.sh
 # Floating Rules
 for_window [class="^control-center$"] floating enable
 
+# Auto-fullscreen QEMU (grub theme preview) — covers both Wayland (app_id) and XWayland (class)
+for_window [app_id="(?i)qemu"] fullscreen enable
+for_window [class="(?i)qemu"] fullscreen enable
+
 # Core Keybindings
 bindsym $mod+Return exec kitty
 bindsym $mod+q kill
