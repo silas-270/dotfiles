@@ -73,6 +73,7 @@ sudo mkdir -p /usr/share/sddm/themes
 sudo cp -r "$DOTFILES_DIR/system/keyd/default.conf" /etc/keyd/
 sudo cp -r "$DOTFILES_DIR/system/sddm/kde_settings.conf" /etc/sddm.conf.d/
 sudo cp -r "$DOTFILES_DIR/system/sddm/themes/silas-theme" /usr/share/sddm/themes/
+sudo cp -r "$DOTFILES_DIR/system/sddm/themes/africa" /usr/share/sddm/themes/
 
 echo "======================================"
 echo "✅ Installation abgeschlossen!"
