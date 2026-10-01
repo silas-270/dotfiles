@@ -20,6 +20,7 @@ The theme colors are centrally managed in a single JSON definition and compiled 
 * **Lua (Hyprland):** [`~/dotfiles/theme/generated/colors.lua`](file:///home/silas270/dotfiles/theme/generated/colors.lua)
 * **Rasi (Rofi):** [`~/dotfiles/theme/generated/colors.rasi`](file:///home/silas270/dotfiles/theme/generated/colors.rasi)
 * **Conf (Kitty / Shell):** [`~/dotfiles/theme/generated/colors.conf`](file:///home/silas270/dotfiles/theme/generated/colors.conf)
+* **Hyprlock:** [`~/dotfiles/theme/generated/colors-hyprlock.conf`](file:///home/silas270/dotfiles/theme/generated/colors-hyprlock.conf)
 
 ### Color Tokens & Assignments
 

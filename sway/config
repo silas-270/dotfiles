@@ -37,9 +37,9 @@ input type:touchpad {
 exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP SWAYSOCK DISPLAY XAUTHORITY
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY SWAYSOCK
 exec command -v uwsm >/dev/null && uwsm finalize SWAYSOCK
-exec ~/.config/hypr/scripts/change_wallpaper.sh init
-exec ~/.config/hypr/scripts/target/release/rustbar
-exec ~/.config/hypr/scripts/target/release/control-center --daemon
+exec ~/.config/dotfiles/hypr/scripts/change_wallpaper.sh init
+exec ~/.config/dotfiles/hypr/scripts/target/release/rustbar
+exec ~/.config/dotfiles/hypr/scripts/target/release/control-center --daemon
 exec autotiling-rs
 exec_always ~/.config/sway/scripts/apply-theme-colors.sh
 
@@ -54,7 +54,7 @@ for_window [class="(?i)qemu"] fullscreen enable
 bindsym $mod+Return exec kitty
 bindsym $mod+q kill
 bindsym $mod+space exec rofi -show drun
-bindsym $mod+m exec ~/.config/hypr/scripts/power-menu.sh
+bindsym $mod+m exec ~/.config/dotfiles/hypr/scripts/power-menu.sh
 bindsym $mod+f fullscreen toggle
 bindsym $mod+v floating toggle
 bindsym $mod+l exec "hyprlock || loginctl lock-session"
@@ -88,13 +88,13 @@ bindsym $mod+Shift+Right move container to workspace next
 bindsym $mod+Shift+Left move container to workspace prev
 
 # Custom Scripts Keybindings
-bindsym $mod+Mod1+d exec ~/.config/hypr/scripts/toggle-laptop-screen.sh
-bindsym $mod+c exec ~/.config/hypr/scripts/target/release/control-center
-bindsym $mod+Mod1+k exec ~/.config/hypr/scripts/toggle-keyd.sh
-bindsym $mod+t exec ~/.config/hypr/scripts/theme-switcher.sh
+bindsym $mod+Mod1+d exec ~/.config/dotfiles/hypr/scripts/toggle-laptop-screen.sh
+bindsym $mod+c exec ~/.config/dotfiles/hypr/scripts/target/release/control-center
+bindsym $mod+Mod1+k exec ~/.config/dotfiles/hypr/scripts/toggle-keyd.sh
+bindsym $mod+t exec ~/.config/dotfiles/hypr/scripts/theme-switcher.sh
 bindsym $mod+b exec python3 -c "import socket,os; socket.socket(socket.AF_UNIX).connect(f'/tmp/rustbar-{os.getuid()}.sock')"
-bindsym $mod+w exec ~/.config/hypr/scripts/change_wallpaper.sh next
-bindsym $mod+Shift+w exec ~/.config/hypr/scripts/change_wallpaper.sh prev
+bindsym $mod+w exec ~/.config/dotfiles/hypr/scripts/change_wallpaper.sh next
+bindsym $mod+Shift+w exec ~/.config/dotfiles/hypr/scripts/change_wallpaper.sh prev
 
 # Screenshots 
 # Note: hyprshot explicitly looks for hyprland. You will likely need to install 'grim' and 'slurp' and change this script for Sway.
@@ -103,11 +103,11 @@ bindsym $mod+Print exec hyprshot -m window
 bindsym $mod+Shift+Print exec hyprshot -m output
 
 # Media & Volume
-bindsym --locked XF86AudioMute exec ~/.config/hypr/scripts/change-volume.sh toggle
-bindsym --locked XF86AudioLowerVolume exec ~/.config/hypr/scripts/change-volume.sh lower
-bindsym --locked XF86AudioRaiseVolume exec ~/.config/hypr/scripts/change-volume.sh raise
+bindsym --locked XF86AudioMute exec ~/.config/dotfiles/hypr/scripts/change-volume.sh toggle
+bindsym --locked XF86AudioLowerVolume exec ~/.config/dotfiles/hypr/scripts/change-volume.sh lower
+bindsym --locked XF86AudioRaiseVolume exec ~/.config/dotfiles/hypr/scripts/change-volume.sh raise
 bindsym --locked XF86AudioPrev exec playerctl previous
 bindsym --locked XF86AudioPlay exec playerctl play-pause
 bindsym --locked XF86AudioNext exec playerctl next
-bindsym --locked XF86MonBrightnessDown exec ~/.config/hypr/scripts/change-brightness.sh -5%
-bindsym --locked XF86MonBrightnessUp exec ~/.config/hypr/scripts/change-brightness.sh +5%
+bindsym --locked XF86MonBrightnessDown exec ~/.config/dotfiles/hypr/scripts/change-brightness.sh -5%
+bindsym --locked XF86MonBrightnessUp exec ~/.config/dotfiles/hypr/scripts/change-brightness.sh +5%

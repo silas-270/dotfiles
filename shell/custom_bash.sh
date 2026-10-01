@@ -7,7 +7,7 @@ export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # Fastfetch Hyprland/Plasma Switch
-if [[ "$HYPRLAND_INSTANCE_SIGNATURE" != "" ]] || [[ "$SWAYSOCK" != "" ]]; then
+if [[ "$SWAYSOCK" != "" ]] || ( [[ "$HYPRLAND_INSTANCE_SIGNATURE" != "" ]] && [[ "$(readlink -f ~/.config/hypr 2>/dev/null)" != *"caelestia"* ]] && [[ "$CAELESTIA" == "" ]] ); then
     fastfetch --config ~/.config/fastfetch/config-hyprland.jsonc
 else
     fastfetch

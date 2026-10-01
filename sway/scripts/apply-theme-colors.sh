@@ -2,7 +2,7 @@
 # Reads the active theme and applies window border colors to the running Sway session.
 
 THEME_NAME=$(cat "$HOME/.config/active_theme" 2>/dev/null || echo "savanna-dusk")
-THEME_JSON="$HOME/dotfiles/themes/$THEME_NAME/theme.json"
+THEME_JSON="$HOME/.config/dotfiles/themes/$THEME_NAME/theme.json"
 
 [ -f "$THEME_JSON" ] || exit 0
 
